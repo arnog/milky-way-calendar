@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Header from './components/Header'
 import LocationInput from './components/LocationInput'
+import TonightCard from './components/TonightCard'
 import Calendar from './components/Calendar'
 import { Location } from './types/astronomy'
 
@@ -22,7 +23,10 @@ function App() {
         />
         
         {location && (
-          <Calendar location={location} />
+          <>
+            <TonightCard location={location} />
+            <Calendar location={location} />
+          </>
         )}
       </div>
     </div>
