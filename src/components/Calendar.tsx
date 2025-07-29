@@ -69,7 +69,6 @@ export default function Calendar({ location }: CalendarProps) {
             location
           );
 
-
           // Add all weeks (including those with visibility = 0)
           {
             // Get GC times for display
@@ -266,11 +265,6 @@ export default function Calendar({ location }: CalendarProps) {
           }
         `}
       </style>
-
-      <h2 className="text-6xl font-semibold mb-6 text-center">
-        <div className="text-8xl font-bold">{currentYear}</div>
-        Milky WayCalendar
-      </h2>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">

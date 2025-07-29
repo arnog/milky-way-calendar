@@ -43,10 +43,10 @@ export default function LocationPopover({
       const triggerRect = triggerRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const desiredWidth = Math.min(Math.max(viewportWidth * 0.5, 500), 800);
-      
+
       // Center the popover horizontally on the page
       const left = (viewportWidth - desiredWidth) / 2;
-      
+
       setPopoverPosition({
         top: triggerRect.bottom + window.scrollY + 8,
         left: left,
@@ -67,7 +67,9 @@ export default function LocationPopover({
           setIsNearbyMatch(false);
         } else if (parsed.location) {
           setInputValue(
-            `${parsed.location.lat.toFixed(1)}, ${parsed.location.lng.toFixed(1)}`
+            `${parsed.location.lat.toFixed(1)}, ${parsed.location.lng.toFixed(
+              1
+            )}`
           );
           setMatchedLocationName(null);
           setIsNearbyMatch(false);
@@ -81,9 +83,7 @@ export default function LocationPopover({
         }
       }
     } else if (location) {
-      setInputValue(
-        `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
-      );
+      setInputValue(`${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`);
     }
   }, [location]);
 
@@ -111,7 +111,7 @@ export default function LocationPopover({
     document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleResize);
-    
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("scroll", handleScroll);
@@ -226,7 +226,9 @@ export default function LocationPopover({
           if (nearbyLocation) {
             onLocationChange(nearbyLocation.location);
             setInputValue(
-              `${nearbyLocation.location.lat.toFixed(1)}, ${nearbyLocation.location.lng.toFixed(1)}`
+              `${nearbyLocation.location.lat.toFixed(
+                1
+              )}, ${nearbyLocation.location.lng.toFixed(1)}`
             );
             setMatchedLocationName(nearbyLocation.matchedName || null);
             setIsNearbyMatch(true);
@@ -275,19 +277,29 @@ export default function LocationPopover({
       }}
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-2xl font-semibold">Your Location</h3>
+        <h3 className="text-2xl font-semibold"></h3>
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-white transition-colors"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
 
       {isLoading ? (
-        <p className="text-blue-200">Detecting your location...</p>
+        <p className="text-blue-200 text-3xl">Detecting your location...</p>
       ) : (
         <>
           <div className="mb-4">
@@ -308,15 +320,22 @@ export default function LocationPopover({
                     if (parsed) {
                       let finalLocation = parsed;
                       if (!parsed.matchedName) {
-                        const nearbyLocation = findNearestSpecialLocation(parsed.location);
+                        const nearbyLocation = findNearestSpecialLocation(
+                          parsed.location
+                        );
                         if (nearbyLocation) {
                           finalLocation = nearbyLocation;
                         }
                       }
                       onLocationChange(finalLocation.location);
                       setMatchedLocationName(finalLocation.matchedName || null);
-                      setIsNearbyMatch(!parsed.matchedName && !!finalLocation.matchedName);
-                      saveLocation(finalLocation.location, finalLocation.matchedName || null);
+                      setIsNearbyMatch(
+                        !parsed.matchedName && !!finalLocation.matchedName
+                      );
+                      saveLocation(
+                        finalLocation.location,
+                        finalLocation.matchedName || null
+                      );
                       if (finalLocation.matchedName) {
                         setInputValue(finalLocation.matchedName);
                       }
@@ -330,16 +349,32 @@ export default function LocationPopover({
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-white disabled:text-gray-600 transition-colors"
                 title="Use current location"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
                 </svg>
               </button>
             </div>
-            
+
             {matchedLocationName && (
               <p className="text-sm text-blue-300 mt-1">
-                {isNearbyMatch ? "Near " : ""}{matchedLocationName}
+                {isNearbyMatch ? "Near " : ""}
+                {matchedLocationName}
               </p>
             )}
           </div>

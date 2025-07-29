@@ -42,7 +42,7 @@ interface TonightEvents {
 const Icon = ({
   name,
   title,
-  className = "w-10 h-10",
+  className = "w-8 h-8",
 }: {
   name: string;
   title?: string;
@@ -51,7 +51,7 @@ const Icon = ({
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
-    <div 
+    <div
       className="relative inline-block"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
@@ -62,7 +62,7 @@ const Icon = ({
         <use href={`/src/icons.svg#${name}`} />
       </svg>
       {showTooltip && title && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg whitespace-nowrap z-50">
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xl text-white bg-gray-900 rounded shadow-lg whitespace-nowrap z-50">
           {title}
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
         </div>
@@ -129,7 +129,6 @@ export default function TonightCard({
         // Calculate Galactic Center times
         const gcRa = 17.759; // hours
         const gcDec = -29.008; // degrees
-        const gcEquator: Equator = { ra: gcRa, dec: gcDec };
 
         // Find GC rise/set times
         // Note: SearchRiseSet doesn't work with custom star coordinates, so we'll skip this
@@ -163,9 +162,7 @@ export default function TonightCard({
         // Calculate visibility rating for tonight
         const visibility = calculateTonightVisibility(
           maxAltitude,
-          moonIllumination.fraction,
-          sunTimes.astronomicalDusk,
-          tomorrowSunTimes.astronomicalDawn
+          moonIllumination.fraction
         );
 
         setEvents({
@@ -209,9 +206,7 @@ export default function TonightCard({
 
   const calculateTonightVisibility = (
     maxAlt: number,
-    moonFraction: number,
-    duskTime?: Date,
-    dawnTime?: Date
+    moonFraction: number
   ): number => {
     // Simplified visibility calculation for tonight
     if (maxAlt < 20) return 0;
@@ -220,7 +215,6 @@ export default function TonightCard({
     if (maxAlt > 40) return 4;
     return 3;
   };
-
 
   if (isLoading) {
     return (
@@ -237,15 +231,9 @@ export default function TonightCard({
     <div className="glass-morphism p-6 mb-8">
       <div className="flex flex-col items-center mb-4">
         <h2 className="text-6xl font-semibold mb-2 text-center">
-          Tonight {events && <StarRating rating={events.visibility} size="lg" />}
+          Tonight{" "}
+          {events && <StarRating rating={events.visibility} size="lg" />}
         </h2>
-        <button
-          ref={locationButtonRef}
-          onClick={() => setShowLocationPopover(true)}
-          className="text-blue-300 hover:text-blue-200 underline decoration-dotted transition-colors text-lg"
-        >
-          {locationDisplayName}
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-32 text-xl">
@@ -259,7 +247,7 @@ export default function TonightCard({
                   <Icon
                     name="set"
                     title="Sunset (Civil Dawn)"
-                    className="w-10 h-10 text-blue-200"
+                    className="w-8 h-8 text-blue-300"
                   />
                   <span className="font-mono">{formatTime(events.sunSet)}</span>
                 </>
@@ -269,7 +257,7 @@ export default function TonightCard({
                   <Icon
                     name="set2"
                     title="Astronomical Twilight End"
-                    className="w-10 h-10 text-gray-300"
+                    className="w-8 h-8 text-blue-400"
                   />
                   <span className="font-mono">
                     {formatTime(events.astronomicalTwilightEnd)}
@@ -285,7 +273,7 @@ export default function TonightCard({
                   <Icon
                     name="rise2"
                     title="Astronomical Twilight Start"
-                    className="w-10 h-10 text-gray-300"
+                    className="w-8 h-8 text-orange-400"
                   />
                   <span className="font-mono">
                     {formatTime(events.astronomicalTwilightStart)}
@@ -297,9 +285,11 @@ export default function TonightCard({
                   <Icon
                     name="rise"
                     title="Sunrise (Civil Twilight)"
-                    className="w-10 h-10 text-gray-300"
+                    className="w-8 h-8 text-yellow-200"
                   />
-                  <span className="font-mono">{formatTime(events.sunRise)}</span>
+                  <span className="font-mono">
+                    {formatTime(events.sunRise)}
+                  </span>
                 </>
               )}
             </div>
@@ -310,14 +300,16 @@ export default function TonightCard({
         <div className="space-y-2">
           <h3 className="font-semibold text-3xl mb-2 text-center">
             Moon {getMoonPhaseEmoji(events.moonPhase)}{" "}
-            {events.moonIllumination.toFixed(0)}%
+            <span className="opacity-60 text-xl">
+              {events.moonIllumination.toFixed(0)}%
+            </span>
           </h3>
           {events.moonRise && (
             <div className="flex justify-center items-center gap-4">
               <Icon
                 name="rise"
                 title="Moonrise"
-                className="w-10 h-10 text-gray-300"
+                className="w-8 h-8 text-gray-300"
               />
               <span className="font-mono">{formatTime(events.moonRise)}</span>
             </div>
@@ -327,7 +319,7 @@ export default function TonightCard({
               <Icon
                 name="set"
                 title="Moonset"
-                className="w-10 h-10 text-gray-300"
+                className="w-8 h-8 text-gray-300"
               />
               <span className="font-mono">{formatTime(events.moonSet)}</span>
             </div>
@@ -344,7 +336,7 @@ export default function TonightCard({
               <Icon
                 name="rise"
                 title="Galactic Center Rise"
-                className="w-10 h-10 text-gray-300"
+                className="w-8 h-8 text-gray-300"
               />
               <span className="font-mono">{formatTime(events.gcRise)}</span>
             </div>
@@ -353,7 +345,7 @@ export default function TonightCard({
             <Icon
               name="rise2"
               title="Galactic Core Rise (Optimal)"
-              className="w-10 h-10 text-gray-300"
+              className="w-8 h-8 text-gray-300"
             />
             <span className="font-mono">
               {formatOptimalViewingTime(events.optimalWindow, location)} for{" "}
@@ -365,7 +357,7 @@ export default function TonightCard({
               <Icon
                 name="transit"
                 title="Maximum Altitude"
-                className="w-10 h-10 text-gray-300"
+                className="w-8 h-8 text-gray-300"
               />
               <span className="font-mono">
                 {events.maxGcAltitude.toFixed(0)}° at{" "}
@@ -378,12 +370,21 @@ export default function TonightCard({
               <Icon
                 name="set"
                 title="Galactic Center Set"
-                className="w-10 h-10 text-gray-300"
+                className="w-8 h-8 text-gray-300"
               />
               <span className="font-mono">{formatTime(events.gcSet)}</span>
             </div>
           )}
         </div>
+      </div>
+      <div className="mt-8 flex justify-center">
+        <button
+          ref={locationButtonRef}
+          onClick={() => setShowLocationPopover(true)}
+          className="text-blue-200 hover:text-blue-100 underline decoration-dotted transition-colors text-xl"
+        >
+          Near {locationDisplayName}
+        </button>
       </div>
 
       {showLocationPopover && (

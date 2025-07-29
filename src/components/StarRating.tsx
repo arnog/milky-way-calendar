@@ -37,10 +37,14 @@ export default function StarRating({
     stars.push(
       <svg
         key={i}
-        className={`${sizeClasses[size]} inline-block`}
-        style={{ fill: 'white', color: 'white' }}
+        className={`${sizeClasses[size]} inline-block ${
+          i < rating ? "opacity-80" : "opacity-25"
+        }`}
+        style={{ fill: "white", color: "white" }}
       >
-        <use href={`/src/icons.svg#${i < rating ? "star-black" : "star-white"}`} />
+        <use
+          href={`/src/icons.svg#${i < rating ? "star-black" : "star-white"}`}
+        />
       </svg>
     );
   }
