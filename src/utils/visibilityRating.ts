@@ -86,9 +86,70 @@ export function calculateVisibilityRating(
   }
   // No points if GC is below horizon
   
-  // 2. Moon interference factor (0-30 points penalty)
-  const moonInterference = getMoonInterference(moonData)
-  const moonPenalty = moonInterference * 30
+  // 2. Moon interference factor (much more severe penalty)
+  // Consider moon interference across the entire astronomical dark period, not just optimal viewing window
+  // A full moon affects Milky Way visibility throughout the night, regardless of GC positioning
+  let moonInterferenceForNight = 0
+  
+  if (moonData.illumination > 0.05 && twilightData.night && twilightData.dayEnd) {
+    const darkStart = twilightData.night
+    const darkEnd = twilightData.dayEnd
+    
+    // Adjust for day boundary crossing
+    let adjustedDarkEnd = darkEnd
+    if (darkEnd < darkStart) {
+      adjustedDarkEnd = darkEnd + 24 * 60 * 60 * 1000
+    }
+    
+    if (moonData.rise && moonData.set) {
+      let moonSetTime = moonData.set.getTime()
+      if (moonSetTime < moonData.rise.getTime()) {
+        moonSetTime += 24 * 60 * 60 * 1000
+      }
+      
+      // Check if moon is up during any part of the astronomical dark period
+      const moonUpDuringDarkness = moonData.rise.getTime() <= adjustedDarkEnd && moonSetTime >= darkStart
+      
+      if (moonUpDuringDarkness) {
+        // Calculate fraction of dark time that moon is visible
+        const moonVisibleStart = Math.max(moonData.rise.getTime(), darkStart)
+        const moonVisibleEnd = Math.min(moonSetTime, adjustedDarkEnd)
+        const moonVisibleDuration = Math.max(0, moonVisibleEnd - moonVisibleStart)
+        const totalDarkDuration = adjustedDarkEnd - darkStart
+        const moonFraction = moonVisibleDuration / totalDarkDuration
+        
+        moonInterferenceForNight = moonData.illumination * moonFraction
+      }
+    } else {
+      // Fallback: use current altitude
+      if (moonData.altitude > 0) {
+        moonInterferenceForNight = moonData.illumination
+      }
+    }
+  }
+  
+  // Use the stricter of the two interference calculations
+  const moonInterference = Math.max(getMoonInterference(moonData), moonInterferenceForNight)
+  
+  // Exponential penalty for moon interference - full moon should nearly eliminate visibility
+  let moonPenalty = 0
+  if (moonInterference > 0.8) {
+    // 80%+ moon illumination during viewing: extreme penalty (60-80 points) - should force rating to 0-1
+    moonPenalty = 60 + (moonInterference - 0.8) * 100 // Up to 80 points penalty
+  } else if (moonInterference > 0.6) {
+    // 60-80% illumination: massive penalty (35-60 points)
+    moonPenalty = 35 + (moonInterference - 0.6) * 125 // 35-60 points
+  } else if (moonInterference > 0.3) {
+    // 30-60% illumination: significant penalty (15-35 points)
+    moonPenalty = 15 + (moonInterference - 0.3) * 67 // 15-35 points
+  } else if (moonInterference > 0.1) {
+    // 10-30% illumination: moderate penalty (5-15 points)
+    moonPenalty = 5 + (moonInterference - 0.1) * 50 // 5-15 points
+  } else {
+    // <10% illumination: minimal penalty (0-5 points)
+    moonPenalty = moonInterference * 50 // 0-5 points
+  }
+  
   score -= moonPenalty
   
   // 3. Dark time duration factor (0-30 points) 

@@ -81,6 +81,7 @@ export function useAstronomicalData(location: Location | null) {
             twilightEnd: new Date(twilightData.night),
             twilightStart: new Date(twilightData.dayEnd),
             optimalConditions: optimalWindow.description,
+            optimalWindow,
           });
         } catch (error) {
           console.error(
@@ -100,6 +101,12 @@ export function useAstronomicalData(location: Location | null) {
             twilightEnd: null,
             twilightStart: null,
             optimalConditions: "Calculation error",
+            optimalWindow: {
+              startTime: null,
+              endTime: null,
+              duration: 0,
+              description: "Calculation error",
+            },
           });
         }
       }

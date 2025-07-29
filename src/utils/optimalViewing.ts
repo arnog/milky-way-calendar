@@ -82,24 +82,34 @@ export function calculateOptimalViewingWindow(
 
   let description = "";
 
-  // Check moon interference (now as a penalty scaling with illumination)
+  // Check moon interference during viewing window
   let moonPenalty = 0;
 
-  if (moonData.illumination > 0.3) {
+  if (moonData.illumination > 0.05) { // Even 5% moon can cause some interference
     if (moonData.rise && moonData.set) {
+      // Handle day boundary crossing for moon set time
       let moonSetTime = moonData.set.getTime();
+      if (moonSetTime < moonData.rise.getTime()) {
+        moonSetTime += 24 * 60 * 60 * 1000; // Add 24 hours if set is before rise
+      }
+      
       const moonUpDuringViewing =
         moonData.rise.getTime() <= viewingEndTs &&
         moonSetTime >= viewingStartTs;
+      
       if (moonUpDuringViewing) {
-        moonPenalty = moonData.illumination; // range [0, 1]
+        // Calculate what fraction of viewing time the moon is up
+        const moonVisibleStart = Math.max(moonData.rise.getTime(), viewingStartTs);
+        const moonVisibleEnd = Math.min(moonSetTime, viewingEndTs);
+        const moonVisibleDuration = Math.max(0, moonVisibleEnd - moonVisibleStart);
+        const totalViewingDuration = viewingEndTs - viewingStartTs;
+        const moonFraction = moonVisibleDuration / totalViewingDuration;
+        
+        moonPenalty = moonData.illumination * moonFraction;
       }
     } else {
-      const moonAltitudeAtStart =
-        moonData.altitudeAt?.(new Date(viewingStartTs)) ?? moonData.altitude;
-      const moonAltitudeAtEnd =
-        moonData.altitudeAt?.(new Date(viewingEndTs)) ?? moonData.altitude;
-      if (moonAltitudeAtStart > 0 || moonAltitudeAtEnd > 0) {
+      // Fallback: assume moon is up if altitude > 0
+      if (moonData.altitude > 0) {
         moonPenalty = moonData.illumination;
       }
     }

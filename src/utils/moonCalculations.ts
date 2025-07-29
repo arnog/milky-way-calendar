@@ -63,8 +63,16 @@ export function getMoonPhaseEmoji(phase: number): string {
 export function getMoonInterference(moonData: MoonData): number {
   // Calculate moon interference factor (0 = no interference, 1 = maximum interference)
   const illuminationFactor = moonData.illumination;
-  const altitudeFactor = Math.max(0, moonData.altitude / 90); // Higher moon = more interference
+  
+  // If moon is below horizon, no interference regardless of illumination
+  if (moonData.altitude <= 0) {
+    return 0;
+  }
+  
+  // Altitude factor: moon interference increases non-linearly with altitude
+  // Moon at 45° has nearly full interference, moon at horizon has minimal
+  const altitudeFactor = Math.min(1, Math.pow(Math.max(0, moonData.altitude) / 45, 0.7));
 
-  // Even a 30% illuminated moon can cause significant interference
-  return Math.min(1, illuminationFactor * 2 * altitudeFactor);
+  // Combine illumination and altitude - high moon with high illumination = maximum interference
+  return illuminationFactor * altitudeFactor;
 }
