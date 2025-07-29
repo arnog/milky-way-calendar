@@ -26,14 +26,14 @@ export default function LocationPopover({
   );
   const [isNearbyMatch, setIsNearbyMatch] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [, setIsDragging] = useState(false);
   const [dragLocation, setDragLocation] = useState<Location | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({
     top: 0,
     left: 0,
     width: 0,
   });
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -191,7 +191,7 @@ export default function LocationPopover({
       );
       setMatchedLocationName(nearbyLocation.matchedName || null);
       setIsNearbyMatch(true);
-      saveLocation(nearbyLocation.location, nearbyLocation.matchedName);
+      saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
     } else {
       setInputValue(
         `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
@@ -232,7 +232,7 @@ export default function LocationPopover({
             );
             setMatchedLocationName(nearbyLocation.matchedName || null);
             setIsNearbyMatch(true);
-            saveLocation(nearbyLocation.location, nearbyLocation.matchedName);
+            saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
           } else {
             onLocationChange(newLocation);
             setInputValue(

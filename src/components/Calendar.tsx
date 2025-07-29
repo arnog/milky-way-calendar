@@ -281,7 +281,7 @@ export default function Calendar({ location }: CalendarProps) {
           <tbody>
             {weekData
               .filter((week) => week.visibility > 0)
-              .map((week, index) => (
+              .map((week) => (
                 <tr
                   key={`${week.startDate.getFullYear()}-${week.weekNumber}`}
                   className="border-b border-white/10 hover:bg-white/5 transition-all duration-300"

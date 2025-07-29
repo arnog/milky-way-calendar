@@ -3,7 +3,15 @@ import { Location } from "../types/astronomy";
 import LocationPopover from "./LocationPopover";
 import StarRating from "./StarRating";
 import { Observer, Horizon } from "astronomy-engine";
-import SunCalc from "suncalc";
+import * as SunCalc from "suncalc";
+
+// Add custom times for astronomical twilight (-18°)
+SunCalc.addTime(-18, "astronomicalDawn", "astronomicalDusk");
+
+interface ExtendedTimes extends SunCalc.GetTimesResult {
+  astronomicalDawn: Date;
+  astronomicalDusk: Date;
+}
 import { getMoonPhaseEmoji } from "../utils/moonCalculations";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
@@ -115,12 +123,12 @@ export default function TonightCard({
         const observer = new Observer(location.lat, location.lng, 0);
 
         // Calculate sun times using SunCalc
-        const sunTimes = SunCalc.getTimes(now, location.lat, location.lng);
+        const sunTimes = SunCalc.getTimes(now, location.lat, location.lng) as ExtendedTimes;
         const tomorrowSunTimes = SunCalc.getTimes(
           new Date(now.getTime() + 24 * 60 * 60 * 1000),
           location.lat,
           location.lng
-        );
+        ) as ExtendedTimes;
 
         // Calculate moon times
         const moonTimes = SunCalc.getMoonTimes(now, location.lat, location.lng);
@@ -132,8 +140,6 @@ export default function TonightCard({
 
         // Find GC rise/set times
         // Note: SearchRiseSet doesn't work with custom star coordinates, so we'll skip this
-        const gcRiseSearch = null;
-        const gcSetSearch = null;
 
         // Calculate GC transit and max altitude
         let maxAltitude = 0;
@@ -180,9 +186,9 @@ export default function TonightCard({
             moonTimes.rise && moonTimes.rise > now ? moonTimes.rise : undefined,
           moonSet:
             moonTimes.set && moonTimes.set > now ? moonTimes.set : undefined,
-          gcRise: gcRiseSearch ? new Date(gcRiseSearch.time.date) : undefined,
+          gcRise: undefined,
           gcTransit: transitTime,
-          gcSet: gcSetSearch ? new Date(gcSetSearch.time.date) : undefined,
+          gcSet: undefined,
           maxGcAltitude: maxAltitude,
           moonPhase: moonIllumination.phase,
           moonIllumination: moonIllumination.fraction * 100,

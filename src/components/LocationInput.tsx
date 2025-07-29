@@ -23,14 +23,14 @@ export default function LocationInput({
   const [isNearbyMatch, setIsNearbyMatch] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [, setIsDragging] = useState(false);
   const [dragLocation, setDragLocation] = useState<Location | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({
     top: 0,
     left: 0,
     width: 0,
   });
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -88,11 +88,11 @@ export default function LocationInput({
           const nearbyLocation = findNearestSpecialLocation(parsed.location);
           if (nearbyLocation) {
             onLocationChange(nearbyLocation.location);
-            setInputValue(nearbyLocation.matchedName);
-            setMatchedLocationName(nearbyLocation.matchedName);
+            setInputValue(nearbyLocation.matchedName || `${nearbyLocation.location.lat.toFixed(1)}, ${nearbyLocation.location.lng.toFixed(1)}`);
+            setMatchedLocationName(nearbyLocation.matchedName || null);
             setIsNearbyMatch(true);
             // Update localStorage with the matched name
-            saveLocation(nearbyLocation.location, nearbyLocation.matchedName);
+            saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
             return;
           }
         }
@@ -139,7 +139,7 @@ export default function LocationInput({
               `${nearbyLocation.location.lat}, ${nearbyLocation.location.lng}`
             );
             setMatchedLocationName(nearbyLocation.matchedName || null);
-            saveLocation(nearbyLocation.location, nearbyLocation.matchedName);
+            saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
           } else {
             onLocationChange(newLocation);
             setInputValue(
@@ -249,7 +249,7 @@ export default function LocationInput({
       );
       setMatchedLocationName(nearbyLocation.matchedName || null);
       setIsNearbyMatch(true);
-      saveLocation(nearbyLocation.location, nearbyLocation.matchedName);
+      saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
     } else {
       setInputValue(
         `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`

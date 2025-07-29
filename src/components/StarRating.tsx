@@ -1,15 +1,4 @@
 // Simple SVG Icon component for stars (no tooltip needed)
-const Icon = ({
-  name,
-  className = "w-6 h-6",
-}: {
-  name: string;
-  className?: string;
-}) => (
-  <svg className={className}>
-    <use href={`/src/icons.svg#${name}`} />
-  </svg>
-);
 
 interface StarRatingProps {
   rating: number;
