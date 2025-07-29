@@ -5,6 +5,22 @@ import { Location, GalacticCenterData } from "../types/astronomy";
 const GALACTIC_CENTER_RA = 17.759; // hours (17h 45m 36s)
 const GALACTIC_CENTER_DEC = -29.007; // degrees (-29° 0' 25")
 
+/** Return the Galactic Center altitude (deg) for a given date & location */
+export function getGalacticCenterAltitude(
+  date: Date,
+  latitude: number,
+  longitude: number
+): number {
+  const observer = new Astronomy.Observer(latitude, longitude, 0);
+  const horiz = Astronomy.Horizon(
+    date,
+    observer,
+    GALACTIC_CENTER_RA,
+    GALACTIC_CENTER_DEC
+  );
+  return horiz.altitude;
+}
+
 export function calculateGalacticCenterPosition(
   date: Date,
   location: Location
@@ -26,10 +42,6 @@ export function calculateGalacticCenterPosition(
     let setTime: Date | null = null;
     let transitTime: Date | null = null;
 
-    // Get the start of the day for calculations
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-
     // Use more efficient calculation based on local sidereal time
     // GC transits when Local Sidereal Time = RA of GC
     const localSiderealTime =
@@ -47,16 +59,18 @@ export function calculateGalacticCenterPosition(
 
     // We'll use the current horizontal position for altitude/azimuth in the return value
 
-    // Use astronomy-engine to find optimal GC viewing times
-    // We want GC above 10° altitude during dark hours (after astronomical twilight)
-    const targetAltitude = 10;
+    // Adaptive altitude threshold:
+    //   • Jan – Jul  → 20°
+    //   • Aug – Sep → 15°
+    //   • Oct – Dec → 10°
+    const month = date.getMonth(); // 0 = January
+    const targetAltitude = month < 7 ? 20 : month < 9 ? 15 : 10;
 
     try {
-      // Search a full 24-hour period starting from midnight to capture all rise/set events
-      const startTime = new Date(date);
-      startTime.setHours(0, 0, 0, 0); // Start at midnight
-      const endTime = new Date(startTime);
-      endTime.setDate(endTime.getDate() + 1); // End at midnight next day
+      // Search from 6 h before the given date to 36 h after,
+      // capturing cases where the GC is already up at midnight.
+      const startTime = new Date(date.getTime() - 6 * 60 * 60 * 1000); // −6 h
+      const endTime = new Date(date.getTime() + 36 * 60 * 60 * 1000); // +36 h
 
       // Find ALL altitude crossings through the day
       let crossings: Array<{
@@ -64,7 +78,19 @@ export function calculateGalacticCenterPosition(
         crossing: "rise" | "set";
         altitude: number;
       }> = [];
-      let previousAltitude: number | null = null;
+
+      // Altitude at the first sample
+      let previousAltitude = Astronomy.Horizon(
+        startTime,
+        observer,
+        GALACTIC_CENTER_RA,
+        GALACTIC_CENTER_DEC
+      ).altitude;
+
+      // If GC is already above the target altitude at start, treat startTime as rise.
+      if (previousAltitude >= targetAltitude && !riseTime) {
+        riseTime = startTime;
+      }
 
       // Search every 10 minutes through the full day
       for (
@@ -80,39 +106,37 @@ export function calculateGalacticCenterPosition(
           GALACTIC_CENTER_DEC
         );
 
-        if (previousAltitude !== null) {
-          // Check for crossing 10° altitude
-          if (
-            previousAltitude < targetAltitude &&
-            currentHorizontal.altitude >= targetAltitude
-          ) {
-            // Rising crossing
-            const delta = currentHorizontal.altitude - previousAltitude;
-            const fraction = (targetAltitude - previousAltitude) / delta;
-            const interpolatedTime = new Date(
-              time - 10 * 60 * 1000 + fraction * 10 * 60 * 1000
-            );
-            crossings.push({
-              time: interpolatedTime,
-              crossing: "rise",
-              altitude: targetAltitude,
-            });
-          } else if (
-            previousAltitude >= targetAltitude &&
-            currentHorizontal.altitude < targetAltitude
-          ) {
-            // Setting crossing
-            const delta = currentHorizontal.altitude - previousAltitude;
-            const fraction = (targetAltitude - previousAltitude) / delta;
-            const interpolatedTime = new Date(
-              time - 10 * 60 * 1000 + fraction * 10 * 60 * 1000
-            );
-            crossings.push({
-              time: interpolatedTime,
-              crossing: "set",
-              altitude: targetAltitude,
-            });
-          }
+        // Check for crossing 10° altitude
+        if (
+          previousAltitude < targetAltitude &&
+          currentHorizontal.altitude >= targetAltitude
+        ) {
+          // Rising crossing
+          const delta = currentHorizontal.altitude - previousAltitude;
+          const fraction = (targetAltitude - previousAltitude) / delta;
+          const interpolatedTime = new Date(
+            time - 10 * 60 * 1000 + fraction * 10 * 60 * 1000
+          );
+          crossings.push({
+            time: interpolatedTime,
+            crossing: "rise",
+            altitude: targetAltitude,
+          });
+        } else if (
+          previousAltitude >= targetAltitude &&
+          currentHorizontal.altitude < targetAltitude
+        ) {
+          // Setting crossing
+          const delta = currentHorizontal.altitude - previousAltitude;
+          const fraction = (targetAltitude - previousAltitude) / delta;
+          const interpolatedTime = new Date(
+            time - 10 * 60 * 1000 + fraction * 10 * 60 * 1000
+          );
+          crossings.push({
+            time: interpolatedTime,
+            crossing: "set",
+            altitude: targetAltitude,
+          });
         }
 
         previousAltitude = currentHorizontal.altitude;

@@ -1,9 +1,4 @@
-import {
-  Location,
-  GalacticCenterData,
-  MoonData,
-  TwilightData,
-} from "../types/astronomy";
+import { GalacticCenterData, MoonData, TwilightData } from "../types/astronomy";
 
 export interface OptimalViewingWindow {
   startTime: Date | null;
@@ -22,8 +17,6 @@ function emptyWindow(description: string): OptimalViewingWindow {
 }
 
 export function calculateOptimalViewingWindow(
-  date: Date,
-  _location: Location,
   gcData: GalacticCenterData,
   moonData: MoonData,
   twilightData: TwilightData
@@ -36,34 +29,13 @@ export function calculateOptimalViewingWindow(
   const gcStart = gcData.riseTime; // When GC reaches 10°
   const gcEnd = gcData.setTime; // When GC drops below 10°
 
-  // Dark time window
-  const darkStart = twilightData.night; // Astronomical twilight ends
-  const darkEnd = twilightData.dayEnd; // Astronomical twilight begins (next day)
+  // Dark time window (timestamps)
+  const darkStartTs = twilightData.night;
+  const darkEndTs = twilightData.dayEnd;
 
-  // Debug for Sep 21 (week 39 starts Sep 21)
-  const debugDate = date.toISOString().split("T")[0];
-  const DEBUG_DATES = ["2025-09-17", "2025-09-24"];
-  if (DEBUG_DATES.includes(debugDate)) {
-    // Debug specific dates
-    console.log(`Optimal viewing debug for ${debugDate}:`);
-    console.log(`  Date: ${date.toISOString()}`);
-    console.log(
-      `  GC: ${gcStart?.toLocaleString() || "null"} - ${
-        gcEnd?.toLocaleString() || "null"
-      }`
-    );
-    console.log(
-      `  Dark: ${darkStart?.toLocaleString() || "null"} - ${
-        darkEnd?.toLocaleString() || "null"
-      }`
-    );
-  }
+  if (!gcStart) return emptyWindow("GC not visible (below 10°)");
 
-  if (!gcStart) {
-    return emptyWindow("GC not visible (below 10°)");
-  }
-
-  if (!darkStart || !darkEnd) {
+  if (!darkStartTs || !darkEndTs) {
     // Use GC time as fallback if twilight calculation fails
     const duration = gcEnd
       ? (gcEnd.getTime() - gcStart.getTime()) / (1000 * 60 * 60)
@@ -79,60 +51,35 @@ export function calculateOptimalViewingWindow(
   // Calculate all times as timestamps for consistent day boundary handling
   const gcStartTs = gcStart.getTime();
   const gcEndTs = gcEnd ? gcEnd.getTime() : gcStartTs + 8 * 60 * 60 * 1000; // 8h default
-  const darkStartTs = darkStart.getTime();
-  let darkEndTs = darkEnd.getTime();
+
+  let adjDarkStartTs = darkStartTs;
+  let adjDarkEndTs = darkEndTs;
 
   // Handle day boundary: if darkEnd is before darkStart, it's next day
-  if (darkEndTs < darkStartTs) {
-    darkEndTs += 24 * 60 * 60 * 1000; // Add 24 hours
+  if (adjDarkEndTs < adjDarkStartTs) {
+    adjDarkEndTs += 24 * 60 * 60 * 1000; // Add 24 hours
+  }
+  // If GC rises after the current dark window ends, move the dark window to the following night
+  if (gcStartTs > adjDarkEndTs) {
+    adjDarkStartTs += 24 * 60 * 60 * 1000; // shift both by +24 h
+    adjDarkEndTs += 24 * 60 * 60 * 1000;
   }
 
   // The viewing window starts when BOTH conditions are met:
   // 1. GC is above 10° (gcStart)
   // 2. It's astronomically dark (darkStart)
-  const viewingStartTs = Math.max(gcStartTs, darkStartTs);
+  const viewingStartTs = Math.max(gcStartTs, adjDarkStartTs);
 
   // The viewing window ends at the earliest of:
   // 1. When GC drops below 10° (gcEnd)
   // 2. Astronomical dawn (darkEnd)
-  const viewingEndTs = Math.min(gcEndTs, darkEndTs);
-
-  // Debug for Sep 21
-  if (DEBUG_DATES.includes(debugDate)) {
-    console.log(`  Timestamps:`);
-    console.log(
-      `    GC start: ${gcStartTs} (${new Date(gcStartTs).toLocaleString()})`
-    );
-    console.log(
-      `    GC end: ${gcEndTs} (${new Date(gcEndTs).toLocaleString()})`
-    );
-    console.log(
-      `    Dark start: ${darkStartTs} (${new Date(
-        darkStartTs
-      ).toLocaleString()})`
-    );
-    console.log(
-      `    Dark end: ${darkEndTs} (${new Date(darkEndTs).toLocaleString()})`
-    );
-    console.log(
-      `    Viewing start: ${viewingStartTs} (${new Date(
-        viewingStartTs
-      ).toLocaleString()})`
-    );
-    console.log(
-      `    Viewing end: ${viewingEndTs} (${new Date(
-        viewingEndTs
-      ).toLocaleString()})`
-    );
-  }
+  const viewingEndTs = Math.min(gcEndTs, adjDarkEndTs);
 
   // Check if we have a valid viewing window
   if (viewingStartTs >= viewingEndTs) {
     return emptyWindow("No overlap between GC visibility and dark time");
   }
 
-  const viewingStart = new Date(viewingStartTs);
-  const viewingEnd = new Date(viewingEndTs);
   let description = "";
 
   // Check moon interference (now as a penalty scaling with illumination)
@@ -140,34 +87,26 @@ export function calculateOptimalViewingWindow(
 
   if (moonData.illumination > 0.3) {
     if (moonData.rise && moonData.set) {
-      if (viewingStart && viewingEnd) {
-        let moonSetTime = moonData.set.getTime();
-        if (moonSetTime < moonData.rise.getTime()) {
-          moonSetTime += 24 * 60 * 60 * 1000;
-        }
-        const moonUpDuringViewing =
-          moonData.rise.getTime() <= viewingEnd.getTime() &&
-          moonSetTime >= viewingStart.getTime();
-        if (moonUpDuringViewing) {
-          moonPenalty = moonData.illumination; // range [0, 1]
-        }
+      let moonSetTime = moonData.set.getTime();
+      const moonUpDuringViewing =
+        moonData.rise.getTime() <= viewingEndTs &&
+        moonSetTime >= viewingStartTs;
+      if (moonUpDuringViewing) {
+        moonPenalty = moonData.illumination; // range [0, 1]
       }
     } else {
       const moonAltitudeAtStart =
-        moonData.altitudeAt?.(viewingStart) ?? moonData.altitude;
+        moonData.altitudeAt?.(new Date(viewingStartTs)) ?? moonData.altitude;
       const moonAltitudeAtEnd =
-        moonData.altitudeAt?.(viewingEnd) ?? moonData.altitude;
+        moonData.altitudeAt?.(new Date(viewingEndTs)) ?? moonData.altitude;
       if (moonAltitudeAtStart > 0 || moonAltitudeAtEnd > 0) {
         moonPenalty = moonData.illumination;
       }
     }
   }
 
-  if (!viewingStart || !viewingEnd) {
-    return emptyWindow("No overlap between GC visibility and dark time");
-  }
-
-  const durationMs = viewingEnd.getTime() - viewingStart.getTime();
+  // viewingStartTs and viewingEndTs are always valid here
+  const durationMs = viewingEndTs - viewingStartTs;
   const durationHours = durationMs / (1000 * 60 * 60);
 
   if (moonPenalty > 0.05) {
@@ -178,23 +117,12 @@ export function calculateOptimalViewingWindow(
     description = "Optimal conditions";
   }
 
-  const result = {
-    startTime: viewingStart,
-    endTime: viewingEnd,
+  return {
+    startTime: new Date(viewingStartTs),
+    endTime: new Date(viewingEndTs),
     duration: durationHours,
     description,
   };
-
-  // Debug for Sep 21
-  if (DEBUG_DATES.includes(debugDate)) {
-    console.log(
-      `  Result: ${result.startTime?.toLocaleTimeString() || "null"} - ${
-        result.endTime?.toLocaleTimeString() || "null"
-      }, duration: ${result.duration}h`
-    );
-  }
-
-  return result;
 }
 
 export function formatOptimalViewingTime(window: OptimalViewingWindow): string {

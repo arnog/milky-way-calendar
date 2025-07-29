@@ -1,82 +1,108 @@
-import * as SunCalc from 'suncalc'
-import { Location, TwilightData } from '../types/astronomy'
+import * as SunCalc from "suncalc";
+import { Location, TwilightData } from "../types/astronomy";
 
-// Add custom times for proper astronomical twilight calculation
-// Astronomical twilight: sun at -18° below horizon
-SunCalc.addTime(-18, 'astronomicalDawn', 'astronomicalDusk')
+// Add custom times for astronomical twilight (-18°)
+SunCalc.addTime(-18, "astronomicalDawn", "astronomicalDusk");
 
-// Extend SunCalc types to include our custom times
 interface ExtendedTimes extends SunCalc.GetTimesResult {
-  astronomicalDawn: Date
-  astronomicalDusk: Date
+  astronomicalDawn: Date; // sun -18° in morning
+  astronomicalDusk: Date; // sun -18° in evening
 }
 
-export function calculateTwilightTimes(date: Date, location: Location): TwilightData {
+export function calculateTwilightTimes(
+  date: Date,
+  location: Location
+): TwilightData {
   try {
-    // Debug for Sep 21
-    const debugDate = date.toISOString().split('T')[0]
-    if (debugDate === '2025-09-21') {  
-      console.log(`Twilight calculation for ${debugDate}:`, date)
+    // SunCalc expects a local Date; use **midnight** so evening events belong to this calendar day.
+    const baseLocal = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      0,
+      0,
+      0,
+      0 // 00:00 local
+    );
+
+    const times = SunCalc.getTimes(
+      baseLocal,
+      location.lat,
+      location.lng
+    ) as ExtendedTimes;
+
+    const nextLocal = new Date(baseLocal);
+    nextLocal.setDate(nextLocal.getDate() + 1);
+
+    const nextTimes = SunCalc.getTimes(
+      nextLocal,
+      location.lat,
+      location.lng
+    ) as ExtendedTimes;
+
+    // --- Find astronomical dusk by searching after civil dusk (Sun –6°) ---
+    // Choose the evening civil dusk (sun –6°).
+    // If SunCalc returns the pre‑dawn event (dusk < sunset), use tomorrow’s dusk.
+    let civilDusk = times.dusk;
+    if (civilDusk.getTime() < times.sunset.getTime()) {
+      civilDusk = nextTimes.dusk; // evening civil dusk
     }
-    
-    const times = SunCalc.getTimes(date, location.lat, location.lng) as ExtendedTimes
-    
-    // Always get astronomical dawn from the next day for proper night window calculation
-    // This ensures the dark window spans from dusk today to dawn tomorrow
-    const nextDay = new Date(date)
-    nextDay.setDate(nextDay.getDate() + 1)
-    const nextTimes = SunCalc.getTimes(nextDay, location.lat, location.lng) as ExtendedTimes
-    const astronomicalDawn = nextTimes.astronomicalDawn
-    
-    // Debug for Sep 21
-    if (debugDate === '2025-09-21') {  
-      console.log(`  astronomicalDusk (night starts): ${times.astronomicalDusk.toLocaleString()}`)
-      console.log(`  astronomicalDawn (night ends): ${astronomicalDawn.toLocaleString()}`)
+
+    // Start 5 min after civil dusk, step every 5 min until Sun altitude ≤ –18°
+    const searchStart = new Date(civilDusk.getTime() + 5 * 60 * 1000);
+    const searchEnd = new Date(searchStart.getTime() + 8 * 60 * 60 * 1000); // search up to +8 h
+
+    let nightStart: Date | null = null;
+    for (
+      let t = searchStart;
+      t <= searchEnd;
+      t = new Date(t.getTime() + 5 * 60 * 1000)
+    ) {
+      const sunAltRad = SunCalc.getPosition(
+        t,
+        location.lat,
+        location.lng
+      ).altitude;
+      const sunAltDeg = (sunAltRad * 180) / Math.PI;
+      if (sunAltDeg <= -18) {
+        nightStart = t;
+        break;
+      }
     }
-    
+
+    // If Sun never reaches –18° (e.g. high‑latitude summer), use civil dusk
+    if (!nightStart) nightStart = civilDusk;
+
+    const astronomicalDawn = nextTimes.astronomicalDawn;
+
     return {
-      dawn: times.dawn,
-      dusk: times.dusk,
-      night: times.astronomicalDusk, // When astronomical night begins (sun at -18°)
-      dayEnd: astronomicalDawn // When astronomical night ends (sun at -18°) - next day
-    }
+      dawn: times.dawn.getTime(),
+      dusk: times.dusk.getTime(),
+      night: nightStart.getTime(),
+      dayEnd: astronomicalDawn.getTime(),
+    };
   } catch (error) {
-    console.error('Error calculating twilight times:', error)
-    const fallback = new Date(date)
+    console.error("Error calculating twilight times:", error);
+    const fallback = new Date(date);
     return {
-      dawn: new Date(fallback.setHours(6, 0, 0, 0)),
-      dusk: new Date(fallback.setHours(18, 0, 0, 0)),
-      night: new Date(fallback.setHours(20, 0, 0, 0)),
-      dayEnd: new Date(fallback.setHours(4, 0, 0, 0))
-    }
+      dawn: new Date(fallback.setHours(6, 0, 0, 0)).getTime(),
+      dusk: new Date(fallback.setHours(18, 0, 0, 0)).getTime(),
+      night: new Date(fallback.setHours(20, 0, 0, 0)).getTime(),
+      dayEnd: new Date(fallback.setHours(4, 0, 0, 0)).getTime(),
+    };
   }
 }
 
-export function isDarkTime(date: Date, twilightData: TwilightData): boolean {
-  const time = date.getTime()
-  
-  // Dark time is between astronomical twilight end and start
-  if (twilightData.night.getTime() < twilightData.dayEnd.getTime()) {
-    // Normal case: night falls then day starts
-    return time >= twilightData.night.getTime() && time <= twilightData.dayEnd.getTime()
-  } else {
-    // Edge case: night spans midnight
-    return time >= twilightData.night.getTime() || time <= twilightData.dayEnd.getTime()
-  }
+export function isDarkTime(ts: number, tw: TwilightData): boolean {
+  return tw.night < tw.dayEnd
+    ? ts >= tw.night && ts <= tw.dayEnd
+    : ts >= tw.night || ts <= tw.dayEnd;
 }
 
-export function calculateDarkDuration(twilightData: TwilightData): number {
-  // Calculate duration of astronomical darkness in hours
-  const nightStart = twilightData.night.getTime()
-  const nightEnd = twilightData.dayEnd.getTime()
-  
-  let duration: number
-  if (nightEnd > nightStart) {
-    duration = nightEnd - nightStart
-  } else {
-    // Night spans midnight
-    duration = (24 * 60 * 60 * 1000) - (nightStart - nightEnd)
-  }
-  
-  return duration / (1000 * 60 * 60) // Convert to hours
+export function calculateDarkDuration(tw: TwilightData): number {
+  const ms =
+    tw.dayEnd > tw.night
+      ? tw.dayEnd - tw.night
+      : 86_400_000 - (tw.night - tw.dayEnd); // 24 h in ms
+  return ms / 3.6e6; // hours
 }
