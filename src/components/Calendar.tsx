@@ -65,8 +65,10 @@ export default function Calendar({ location }: CalendarProps) {
             gcDataForRating,
             moonData,
             twilightData,
-            optimalWindow
+            optimalWindow,
+            location
           );
+
 
           // Add all weeks (including those with visibility = 0)
           {
@@ -306,7 +308,7 @@ export default function Calendar({ location }: CalendarProps) {
                     <StarRating rating={week.visibility} size="lg" />
                   </td>
                   <td className="py-3 px-2 text-3xl text-center font-mono">
-                    {formatOptimalViewingTime(week.optimalWindow)}
+                    {formatOptimalViewingTime(week.optimalWindow, location)}
                   </td>
                   <td className="py-3 px-2 text-3xl text-center font-mono">
                     {formatOptimalViewingDuration(week.optimalWindow)}
@@ -333,17 +335,6 @@ export default function Calendar({ location }: CalendarProps) {
           )}
         </div>
       )}
-
-      <div className="mt-6 text-xs text-gray-400">
-        <p className="mb-2">
-          <strong>Visibility Rating:</strong> ☆ None • ★ Poor • ★★ Fair • ★★★
-          Good • ★★★★ Excellent
-        </p>
-        <p>
-          <strong>Note:</strong> Shows weeks with Galactic Center visibility
-          only. GC times are approximate.
-        </p>
-      </div>
     </div>
   );
 }

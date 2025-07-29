@@ -8,6 +8,7 @@ import { getMoonPhaseEmoji } from "../utils/moonCalculations";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
+import { formatTimeInLocationTimezone } from "../utils/visibilityRating";
 import {
   calculateOptimalViewingWindow,
   formatOptimalViewingTime,
@@ -203,12 +204,7 @@ export default function TonightCard({
   }, [location]);
 
   const formatTime = (date: Date | undefined) => {
-    if (!date) return "—";
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+    return formatTimeInLocationTimezone(date, location);
   };
 
   const calculateTonightVisibility = (
@@ -360,7 +356,7 @@ export default function TonightCard({
               className="w-10 h-10 text-gray-300"
             />
             <span className="font-mono">
-              {formatOptimalViewingTime(events.optimalWindow)} for{" "}
+              {formatOptimalViewingTime(events.optimalWindow, location)} for{" "}
               {formatOptimalViewingDuration(events.optimalWindow)}
             </span>
           </div>

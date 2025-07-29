@@ -1,13 +1,56 @@
-import { GalacticCenterData, MoonData, TwilightData } from '../types/astronomy'
+import { GalacticCenterData, MoonData, TwilightData, Location } from '../types/astronomy'
 import { getMoonInterference } from './moonCalculations'
 import { calculateDarkDuration } from './twilightCalculations'
 import { OptimalViewingWindow } from './optimalViewing'
+
+// Get the local hour for a given date and location using timezone approximation
+function getLocalHour(date: Date, _lat: number, lng: number): number | null {
+  try {
+    // Approximate timezone based on longitude (15 degrees per hour)
+    const timezoneOffset = Math.round(lng / 15)
+    
+    // Create a new date with the estimated timezone offset
+    const localTime = new Date(date.getTime() + (timezoneOffset * 60 * 60 * 1000))
+    
+    return localTime.getUTCHours()
+  } catch (error) {
+    console.error('Error calculating local hour:', error)
+    return null
+  }
+}
+
+// Format time in the location's timezone
+export function formatTimeInLocationTimezone(date: Date | undefined, location: Location): string {
+  if (!date) return "—"
+  
+  try {
+    // Approximate timezone based on longitude (15 degrees per hour)
+    const timezoneOffset = Math.round(location.lng / 15)
+    
+    // Create a new date with the estimated timezone offset
+    const localTime = new Date(date.getTime() + (timezoneOffset * 60 * 60 * 1000))
+    
+    // Format as HH:MM in 24-hour format using UTC methods (since we already adjusted the time)
+    const hours = localTime.getUTCHours().toString().padStart(2, '0')
+    const minutes = localTime.getUTCMinutes().toString().padStart(2, '0')
+    
+    return `${hours}:${minutes}`
+  } catch (error) {
+    console.error('Error formatting time in location timezone:', error)
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit", 
+      hour12: false,
+    })
+  }
+}
 
 export function calculateVisibilityRating(
   gcData: GalacticCenterData,
   moonData: MoonData,
   twilightData: TwilightData,
-  optimalWindow?: OptimalViewingWindow
+  optimalWindow?: OptimalViewingWindow,
+  location?: Location
 ): number {
   // Factors that affect Milky Way visibility:
   // 1. Galactic Center altitude (≥20° is ideal)
@@ -22,10 +65,12 @@ export function calculateVisibilityRating(
   }
   
   // Also check if the start time is during daylight hours (would be hidden from display)
-  if (optimalWindow && optimalWindow.startTime) {
-    const hour = optimalWindow.startTime.getHours()
-    if (hour >= 6 && hour <= 18) {
-      return 0 // No visibility if only visible during daylight
+  // Use timezone-aware checking based on the location's coordinates
+  if (optimalWindow && optimalWindow.startTime && location) {
+    const localHour = getLocalHour(optimalWindow.startTime, location.lat, location.lng)
+    
+    if (localHour !== null && localHour >= 6 && localHour <= 18) {
+      return 0 // No visibility if only visible during local daylight hours
     }
   }
   

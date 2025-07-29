@@ -125,11 +125,32 @@ export function calculateOptimalViewingWindow(
   };
 }
 
-export function formatOptimalViewingTime(window: OptimalViewingWindow): string {
+export function formatOptimalViewingTime(window: OptimalViewingWindow, location?: import('../types/astronomy').Location): string {
   if (!window.startTime) {
     return "";
   }
 
+  if (location) {
+    // Use location timezone formatting - inline implementation to avoid circular imports
+    try {
+      // Approximate timezone based on longitude (15 degrees per hour)
+      const timezoneOffset = Math.round(location.lng / 15)
+      
+      // Create a new date with the estimated timezone offset
+      const localTime = new Date(window.startTime.getTime() + (timezoneOffset * 60 * 60 * 1000))
+      
+      // Format as HH:MM in 24-hour format using UTC methods (since we already adjusted the time)
+      const hours = localTime.getUTCHours().toString().padStart(2, '0')
+      const minutes = localTime.getUTCMinutes().toString().padStart(2, '0')
+      
+      return `${hours}:${minutes}`
+    } catch (error) {
+      console.error('Error formatting optimal viewing time in location timezone:', error)
+      // Fall through to browser timezone
+    }
+  }
+
+  // Fallback to browser timezone
   const hour = window.startTime.getHours();
   const minute = window.startTime.getMinutes();
 
