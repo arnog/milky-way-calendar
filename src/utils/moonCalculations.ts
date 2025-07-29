@@ -49,14 +49,15 @@ export function calculateMoonData(date: Date, location: Location): MoonData {
 
 export function getMoonPhaseEmoji(phase: number): string {
   // Phase goes from 0 (new moon) to 1 (full moon) and back to 0
-  if (phase < 0.125) return "🌑"; // New moon
-  if (phase < 0.25) return "🌒"; // Waxing crescent
-  if (phase < 0.375) return "🌓"; // First quarter
-  if (phase < 0.5) return "🌔"; // Waxing gibbous
-  if (phase < 0.625) return "🌕"; // Full moon
-  if (phase < 0.75) return "🌖"; // Waning gibbous
-  if (phase < 0.875) return "🌗"; // Last quarter
-  return "🌘"; // Waning crescent
+  // Using Unicode moon phase symbols (black and white, not colored emojis)
+  if (phase < 0.125) return "●"; // New moon (solid circle)
+  if (phase < 0.25) return "◐"; // Waxing crescent  
+  if (phase < 0.375) return "◑"; // First quarter
+  if (phase < 0.5) return "◑"; // Waxing gibbous (same as first quarter)
+  if (phase < 0.625) return "○"; // Full moon (empty circle)
+  if (phase < 0.75) return "◒"; // Waning gibbous
+  if (phase < 0.875) return "◑"; // Last quarter
+  return "◐"; // Waning crescent
 }
 
 export function getMoonInterference(moonData: MoonData): number {

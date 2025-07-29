@@ -1,5 +1,14 @@
 import { Location } from '../types/astronomy'
-import { SPECIAL_LOCATIONS } from './locations'
+import { SPECIAL_LOCATIONS, SPECIAL_AREAS } from './locations'
+
+// Normalize string for comparison by removing punctuation and normalizing whitespace
+function normalizeForComparison(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ') // Replace punctuation with spaces
+    .replace(/\s+/g, ' ') // Normalize whitespace to single spaces
+    .trim()
+}
 
 interface ParsedLocation {
   location: Location
@@ -69,40 +78,33 @@ export function parseLocationInput(input: string): ParsedLocation | null {
 
 // Find matching location from special locations list
 function findMatchingLocation(input: string): ParsedLocation | null {
-  const lowerInput = input.toLowerCase()
+  const normalizedInput = normalizeForComparison(input)
   
-  // First try exact match
+  // First try exact match on full name
   for (const loc of SPECIAL_LOCATIONS) {
-    const name = loc[0] as string
-    if (name.toLowerCase() === lowerInput) {
+    const fullName = loc[0] as string
+    const shortName = loc[1] as string
+    const normalizedFullName = normalizeForComparison(fullName)
+    
+    if (normalizedFullName === normalizedInput) {
       return {
-        location: { lat: loc[1] as number, lng: loc[2] as number },
-        matchedName: name
+        location: { lat: loc[2] as number, lng: loc[3] as number },
+        matchedName: shortName
       }
     }
   }
   
-  // Then try partial match
-  const matches = SPECIAL_LOCATIONS.filter(loc => {
-    const name = (loc[0] as string).toLowerCase()
-    return name.includes(lowerInput) || lowerInput.includes(name)
-  })
-  
-  if (matches.length === 1) {
-    return {
-      location: { lat: matches[0][1] as number, lng: matches[0][2] as number },
-      matchedName: matches[0][0] as string
-    }
-  }
-  
-  // If multiple matches, prefer shorter names (more specific)
-  if (matches.length > 1) {
-    const bestMatch = matches.reduce((prev, curr) => 
-      (curr[0] as string).length < (prev[0] as string).length ? curr : prev
-    )
-    return {
-      location: { lat: bestMatch[1] as number, lng: bestMatch[2] as number },
-      matchedName: bestMatch[0] as string
+  // Then try partial match on full name - return the first match
+  for (const loc of SPECIAL_LOCATIONS) {
+    const fullName = loc[0] as string
+    const shortName = loc[1] as string
+    const normalizedFullName = normalizeForComparison(fullName)
+    
+    if (normalizedFullName.includes(normalizedInput) || normalizedInput.includes(normalizedFullName)) {
+      return {
+        location: { lat: loc[2] as number, lng: loc[3] as number },
+        matchedName: shortName
+      }
     }
   }
   
@@ -149,14 +151,19 @@ export function findNearestSpecialLocation(location: Location, thresholdKm: numb
   let minDistance = thresholdKm
   
   for (const loc of SPECIAL_LOCATIONS) {
-    const specialLoc = { lat: loc[1] as number, lng: loc[2] as number }
+    const specialLoc = { lat: loc[2] as number, lng: loc[3] as number }
     const distance = calculateDistance(location, specialLoc)
     
     if (distance < minDistance) {
       minDistance = distance
+      const areaId = loc[4] as string | undefined
+      const displayName = areaId && SPECIAL_AREAS[areaId as keyof typeof SPECIAL_AREAS] 
+        ? SPECIAL_AREAS[areaId as keyof typeof SPECIAL_AREAS] 
+        : loc[1] as string  // Use area name if available, otherwise short name
+      
       nearest = {
         location: specialLoc,
-        matchedName: loc[0] as string
+        matchedName: displayName
       }
     }
   }

@@ -1,3 +1,5 @@
+import { OptimalViewingWindow } from "../utils/optimalViewing";
+
 export interface Location {
   lat: number;
   lng: number;
@@ -15,6 +17,7 @@ export interface WeekData {
   twilightEnd: Date | null; // When astronomical twilight ends
   twilightStart: Date | null; // When astronomical twilight starts
   optimalConditions: string; // Description of viewing conditions
+  optimalWindow: OptimalViewingWindow; // Optimal viewing window data
 }
 
 export interface GalacticCenterData {

@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Location, WeekData } from "../types/astronomy";
-import { getMoonPhaseEmoji } from "../utils/moonCalculations";
-import {
-  getStarsDisplay,
-  getVisibilityDescription,
-} from "../utils/visibilityRating";
+import { getVisibilityDescription } from "../utils/visibilityRating";
+import StarRating from "./StarRating";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
@@ -71,8 +68,8 @@ export default function Calendar({ location }: CalendarProps) {
             optimalWindow
           );
 
-          // Only add weeks with visibility > 0
-          if (visibility > 0) {
+          // Add all weeks (including those with visibility = 0)
+          {
             // Get GC times for display
             const gcRiseSet = calculateGalacticCenterRiseSet(midWeek, location);
 
@@ -92,6 +89,7 @@ export default function Calendar({ location }: CalendarProps) {
                 ? new Date(twilightData.dayEnd)
                 : null,
               optimalConditions: optimalWindow.description,
+              optimalWindow: optimalWindow,
             });
           }
         } catch (error) {
@@ -267,49 +265,54 @@ export default function Calendar({ location }: CalendarProps) {
         `}
       </style>
 
-      <h2 className="text-6xl font-semibold mb-6">
-        {currentYear} Milky Way Visibility Calendar
+      <h2 className="text-6xl font-semibold mb-6 text-center">
+        <div className="text-8xl font-bold">{currentYear}</div>
+        Milky WayCalendar
       </h2>
-
-      <div className="text-sm text-gray-300 mb-4">
-        Location: {location.lat.toFixed(2)}°, {location.lng.toFixed(2)}°
-      </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/20">
-              <th className="text-left py-3 px-2">Week Start</th>
-              <th className="text-left py-3 px-2">Visibility</th>
-              <th className="text-left py-3 px-2">GC Rise</th>
-              <th className="text-left py-3 px-2">GC Transit</th>
+              <th className="text-center text-3xl py-3 px-2">Date</th>
+              <th className="text-center text-3xl py-3 px-2">Visibility</th>
+              <th className="text-center text-3xl py-3 px-2">
+                Galactic Core Rise
+              </th>
+              <th className="text-center text-3xl py-3 px-2">Duration</th>
             </tr>
           </thead>
           <tbody>
-            {weekData.map((week, index) => (
-              <tr
-                key={`${week.startDate.getFullYear()}-${week.weekNumber}`}
-                className="border-b border-white/10 hover:bg-white/5 transition-all duration-300"
-                style={getRowBackground(week.visibility)}
-                title={getVisibilityDescription(week.visibility)}
-              >
-                <td className="py-3 px-2">
-                  {week.startDate.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year:
-                      week.startDate.getFullYear() !== currentYear
-                        ? "numeric"
-                        : undefined,
-                  })}
-                </td>
-                <td className="py-3 px-2 text-lg">
-                  {getStarsDisplay(week.visibility)}
-                </td>
-                <td className="py-3 px-2 font-mono">{week.gcTime}</td>
-                <td className="py-3 px-2 font-mono">{week.gcDuration}</td>
-              </tr>
-            ))}
+            {weekData
+              .filter((week) => week.visibility > 0)
+              .map((week, index) => (
+                <tr
+                  key={`${week.startDate.getFullYear()}-${week.weekNumber}`}
+                  className="border-b border-white/10 hover:bg-white/5 transition-all duration-300"
+                  style={getRowBackground(week.visibility)}
+                  title={getVisibilityDescription(week.visibility)}
+                >
+                  <td className="py-3 px-2 text-2xl text-center">
+                    {week.startDate.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year:
+                        week.startDate.getFullYear() !== currentYear
+                          ? "numeric"
+                          : undefined,
+                    })}
+                  </td>
+                  <td className="py-3 px-2 text-3xl text-center">
+                    <StarRating rating={week.visibility} size="lg" />
+                  </td>
+                  <td className="py-3 px-2 text-3xl text-center font-mono">
+                    {formatOptimalViewingTime(week.optimalWindow)}
+                  </td>
+                  <td className="py-3 px-2 text-3xl text-center font-mono">
+                    {formatOptimalViewingDuration(week.optimalWindow)}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

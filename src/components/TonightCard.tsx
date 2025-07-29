@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Location } from "../types/astronomy";
-import {
-  Observer,
-  Equator,
-  Horizon,
-  SearchRiseSet,
-  NextMoonPhase,
-  MoonPhase,
-  Body,
-} from "astronomy-engine";
+import LocationPopover from "./LocationPopover";
+import StarRating from "./StarRating";
+import { Observer, Horizon } from "astronomy-engine";
 import SunCalc from "suncalc";
 import { getMoonPhaseEmoji } from "../utils/moonCalculations";
-import { getVisibilityRating } from "../utils/visibilityRating";
+import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
+import { calculateMoonData } from "../utils/moonCalculations";
+import { calculateTwilightTimes } from "../utils/twilightCalculations";
+import {
+  calculateOptimalViewingWindow,
+  formatOptimalViewingTime,
+  formatOptimalViewingDuration,
+  OptimalViewingWindow,
+} from "../utils/optimalViewing";
 
 interface TonightCardProps {
   location: Location;
+  onLocationChange: (location: Location) => void;
 }
 
 interface TonightEvents {
@@ -30,13 +33,77 @@ interface TonightEvents {
   maxGcAltitude: number;
   moonPhase: number;
   moonIllumination: number;
-  bortleScale: number;
   visibility: number;
+  optimalWindow: OptimalViewingWindow;
 }
 
-export default function TonightCard({ location }: TonightCardProps) {
+// SVG Icon component with custom tooltip
+const Icon = ({
+  name,
+  title,
+  className = "w-10 h-10",
+}: {
+  name: string;
+  title?: string;
+  className?: string;
+}) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <div 
+      className="relative inline-block"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+      onTouchStart={() => setShowTooltip(true)}
+      onTouchEnd={() => setTimeout(() => setShowTooltip(false), 2000)}
+    >
+      <svg className={className}>
+        <use href={`/src/icons.svg#${name}`} />
+      </svg>
+      {showTooltip && title && (
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg whitespace-nowrap z-50">
+          {title}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default function TonightCard({
+  location,
+  onLocationChange,
+}: TonightCardProps) {
   const [events, setEvents] = useState<TonightEvents | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showLocationPopover, setShowLocationPopover] = useState(false);
+  const [locationDisplayName, setLocationDisplayName] = useState<string>("");
+  const locationButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Update location display name when location changes
+  useEffect(() => {
+    const savedLocation = localStorage.getItem("milkyway-location");
+    if (savedLocation) {
+      try {
+        const parsed = JSON.parse(savedLocation);
+        if (parsed.matchedName) {
+          setLocationDisplayName(parsed.matchedName);
+        } else {
+          setLocationDisplayName(
+            `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
+          );
+        }
+      } catch (e) {
+        setLocationDisplayName(
+          `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
+        );
+      }
+    } else {
+      setLocationDisplayName(
+        `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
+      );
+    }
+  }, [location]);
 
   useEffect(() => {
     const calculateTonight = async () => {
@@ -82,8 +149,15 @@ export default function TonightCard({ location }: TonightCardProps) {
           }
         }
 
-        // Estimate Bortle scale based on location
-        const bortleScale = estimateBortleScale(location);
+        // Calculate optimal viewing window using the same logic as Calendar
+        const gcData = calculateGalacticCenterPosition(now, location);
+        const moonData = calculateMoonData(now, location);
+        const twilightData = calculateTwilightTimes(now, location);
+        const optimalWindow = calculateOptimalViewingWindow(
+          gcData,
+          moonData,
+          twilightData
+        );
 
         // Calculate visibility rating for tonight
         const visibility = calculateTonightVisibility(
@@ -114,8 +188,8 @@ export default function TonightCard({ location }: TonightCardProps) {
           maxGcAltitude: maxAltitude,
           moonPhase: moonIllumination.phase,
           moonIllumination: moonIllumination.fraction * 100,
-          bortleScale,
           visibility,
+          optimalWindow,
         });
 
         setIsLoading(false);
@@ -131,50 +205,10 @@ export default function TonightCard({ location }: TonightCardProps) {
   const formatTime = (date: Date | undefined) => {
     if (!date) return "—";
     return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
+      hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
+      hour12: false,
     });
-  };
-
-  const estimateBortleScale = (loc: Location): number => {
-    // Check if location is in a dark sky park
-    const darkSkyParkNames = [
-      "Natural Bridges",
-      "Death Valley",
-      "Joshua Tree",
-      "Arches",
-      "Canyonlands",
-      "Capitol Reef",
-      "Bryce Canyon",
-      "Grand Canyon",
-      "Cherry Springs",
-      "Big Bend",
-      "Anza-Borrego",
-      "Headlands",
-      "Kerry",
-      "Mayo",
-      "NamibRand",
-      "Aotea",
-    ];
-
-    // This is a simplified estimation - in reality you'd want to use
-    // light pollution data or APIs
-    const matchedLocation = localStorage.getItem("milkyway-location");
-    if (matchedLocation) {
-      const parsed = JSON.parse(matchedLocation);
-      if (parsed.matchedName) {
-        const isDarkSkyPark = darkSkyParkNames.some((name) =>
-          parsed.matchedName.toLowerCase().includes(name.toLowerCase())
-        );
-        if (isDarkSkyPark) return 1;
-      }
-    }
-
-    // Default estimation based on latitude
-    if (Math.abs(loc.lat) > 50) return 3;
-    if (Math.abs(loc.lat) > 40) return 4;
-    return 5;
   };
 
   const calculateTonightVisibility = (
@@ -191,14 +225,11 @@ export default function TonightCard({ location }: TonightCardProps) {
     return 3;
   };
 
-  const getStarsDisplay = (rating: number): string => {
-    return "★".repeat(rating) + "☆".repeat(4 - rating);
-  };
 
   if (isLoading) {
     return (
       <div className="glass-morphism p-6 mb-8">
-        <h2 className="text-6xl font-semibold mb-4">Tonight</h2>
+        <h2 className="text-6xl font-semibold mb-4 text-center">Tonight</h2>
         <p className="text-blue-200">Calculating astronomical events...</p>
       </div>
     );
@@ -208,115 +239,168 @@ export default function TonightCard({ location }: TonightCardProps) {
 
   return (
     <div className="glass-morphism p-6 mb-8">
-      <h2 className="text-6xl font-semibold mb-4">Tonight</h2>
+      <div className="flex flex-col items-center mb-4">
+        <h2 className="text-6xl font-semibold mb-2 text-center">
+          Tonight {events && <StarRating rating={events.visibility} size="lg" />}
+        </h2>
+        <button
+          ref={locationButtonRef}
+          onClick={() => setShowLocationPopover(true)}
+          className="text-blue-300 hover:text-blue-200 underline decoration-dotted transition-colors text-lg"
+        >
+          {locationDisplayName}
+        </button>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-32 text-xl">
         {/* Sun Events */}
         <div className="space-y-2">
-          <h3 className="font-semibold text-3xl mb-2">Sun</h3>
-          {events.sunSet && (
-            <div className="flex justify-between">
-              <span className="text-blue-200">Sunset (Civil Dawn)</span>
-              <span className="font-mono">{formatTime(events.sunSet)}</span>
+          <h3 className="font-semibold text-3xl mb-2 text-center">Sun</h3>
+          {(events.sunSet || events.astronomicalTwilightEnd) && (
+            <div className="flex justify-center items-center gap-2">
+              {events.sunSet && (
+                <>
+                  <Icon
+                    name="set"
+                    title="Sunset (Civil Dawn)"
+                    className="w-10 h-10 text-blue-200"
+                  />
+                  <span className="font-mono">{formatTime(events.sunSet)}</span>
+                </>
+              )}
+              {events.astronomicalTwilightEnd && (
+                <>
+                  <Icon
+                    name="set2"
+                    title="Astronomical Twilight End"
+                    className="w-10 h-10 text-gray-300"
+                  />
+                  <span className="font-mono">
+                    {formatTime(events.astronomicalTwilightEnd)}
+                  </span>
+                </>
+              )}
             </div>
           )}
-          {events.astronomicalTwilightEnd && (
-            <div className="flex justify-between">
-              <span className="text-gray-300">Astronomical Twilight End</span>
-              <span className="font-mono">
-                {formatTime(events.astronomicalTwilightEnd)}
-              </span>
-            </div>
-          )}
-          {events.astronomicalTwilightStart && (
-            <div className="flex justify-between">
-              <span className="text-gray-300">Astronomical Twilight Start</span>
-              <span className="font-mono">
-                {formatTime(events.astronomicalTwilightStart)}
-              </span>
-            </div>
-          )}
-          {events.sunRise && (
-            <div className="flex justify-between">
-              <span className="text-gray-300">Sunrise (Civil Twilight)</span>
-              <span className="font-mono">{formatTime(events.sunRise)}</span>
+          {(events.astronomicalTwilightStart || events.sunRise) && (
+            <div className="flex justify-center items-center gap-2">
+              {events.astronomicalTwilightStart && (
+                <>
+                  <Icon
+                    name="rise2"
+                    title="Astronomical Twilight Start"
+                    className="w-10 h-10 text-gray-300"
+                  />
+                  <span className="font-mono">
+                    {formatTime(events.astronomicalTwilightStart)}
+                  </span>
+                </>
+              )}
+              {events.sunRise && (
+                <>
+                  <Icon
+                    name="rise"
+                    title="Sunrise (Civil Twilight)"
+                    className="w-10 h-10 text-gray-300"
+                  />
+                  <span className="font-mono">{formatTime(events.sunRise)}</span>
+                </>
+              )}
             </div>
           )}
         </div>
 
         {/* Moon Events */}
         <div className="space-y-2">
-          <h3 className="font-semibold text-3xl mb-2">Moon</h3>
+          <h3 className="font-semibold text-3xl mb-2 text-center">
+            Moon {getMoonPhaseEmoji(events.moonPhase)}{" "}
+            {events.moonIllumination.toFixed(0)}%
+          </h3>
           {events.moonRise && (
-            <div className="flex justify-between">
-              <span className="text-gray-300">Moonrise</span>
+            <div className="flex justify-center items-center gap-4">
+              <Icon
+                name="rise"
+                title="Moonrise"
+                className="w-10 h-10 text-gray-300"
+              />
               <span className="font-mono">{formatTime(events.moonRise)}</span>
             </div>
           )}
           {events.moonSet && (
-            <div className="flex justify-between">
-              <span className="text-gray-300">Moonset</span>
+            <div className="flex justify-center items-center gap-4">
+              <Icon
+                name="set"
+                title="Moonset"
+                className="w-10 h-10 text-gray-300"
+              />
               <span className="font-mono">{formatTime(events.moonSet)}</span>
             </div>
           )}
-          <div className="flex justify-between">
-            <span className="text-gray-300">Phase</span>
-            <span className="text-lg">
-              {getMoonPhaseEmoji(events.moonPhase)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-300">Illumination</span>
-            <span className="font-mono">
-              {events.moonIllumination.toFixed(0)}%
-            </span>
-          </div>
         </div>
 
         {/* Galactic Center Events */}
         <div className="space-y-2">
-          <h3 className="font-semibold text-3xl mb-2">Galactic Center</h3>
+          <h3 className="font-semibold text-3xl mb-2 text-center">
+            Galactic Center
+          </h3>
           {events.gcRise && (
-            <div className="flex justify-between">
-              <span className="text-gray-300">Rise</span>
+            <div className="flex justify-center items-center gap-4">
+              <Icon
+                name="rise"
+                title="Galactic Center Rise"
+                className="w-10 h-10 text-gray-300"
+              />
               <span className="font-mono">{formatTime(events.gcRise)}</span>
             </div>
           )}
+          <div className="flex justify-center items-center gap-4">
+            <Icon
+              name="rise2"
+              title="Galactic Core Rise (Optimal)"
+              className="w-10 h-10 text-gray-300"
+            />
+            <span className="font-mono">
+              {formatOptimalViewingTime(events.optimalWindow)} for{" "}
+              {formatOptimalViewingDuration(events.optimalWindow)}
+            </span>
+          </div>
           {events.gcTransit && (
-            <div className="flex justify-between">
-              <span className="text-gray-300">Transit</span>
-              <span className="font-mono">{formatTime(events.gcTransit)}</span>
+            <div className="flex justify-center items-center gap-4">
+              <Icon
+                name="transit"
+                title="Maximum Altitude"
+                className="w-10 h-10 text-gray-300"
+              />
+              <span className="font-mono">
+                {events.maxGcAltitude.toFixed(0)}° at{" "}
+                {formatTime(events.gcTransit)}
+              </span>
             </div>
           )}
           {events.gcSet && (
-            <div className="flex justify-between">
-              <span className="text-gray-300">Set</span>
+            <div className="flex justify-center items-center gap-4">
+              <Icon
+                name="set"
+                title="Galactic Center Set"
+                className="w-10 h-10 text-gray-300"
+              />
               <span className="font-mono">{formatTime(events.gcSet)}</span>
             </div>
           )}
-          <div className="flex justify-between">
-            <span className="text-gray-300">Max Altitude</span>
-            <span className="font-mono">
-              {events.maxGcAltitude.toFixed(0)}°
-            </span>
-          </div>
-        </div>
-
-        {/* Viewing Conditions */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-3xl mb-2">Conditions</h3>
-          <div className="flex justify-between">
-            <span className="text-gray-300">Bortle Scale</span>
-            <span className="font-mono">Class {events.bortleScale}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-300">Visibility</span>
-            <span className="text-lg">
-              {getStarsDisplay(events.visibility)}
-            </span>
-          </div>
         </div>
       </div>
+
+      {showLocationPopover && (
+        <LocationPopover
+          location={location}
+          onLocationChange={(newLocation) => {
+            onLocationChange(newLocation);
+            setShowLocationPopover(false);
+          }}
+          onClose={() => setShowLocationPopover(false)}
+          triggerRef={locationButtonRef}
+        />
+      )}
     </div>
   );
 }
