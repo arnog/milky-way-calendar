@@ -94,13 +94,34 @@ function findMatchingLocation(input: string): ParsedLocation | null {
     }
   }
   
-  // Then try partial match on full name - return the first match
+  // Then try word boundary match on full name - prioritize matches at word boundaries
   for (const loc of SPECIAL_LOCATIONS) {
     const fullName = loc[0] as string
     const shortName = loc[1] as string
     const normalizedFullName = normalizeForComparison(fullName)
     
-    if (normalizedFullName.includes(normalizedInput) || normalizedInput.includes(normalizedFullName)) {
+    // Create word boundary regex for the input
+    const words = normalizedInput.split(' ').filter(word => word.length > 0)
+    const wordMatches = words.every(word => {
+      const wordRegex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i')
+      return wordRegex.test(normalizedFullName)
+    })
+    
+    if (wordMatches) {
+      return {
+        location: { lat: loc[2] as number, lng: loc[3] as number },
+        matchedName: shortName
+      }
+    }
+  }
+  
+  // Finally try partial match as fallback
+  for (const loc of SPECIAL_LOCATIONS) {
+    const fullName = loc[0] as string
+    const shortName = loc[1] as string
+    const normalizedFullName = normalizeForComparison(fullName)
+    
+    if (normalizedFullName.includes(normalizedInput) && normalizedInput.length >= 3) {
       return {
         location: { lat: loc[2] as number, lng: loc[3] as number },
         matchedName: shortName

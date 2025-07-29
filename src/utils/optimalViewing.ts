@@ -173,18 +173,9 @@ export function formatOptimalViewingTime(window: OptimalViewingWindow, location?
 export function formatOptimalViewingDuration(
   window: OptimalViewingWindow
 ): string {
-  if (window.duration <= 0) {
+  if (window.duration <= 0 || !window.startTime) {
     return "";
   }
-
-  // TODO: Fix this filtering logic - should show nighttime portion of viewing window
-  // For now, bypass filtering to debug the intersection calculation
-  // if (window.startTime) {
-  //   const hour = window.startTime.getHours()
-  //   if (hour >= 6 && hour <= 18) {
-  //     return ''
-  //   }
-  // }
 
   const hours = Math.floor(window.duration);
   const minutes = Math.round((window.duration % 1) * 60);

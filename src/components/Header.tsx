@@ -11,10 +11,10 @@ export default function Header({
     <header className="glass-morphism p-6 mb-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-8xl font-bold mb-2" style={{}}>
+          <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold mb-2">
             Milky Way Calendar
           </h1>
-          <p className="text-3xl text-blue-200">
+          <p className="text-lg md:text-2xl lg:text-3xl text-blue-200">
             Discover the best times to observe the Milky Way throughout the year
           </p>
         </div>

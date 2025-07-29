@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Location, WeekData } from "../types/astronomy";
 import { getVisibilityDescription } from "../utils/visibilityRating";
 import StarRating from "./StarRating";
@@ -69,30 +69,24 @@ export default function Calendar({ location }: CalendarProps) {
             location
           );
 
-          // Add all weeks (including those with visibility = 0)
-          {
-            // Get GC times for display
-            const gcRiseSet = calculateGalacticCenterRiseSet(midWeek, location);
-
-            weeks.push({
-              weekNumber: currentWeekNumber + weekOffset,
-              startDate,
-              visibility,
-              moonPhase: moonData.phase,
-              moonIllumination: moonData.illumination,
-              gcTime: gcRiseSet.riseTime,
-              gcDuration: gcRiseSet.transitTime,
-              gcAltitude: gcData.altitude,
-              twilightEnd: twilightData.night
-                ? new Date(twilightData.night)
-                : null,
-              twilightStart: twilightData.dayEnd
-                ? new Date(twilightData.dayEnd)
-                : null,
-              optimalConditions: optimalWindow.description,
-              optimalWindow: optimalWindow,
-            });
-          }
+          weeks.push({
+            weekNumber: currentWeekNumber + weekOffset,
+            startDate,
+            visibility,
+            moonPhase: moonData.phase,
+            moonIllumination: moonData.illumination,
+            gcTime: formatOptimalViewingTime(optimalWindow, location),
+            gcDuration: formatOptimalViewingDuration(optimalWindow),
+            gcAltitude: gcData.altitude,
+            twilightEnd: twilightData.night
+              ? new Date(twilightData.night)
+              : null,
+            twilightStart: twilightData.dayEnd
+              ? new Date(twilightData.dayEnd)
+              : null,
+            optimalConditions: optimalWindow.description,
+            optimalWindow: optimalWindow,
+          });
         } catch (error) {
           console.error(
             `Error calculating week starting ${startDate.toDateString()}:`,
@@ -106,79 +100,6 @@ export default function Calendar({ location }: CalendarProps) {
     [location, currentYear]
   );
 
-  // Calculate GC rise/transit times for display
-  const calculateGalacticCenterRiseSet = (date: Date, loc: Location) => {
-    const gcRa = 17.759; // hours
-    const gcDec = -29.008; // degrees
-
-    try {
-      // Check if GC is circumpolar or never rises
-      const latRad = (loc.lat * Math.PI) / 180;
-      const decRad = (gcDec * Math.PI) / 180;
-
-      // Hour angle at horizon
-      const cosH = -Math.tan(latRad) * Math.tan(decRad);
-
-      if (cosH > 1) {
-        // Never rises
-        return {
-          riseTime: "Never rises",
-          transitTime: "N/A",
-        };
-      } else if (cosH < -1) {
-        // Circumpolar (always visible)
-        const transitTime = new Date(date);
-        const lstTransit = gcRa;
-        const utTransit = (lstTransit - loc.lng / 15 + 24) % 24;
-        transitTime.setUTCHours(Math.floor(utTransit));
-        transitTime.setUTCMinutes((utTransit % 1) * 60);
-
-        return {
-          riseTime: "Circumpolar",
-          transitTime: transitTime.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          }),
-        };
-      }
-
-      const H = (Math.acos(cosH) * 180) / Math.PI / 15; // hours
-
-      // Calculate rise time
-      const riseTime = new Date(date);
-      const lstRise = gcRa - H;
-      const utRise = (lstRise - loc.lng / 15 + 24) % 24;
-      riseTime.setUTCHours(Math.floor(utRise));
-      riseTime.setUTCMinutes((utRise % 1) * 60);
-
-      // Calculate transit time
-      const transitTime = new Date(date);
-      const lstTransit = gcRa;
-      const utTransit = (lstTransit - loc.lng / 15 + 24) % 24;
-      transitTime.setUTCHours(Math.floor(utTransit));
-      transitTime.setUTCMinutes((utTransit % 1) * 60);
-
-      return {
-        riseTime: riseTime.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }),
-        transitTime: transitTime.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }),
-      };
-    } catch (error) {
-      console.error("Error calculating GC times:", error);
-      return {
-        riseTime: "Error",
-        transitTime: "Error",
-      };
-    }
-  };
 
   // Initial load
   useEffect(() => {
@@ -279,8 +200,7 @@ export default function Calendar({ location }: CalendarProps) {
             </tr>
           </thead>
           <tbody>
-            {weekData
-              .filter((week) => week.visibility > 0)
+            {useMemo(() => weekData.filter((week) => week.visibility > 0), [weekData])
               .map((week) => (
                 <tr
                   key={`${week.startDate.getFullYear()}-${week.weekNumber}`}

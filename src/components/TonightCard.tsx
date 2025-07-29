@@ -16,7 +16,7 @@ import { getMoonPhaseEmoji } from "../utils/moonCalculations";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import { formatTimeInLocationTimezone } from "../utils/visibilityRating";
+import { formatTimeInLocationTimezone, calculateVisibilityRating } from "../utils/visibilityRating";
 import {
   calculateOptimalViewingWindow,
   formatOptimalViewingTime,
@@ -165,10 +165,22 @@ export default function TonightCard({
           twilightData
         );
 
-        // Calculate visibility rating for tonight
-        const visibility = calculateTonightVisibility(
-          maxAltitude,
-          moonIllumination.fraction
+        // Calculate visibility rating for tonight using the consistent method
+        // Recalculate GC data at the optimal viewing time for accurate visibility rating
+        let gcDataForRating = gcData;
+        if (optimalWindow.startTime) {
+          gcDataForRating = calculateGalacticCenterPosition(
+            optimalWindow.startTime,
+            location
+          );
+        }
+        
+        const visibility = calculateVisibilityRating(
+          gcDataForRating,
+          moonData,
+          twilightData,
+          optimalWindow,
+          location
         );
 
         setEvents({
@@ -210,17 +222,6 @@ export default function TonightCard({
     return formatTimeInLocationTimezone(date, location);
   };
 
-  const calculateTonightVisibility = (
-    maxAlt: number,
-    moonFraction: number
-  ): number => {
-    // Simplified visibility calculation for tonight
-    if (maxAlt < 20) return 0;
-    if (moonFraction > 0.5) return 1;
-    if (moonFraction > 0.3) return 2;
-    if (maxAlt > 40) return 4;
-    return 3;
-  };
 
   if (isLoading) {
     return (

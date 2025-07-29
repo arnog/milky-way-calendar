@@ -2,10 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Location } from "../types/astronomy";
 import WorldMap from "./WorldMap";
-import {
-  parseLocationInput,
-  findNearestSpecialLocation,
-} from "../utils/locationParser";
+import { useLocationManager } from "../hooks/useLocationManager";
 
 interface LocationInputProps {
   location: Location | null;
@@ -16,21 +13,26 @@ export default function LocationInput({
   location,
   onLocationChange,
 }: LocationInputProps) {
-  const [inputValue, setInputValue] = useState("");
-  const [matchedLocationName, setMatchedLocationName] = useState<string | null>(
-    null
-  );
-  const [isNearbyMatch, setIsNearbyMatch] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    inputValue,
+    setInputValue,
+    matchedLocationName,
+    isLoading,
+    dragLocation,
+    handleInputChange,
+    handleMapClick,
+    handleDragStart,
+    handleDragEnd,
+    getCurrentLocation,
+    formatLocationDisplay,
+  } = useLocationManager({ initialLocation: location, onLocationChange });
+
   const [isFocused, setIsFocused] = useState(false);
-  const [, setIsDragging] = useState(false);
-  const [dragLocation, setDragLocation] = useState<Location | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({
     top: 0,
     left: 0,
     width: 0,
   });
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -76,199 +78,6 @@ export default function LocationInput({
     };
   }, [isFocused]);
 
-  // Load saved location from localStorage on mount
-  useEffect(() => {
-    const savedLocation = localStorage.getItem("milkyway-location");
-    if (savedLocation && !location) {
-      try {
-        const parsed = JSON.parse(savedLocation);
-
-        // Check if we should look for nearby special locations if no matched name is saved
-        if (!parsed.matchedName) {
-          const nearbyLocation = findNearestSpecialLocation(parsed.location);
-          if (nearbyLocation) {
-            onLocationChange(nearbyLocation.location);
-            setInputValue(nearbyLocation.matchedName || `${nearbyLocation.location.lat.toFixed(1)}, ${nearbyLocation.location.lng.toFixed(1)}`);
-            setMatchedLocationName(nearbyLocation.matchedName || null);
-            setIsNearbyMatch(true);
-            // Update localStorage with the matched name
-            saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
-            return;
-          }
-        }
-
-        onLocationChange(parsed.location);
-        if (parsed.matchedName) {
-          setInputValue(parsed.matchedName);
-          setMatchedLocationName(parsed.matchedName);
-          setIsNearbyMatch(false);
-        } else {
-          setInputValue(
-            `${parsed.location.lat.toFixed(1)}, ${parsed.location.lng.toFixed(
-              1
-            )}`
-          );
-        }
-      } catch (e) {
-        // Invalid saved data, get current location
-        getCurrentLocation();
-      }
-    } else if (!location) {
-      getCurrentLocation();
-    }
-  }, []);
-
-  // Note: Input is populated from localStorage or geolocation in the first useEffect
-  // No need for automatic refill when user clears the field
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      setIsLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const newLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          // Check if near a special location
-          const nearbyLocation = findNearestSpecialLocation(newLocation);
-          if (nearbyLocation) {
-            onLocationChange(nearbyLocation.location);
-            setInputValue(
-              `${nearbyLocation.location.lat}, ${nearbyLocation.location.lng}`
-            );
-            setMatchedLocationName(nearbyLocation.matchedName || null);
-            saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
-          } else {
-            onLocationChange(newLocation);
-            setInputValue(
-              `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
-            );
-            setMatchedLocationName(null);
-            saveLocation(newLocation, null);
-          }
-          setIsLoading(false);
-        },
-        () => {
-          // Default to LA if geolocation fails
-          const defaultLocation = { lat: 34.0549, lng: -118.2426 };
-          onLocationChange(defaultLocation);
-          setInputValue(
-            `${defaultLocation.lat.toFixed(1)}, ${defaultLocation.lng.toFixed(
-              1
-            )}`
-          );
-          setMatchedLocationName("LA");
-          setIsNearbyMatch(false);
-          saveLocation(defaultLocation, "LA");
-          setIsLoading(false);
-        }
-      );
-    }
-  };
-
-  const saveLocation = (loc: Location, name: string | null) => {
-    localStorage.setItem(
-      "milkyway-location",
-      JSON.stringify({
-        location: loc,
-        matchedName: name,
-      })
-    );
-  };
-
-  const handleInputChange = (value: string) => {
-    setInputValue(value);
-
-    // Clear existing timer
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    // If input is cleared, clear the matched location name but don't parse
-    if (value.trim() === "") {
-      setMatchedLocationName(null);
-      setIsNearbyMatch(false);
-      return;
-    }
-
-    // Set new timer for 200ms
-    debounceTimer.current = setTimeout(() => {
-      const parsed = parseLocationInput(value);
-      if (parsed) {
-        // If no matched name from parsing, check for nearby special locations
-        if (!parsed.matchedName) {
-          const nearbyLocation = findNearestSpecialLocation(parsed.location);
-          if (nearbyLocation) {
-            onLocationChange(nearbyLocation.location);
-            setMatchedLocationName(nearbyLocation.matchedName || null);
-            setIsNearbyMatch(true);
-            saveLocation(
-              nearbyLocation.location,
-              nearbyLocation.matchedName || null
-            );
-            return;
-          }
-        }
-
-        onLocationChange(parsed.location);
-        setMatchedLocationName(parsed.matchedName || null);
-        setIsNearbyMatch(false);
-        saveLocation(parsed.location, parsed.matchedName || null);
-      }
-    }, 200);
-  };
-
-  const handleMapClick = (
-    newLocation: Location,
-    isCurrentlyDragging: boolean = false
-  ) => {
-    if (isCurrentlyDragging) {
-      // During drag, just update the visual state and store location
-      setDragLocation(newLocation);
-      // Update input value to show coordinates during drag
-      setInputValue(
-        `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
-      );
-    } else {
-      // Normal click or drag end - update everything
-      updateLocationState(newLocation);
-      onLocationChange(newLocation);
-    }
-  };
-
-  const updateLocationState = (newLocation: Location) => {
-    // Check if near a special location
-    const nearbyLocation = findNearestSpecialLocation(newLocation);
-    if (nearbyLocation) {
-      setInputValue(
-        `${nearbyLocation.location.lat.toFixed(
-          1
-        )}, ${nearbyLocation.location.lng.toFixed(1)}`
-      );
-      setMatchedLocationName(nearbyLocation.matchedName || null);
-      setIsNearbyMatch(true);
-      saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
-    } else {
-      setInputValue(
-        `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
-      );
-      setMatchedLocationName(null);
-      setIsNearbyMatch(false);
-      saveLocation(newLocation, null);
-    }
-  };
-
-  const handleDragStart = () => {
-    setIsDragging(true);
-  };
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    setDragLocation(null);
-  };
-
   return (
     <div ref={cardRef} className="glass-morphism p-6 mb-8">
       <h2 className="text-6xl font-semibold mb-4 text-center">Your Location</h2>
@@ -311,34 +120,9 @@ export default function LocationInput({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === "Tab") {
                     e.preventDefault();
-                    const parsed = parseLocationInput(inputValue);
-                    if (parsed) {
-                      let finalLocation = parsed;
-
-                      // If no matched name from parsing, check for nearby special locations
-                      if (!parsed.matchedName) {
-                        const nearbyLocation = findNearestSpecialLocation(
-                          parsed.location
-                        );
-                        if (nearbyLocation) {
-                          finalLocation = nearbyLocation;
-                        }
-                      }
-
-                      onLocationChange(finalLocation.location);
-                      setMatchedLocationName(finalLocation.matchedName || null);
-                      setIsNearbyMatch(
-                        !parsed.matchedName && !!finalLocation.matchedName
-                      );
-                      saveLocation(
-                        finalLocation.location,
-                        finalLocation.matchedName || null
-                      );
-
-                      // If there's a matched location name, replace input with the name
-                      if (finalLocation.matchedName) {
-                        setInputValue(finalLocation.matchedName);
-                      }
+                    // The handleInputChange already handles all parsing and updating
+                    if (matchedLocationName) {
+                      setInputValue(matchedLocationName);
                     }
                   }
                 }}
@@ -374,9 +158,7 @@ export default function LocationInput({
             <div className="mt-2 min-h-[28px] flex items-start">
               {matchedLocationName && (
                 <p className="text-xl text-blue-200">
-                  {isNearbyMatch
-                    ? `Near ${matchedLocationName}`
-                    : matchedLocationName}
+                  {formatLocationDisplay()}
                 </p>
               )}
             </div>
