@@ -11,6 +11,7 @@ import {
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
 } from "../utils/optimalViewing";
+import { generateEventStructuredData } from "../utils/structuredData";
 
 interface CalendarProps {
   location: Location;
@@ -201,34 +202,46 @@ export default function Calendar({ location }: CalendarProps) {
           </thead>
           <tbody>
             {useMemo(() => weekData.filter((week) => week.visibility > 0), [weekData])
-              .map((week) => (
-                <tr
-                  key={`${week.startDate.getFullYear()}-${week.weekNumber}`}
-                  className="border-b border-white/10 hover:bg-white/5 transition-all duration-300"
-                  style={getRowBackground(week.visibility)}
-                  title={getVisibilityDescription(week.visibility)}
-                >
-                  <td className="py-3 px-2 text-2xl text-center">
-                    {week.startDate.toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year:
-                        week.startDate.getFullYear() !== currentYear
-                          ? "numeric"
-                          : undefined,
-                    })}
-                  </td>
-                  <td className="py-3 px-2 text-3xl text-center">
-                    <StarRating rating={week.visibility} size="lg" />
-                  </td>
-                  <td className="py-3 px-2 text-3xl text-center font-mono">
-                    {formatOptimalViewingTime(week.optimalWindow, location)}
-                  </td>
-                  <td className="py-3 px-2 text-3xl text-center font-mono">
-                    {formatOptimalViewingDuration(week.optimalWindow)}
-                  </td>
-                </tr>
-              ))}
+              .map((week) => {
+                const structuredData = generateEventStructuredData(week, location);
+                
+                return (
+                  <tr
+                    key={`${week.startDate.getFullYear()}-${week.weekNumber}`}
+                    className="border-b border-white/10 hover:bg-white/5 transition-all duration-300"
+                    style={getRowBackground(week.visibility)}
+                    title={getVisibilityDescription(week.visibility)}
+                  >
+                    {structuredData && (
+                      <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{
+                          __html: JSON.stringify(structuredData, null, 2)
+                        }}
+                      />
+                    )}
+                    <td className="py-3 px-2 text-2xl text-center">
+                      {week.startDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year:
+                          week.startDate.getFullYear() !== currentYear
+                            ? "numeric"
+                            : undefined,
+                      })}
+                    </td>
+                    <td className="py-3 px-2 text-3xl text-center">
+                      <StarRating rating={week.visibility} size="lg" />
+                    </td>
+                    <td className="py-3 px-2 text-3xl text-center font-mono">
+                      {formatOptimalViewingTime(week.optimalWindow, location)}
+                    </td>
+                    <td className="py-3 px-2 text-3xl text-center font-mono">
+                      {formatOptimalViewingDuration(week.optimalWindow)}
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>
