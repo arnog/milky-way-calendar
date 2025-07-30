@@ -67,7 +67,7 @@ const Icon = ({
       onTouchEnd={() => setTimeout(() => setShowTooltip(false), 2000)}
     >
       <svg className={className}>
-        <use href={`/src/icons.svg#${name}`} />
+        <use href={`/icons.svg#${name}`} />
       </svg>
       {showTooltip && title && (
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xl text-white bg-gray-900 rounded shadow-lg whitespace-nowrap z-50">

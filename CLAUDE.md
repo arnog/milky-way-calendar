@@ -32,7 +32,7 @@ npm run preview      # Preview production build
 - `src/components/` - React components (Calendar, TonightCard, LocationPopover, WorldMap, StarRating)
 - `src/utils/` - Utility functions for astronomical calculations and location parsing
 - `src/types/` - TypeScript type definitions
-- `src/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set, transit)
+- `public/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set, transit)
 
 ## Astronomical Calculations
 
@@ -80,4 +80,27 @@ The app calculates:
 
 ## Hosting
 
-Configured for deployment on Dreamhost as a SPA.
+Deployed on CloudFlare Pages with Git integration.
+
+### Deployment Process
+
+The app is deployed using CloudFlare Pages with automatic Git integration:
+
+1. **Make changes** to the codebase
+2. **Commit changes** to Git:
+   ```bash
+   git add .
+   git commit -m "Your commit message"
+   ```
+3. **Push to repository**:
+   ```bash
+   git push origin main
+   ```
+4. **CloudFlare automatically redeploys** when it detects new commits
+
+### Build Configuration
+
+- **Build command**: `npm run build`
+- **Output directory**: `dist`
+- **Node.js version**: Latest LTS
+- **Static assets**: Served from `public/` directory (includes `icons.svg`, `world-map.svg`)

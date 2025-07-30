@@ -32,7 +32,7 @@ export default function StarRating({
         style={{ fill: "white", color: "white" }}
       >
         <use
-          href={`/src/icons.svg#${i < rating ? "star-black" : "star-white"}`}
+          href={`/icons.svg#${i < rating ? "star-black" : "star-white"}`}
         />
       </svg>
     );
