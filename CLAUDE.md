@@ -21,7 +21,7 @@ npm run preview      # Preview production build
 - **Weekly calendar table** showing Milky Way visibility ratings (1-4 stars)
 - **Tonight card** with detailed astronomical events for current night
 - **Interactive location selection** via clickable popover with world map integration
-- **Real astronomical calculations** using astronomy-engine and suncalc libraries
+- **Real astronomical calculations** using astronomy-engine library for consistent, accurate results
 - **Timezone-aware time display** - all times shown in location's local timezone
 - **SVG icon system** with custom tooltips for better UX
 - **Glassmorphism UI** with starry sky background and responsive design
@@ -39,11 +39,11 @@ npm run preview      # Preview production build
 
 ## Astronomical Calculations
 
-The app calculates:
+The app uses astronomy-engine exclusively for all astronomical calculations to ensure consistency and accuracy:
 
-- **Galactic Center Position**: Using astronomy-engine for precise altitude/azimuth calculations
-- **Moon Data**: Using suncalc for phase, illumination, rise/set times, and position
-- **Twilight Times**: Astronomical twilight (sun ≥18° below horizon) for darkness windows
+- **Galactic Center Position**: Precise altitude/azimuth calculations using astronomy-engine
+- **Moon Data**: Phase, illumination, rise/set times, and position using astronomy-engine
+- **Sun & Twilight Times**: Sunrise/sunset and astronomical twilight calculations using astronomy-engine
 - **Optimal Viewing Windows**: Intersection of GC visibility (≥10° altitude), astronomical darkness, and moon interference
 - **Visibility Rating**: 1-4 star system combining GC altitude, moon interference, and darkness duration
 - **Timezone Conversion**: All times displayed in location's local timezone using longitude-based approximation
@@ -90,15 +90,29 @@ The app calculates:
 - **Interactive Map**: WorldMap component with blue markers for each dark sky site, hover tooltips, and click navigation
 - **Smart Categorization**: Location grouping logic handles edge cases (Alaska, Hawaii) and creates balanced regional distributions
 
+### High Latitude Handling
+- **Galactic Center Visibility**: Automatically detects when GC is never visible (>60°N) and shows explanatory message
+- **Astronomical Twilight**: Gracefully handles locations where sun never reaches -18° (white nights/polar summer)
+- **UI Adaptation**: Hides empty calendar tables and irrelevant sections for high-latitude locations
+- **Special Messages**: Shows location-specific messages for high latitudes and large cities with light pollution warnings
+
+### Code Quality & Architecture
+- **Single Source of Truth**: All astronomical calculations consolidated to use astronomy-engine exclusively
+- **Eliminated Duplication**: Removed duplicate moon calculations between TonightCard and utility functions
+- **Consistent Moon Data**: All components now use `calculateMoonData()` function for moon phase, illumination, and rise/set times
+- **Proper Error Handling**: Robust fallbacks for edge cases like extreme latitudes and failed calculations
+- **Library Migration**: Successfully migrated from SunCalc to astronomy-engine for better accuracy and consistency
+
 ## Current Status
 
 ✅ **Phase 1**: Project Foundation - React/TypeScript setup with Vite, Tailwind CSS  
 ✅ **Phase 2**: Core Astronomical Engine - Real calculations implemented  
 ✅ **Phase 3**: Advanced UI/UX - Location popover, timezone-aware displays, SVG icons  
 ✅ **Phase 4**: Map Integration - Interactive world map with drag support  
-✅ **Phase 5**: Dark Sky Sites Explorer - Dedicated page showcasing curated dark sky locations
+✅ **Phase 5**: Dark Sky Sites Explorer - Dedicated page showcasing curated dark sky locations  
+✅ **Phase 6**: Code Quality Improvements - Migrated to astronomy-engine, eliminated code duplication, improved high-latitude handling
 
-**Current state**: Feature-complete astronomy calendar with international timezone support and dark sky site discovery.
+**Current state**: Feature-complete astronomy calendar with consistent astronomical calculations, proper high-latitude handling, and comprehensive dark sky site discovery.
 
 ## Hosting
 

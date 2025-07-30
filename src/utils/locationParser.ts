@@ -1,5 +1,5 @@
 import { Location } from '../types/astronomy'
-import { SPECIAL_LOCATIONS, SPECIAL_AREAS, SPECIAL_LOCATION_DESCRIPTIONS } from './locations'
+import { SPECIAL_LOCATIONS, SPECIAL_AREAS, SPECIAL_LOCATION_DESCRIPTIONS, LARGE_CITIES, HIGH_LATITUDE_MESSAGE, LARGE_CITY_MESSAGE } from './locations'
 
 // Normalize string for comparison by removing punctuation and normalizing whitespace
 function normalizeForComparison(str: string): string {
@@ -194,6 +194,22 @@ export function findNearestSpecialLocation(location: Location, thresholdKm: numb
 
 // Get special location description by finding matching location identifier
 export function getSpecialLocationDescription(location: Location): string | null {
+  // Check for high latitude locations first (>60°N)
+  if (location.lat > 60) {
+    return HIGH_LATITUDE_MESSAGE
+  }
+  
+  // Check if location matches a large city
+  for (const city of LARGE_CITIES) {
+    const cityLoc = { lat: city[2] as number, lng: city[3] as number }
+    const distance = calculateDistance(location, cityLoc)
+    
+    // If it's within ~50km of a large city center
+    if (distance < 50) {
+      return LARGE_CITY_MESSAGE
+    }
+  }
+  
   // Look for the special location entry that matches this location
   for (const loc of SPECIAL_LOCATIONS) {
     const specialLoc = { lat: loc[2] as number, lng: loc[3] as number }

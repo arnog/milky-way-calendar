@@ -177,6 +177,14 @@ export default function Calendar({ location }: CalendarProps) {
     );
   }
 
+  // Filter out weeks with no visibility
+  const visibleWeeks = useMemo(() => weekData.filter((week) => week.visibility > 0), [weekData]);
+  
+  // Don't render anything if there are no visible weeks
+  if (visibleWeeks.length === 0 && !isLoadingMore) {
+    return null;
+  }
+
   return (
     <div className="glass-morphism p-6">
       <style>
@@ -201,8 +209,7 @@ export default function Calendar({ location }: CalendarProps) {
             </tr>
           </thead>
           <tbody>
-            {useMemo(() => weekData.filter((week) => week.visibility > 0), [weekData])
-              .map((week) => {
+            {visibleWeeks.map((week) => {
                 const structuredData = generateEventStructuredData(week, location);
                 
                 return (

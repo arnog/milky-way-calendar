@@ -1,88 +1,112 @@
-import * as SunCalc from "suncalc";
+import * as Astronomy from "astronomy-engine";
 import { Location, TwilightData } from "../types/astronomy";
-
-// Add custom times for astronomical twilight (-18°)
-SunCalc.addTime(-18, "astronomicalDawn", "astronomicalDusk");
-
-interface ExtendedTimes extends SunCalc.GetTimesResult {
-  astronomicalDawn: Date; // sun -18° in morning
-  astronomicalDusk: Date; // sun -18° in evening
-}
 
 export function calculateTwilightTimes(
   date: Date,
   location: Location
 ): TwilightData {
   try {
-    // SunCalc expects a local Date; use **midnight** so evening events belong to this calendar day.
+    const observer = new Astronomy.Observer(location.lat, location.lng, 0);
+    
+    // Create a date at midnight local time for consistency
     const baseLocal = new Date(
       date.getFullYear(),
       date.getMonth(),
       date.getDate(),
-      0,
-      0,
-      0,
-      0 // 00:00 local
+      0, 0, 0, 0
     );
 
-    const times = SunCalc.getTimes(
+    // Search for sunrise/sunset (0 degrees)
+    // Direction: +1 = Rise, -1 = Set
+    const sunrise = Astronomy.SearchRiseSet(
+      Astronomy.Body.Sun,
+      observer,
+      +1,
       baseLocal,
-      location.lat,
-      location.lng
-    ) as ExtendedTimes;
+      1
+    );
+    
+    const sunset = Astronomy.SearchRiseSet(
+      Astronomy.Body.Sun,
+      observer,
+      -1,
+      baseLocal,
+      1
+    );
 
-    const nextLocal = new Date(baseLocal);
-    nextLocal.setDate(nextLocal.getDate() + 1);
+    // Search for civil twilight (-6 degrees)
+    const civilDawn = Astronomy.SearchAltitude(
+      Astronomy.Body.Sun,
+      observer,
+      +1,
+      baseLocal,
+      1,
+      -6
+    );
+    
+    const civilDusk = Astronomy.SearchAltitude(
+      Astronomy.Body.Sun,
+      observer,
+      -1,
+      baseLocal,
+      1,
+      -6
+    );
 
-    const nextTimes = SunCalc.getTimes(
-      nextLocal,
-      location.lat,
-      location.lng
-    ) as ExtendedTimes;
+    // Search for astronomical twilight (-18 degrees)
+    // This is when true darkness begins/ends
+    const astronomicalDusk = Astronomy.SearchAltitude(
+      Astronomy.Body.Sun,
+      observer,
+      -1,
+      baseLocal,
+      1,
+      -18
+    );
+    
+    // For astronomical dawn, search from the next day
+    const nextDay = new Date(baseLocal);
+    nextDay.setDate(nextDay.getDate() + 1);
+    
+    const astronomicalDawn = Astronomy.SearchAltitude(
+      Astronomy.Body.Sun,
+      observer,
+      +1,
+      nextDay,
+      1,
+      -18
+    );
 
-    // --- Find astronomical dusk by searching after civil dusk (Sun –6°) ---
-    // Choose the evening civil dusk (sun –6°).
-    // If SunCalc returns the pre‑dawn event (dusk < sunset), use tomorrow’s dusk.
-    let civilDusk = times.dusk;
-    if (civilDusk.getTime() < times.sunset.getTime()) {
-      civilDusk = nextTimes.dusk; // evening civil dusk
+    // Handle edge cases for high latitudes
+    let nightStart: Date;
+    let dayEnd: Date;
+
+    if (!astronomicalDusk) {
+      // Sun never goes below -18° (e.g., high latitude summer)
+      // Use civil dusk as fallback
+      nightStart = civilDusk ? civilDusk.date : sunset ? sunset.date : new Date(baseLocal.setHours(22, 0, 0, 0));
+    } else {
+      nightStart = astronomicalDusk.date;
     }
 
-    // Start 5 min after civil dusk, step every 5 min until Sun altitude ≤ –18°
-    const searchStart = new Date(civilDusk.getTime() + 5 * 60 * 1000);
-    const searchEnd = new Date(searchStart.getTime() + 8 * 60 * 60 * 1000); // search up to +8 h
-
-    let nightStart: Date | null = null;
-    for (
-      let t = searchStart;
-      t <= searchEnd;
-      t = new Date(t.getTime() + 5 * 60 * 1000)
-    ) {
-      const sunAltRad = SunCalc.getPosition(
-        t,
-        location.lat,
-        location.lng
-      ).altitude;
-      const sunAltDeg = (sunAltRad * 180) / Math.PI;
-      if (sunAltDeg <= -18) {
-        nightStart = t;
-        break;
-      }
+    if (!astronomicalDawn) {
+      // Sun never goes below -18° before dawn
+      // Use civil dawn as fallback
+      dayEnd = civilDawn ? civilDawn.date : sunrise ? sunrise.date : new Date(nextDay.setHours(4, 0, 0, 0));
+    } else {
+      dayEnd = astronomicalDawn.date;
     }
-
-    // If Sun never reaches –18° (e.g. high‑latitude summer), use civil dusk
-    if (!nightStart) nightStart = civilDusk;
-
-    const astronomicalDawn = nextTimes.astronomicalDawn;
 
     return {
-      dawn: times.dawn.getTime(),
-      dusk: times.dusk.getTime(),
+      dawn: civilDawn ? civilDawn.date.getTime() : baseLocal.getTime() + 6 * 3600000,
+      dusk: civilDusk ? civilDusk.date.getTime() : baseLocal.getTime() + 18 * 3600000,
       night: nightStart.getTime(),
-      dayEnd: astronomicalDawn.getTime(),
+      dayEnd: dayEnd.getTime(),
     };
   } catch (error) {
-    console.error("Error calculating twilight times:", error);
+    console.error("Error calculating twilight times with astronomy-engine:", error);
+    
+    // Fallback values
     const fallback = new Date(date);
     return {
       dawn: new Date(fallback.setHours(6, 0, 0, 0)).getTime(),

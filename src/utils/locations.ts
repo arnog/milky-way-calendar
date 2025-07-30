@@ -1,4 +1,4 @@
-const LARGE_CITIES = [
+export const LARGE_CITIES = [
   ["Tokyo, Japan", "Tokyo", 35.68972, 139.69222],
   ["Delhi, India", "Delhi", 28.61, 77.23],
   ["Shanghai, China", "Shanghai", 31.22861, 121.47472, "shanghai-suzhou"],
@@ -765,15 +765,15 @@ export const DARK_SITES = [
 
 export const SPECIAL_LOCATIONS = [...DARK_SITES, ...LARGE_CITIES];
 
-export const HIGH_LATITUDE_MESSAGE = `<p>The center of our galaxy, the Milky Way, lies in the constellation Sagittarius. In the sky, it has a fixed position just like a bright star, with a “declination” of about <strong>29 degrees south</srong>. Declination is a coordinate similar to latitude on Earth, but it’s used for the celestial sphere. Because the Galactic Center is so far south in the sky, your location on Earth determines whether you can see it at all.</p>
+export const HIGH_LATITUDE_MESSAGE = `<h2>Galactic Core Below the Horizon</h2><p>The center of our galaxy, the Milky Way, lies in the constellation Sagittarius. In the sky, it has a fixed position just like a bright star, with a “declination” of about <strong>29 degrees south</strong>. Declination is a coordinate similar to latitude on Earth, but it’s used for the celestial sphere. Because the Galactic Center is so far south in the sky, your location on Earth determines whether you can see it at all.</p>
 
-<p>If you live <strong>north of about 61° N</strong> — for example in northern Alaska, parts of Canada, or far northern Scandinavia — the Galactic Center never rises above the horizon, so it’s permanently hidden from view. The farther south you go, the higher it climbs in the sky at its peak each night. Around <strong>30° N</strong> (southern United States, North Africa, southern China) it reaches about 60° above the horizon. Near the <strong>29° S</strong> line (central Chile, South Africa, southern Australia), it passes directly overhead. In the far south, below 61° S (deep Antarctica), the Galactic Center never sets and is visible all year round.</p>
+<p>If you live <strong>north of about 61° N</strong> — for example in northern Alaska, parts of Canada, or far northern Scandinavia — the Galactic Center never rises above the horizon, so it’s permanently hidden from view. The farther south you go, the higher it climbs in the sky at its peak each night. Around <strong>30° N</strong> (southern United States, North Africa, southern China) it reaches about 60° above the horizon. Near the <strong>29° S</strong> line (central Chile, South Africa, southern Australia), it passes directly overhead. In the far south, below <strong>61° S</strong> (deep Antarctica), the Galactic Center never sets and is visible all year round.</p>
 
 <p>This is why astrophotographers often travel to southern latitudes — from there, the Milky Way’s core appears higher in the sky, stays visible longer, and can be seen in darker parts of the night.</p>
 
 `;
 
-export const LARGE_CITY_MESSAGE = `<p>Even if the Galactic Center is high in the sky where you live, you might not be able to see the Milky Way at all if you are in or near a large city. This is because of <strong>light pollution</strong> — the glow from streetlights, buildings, billboards, and cars that scatters in the atmosphere and drowns out faint objects in the night sky. The Milky Way is made up of billions of stars, but most of them are faint. Under heavy light pollution, only the brightest stars remain visible, and the Milky Way’s soft, cloudlike glow disappears completely.</p>
+export const LARGE_CITY_MESSAGE = `<h2>City Lights vs Star Light</h2><p>Even if the Galactic Center is high in the sky where you live, you might not be able to see the Milky Way at all if you are in or near a large city. This is because of <strong>light pollution</strong> — the glow from streetlights, buildings, billboards, and cars that scatters in the atmosphere and drowns out faint objects in the night sky. The Milky Way is made up of billions of stars, but most of them are faint. Under heavy light pollution, only the brightest stars remain visible, and the Milky Way’s soft, cloudlike glow disappears completely.</p>
 
 <p>To see it clearly, you need to be under <strong>dark skies</strong> — far from cities, towns, and major roads. Astronomers often use the <strong>Bortle scale</strong> to measure sky darkness. In the brightest city skies (Bortle 9), you might see only a dozen stars. In very dark rural areas (Bortle 1–2), thousands of stars are visible, and the Milky Way shines brightly across the sky. If you live in an urban area, plan to travel at least an hour or two away from the city lights, ideally to a place protected from development such as a national park or an official “Dark Sky” preserve.</p>`;
 

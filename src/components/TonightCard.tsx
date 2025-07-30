@@ -2,16 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Location } from "../types/astronomy";
 import LocationPopover from "./LocationPopover";
 import StarRating from "./StarRating";
-import { Observer, Horizon } from "astronomy-engine";
-import * as SunCalc from "suncalc";
-
-// Add custom times for astronomical twilight (-18°)
-SunCalc.addTime(-18, "astronomicalDawn", "astronomicalDusk");
-
-interface ExtendedTimes extends SunCalc.GetTimesResult {
-  astronomicalDawn: Date;
-  astronomicalDusk: Date;
-}
+import { Observer, Horizon, SearchRiseSet, Body, SearchAltitude } from "astronomy-engine";
 import { getMoonPhaseEmoji } from "../utils/moonCalculations";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
@@ -133,21 +124,17 @@ export default function TonightCard({
         const now = new Date();
         const observer = new Observer(location.lat, location.lng, 0);
 
-        // Calculate sun times using SunCalc
-        const sunTimes = SunCalc.getTimes(
-          now,
-          location.lat,
-          location.lng
-        ) as ExtendedTimes;
-        const tomorrowSunTimes = SunCalc.getTimes(
-          new Date(now.getTime() + 24 * 60 * 60 * 1000),
-          location.lat,
-          location.lng
-        ) as ExtendedTimes;
-
-        // Calculate moon times
-        const moonTimes = SunCalc.getMoonTimes(now, location.lat, location.lng);
-        const moonIllumination = SunCalc.getMoonIllumination(now);
+        // Calculate sun times using astronomy-engine
+        const sunset = SearchRiseSet(Body.Sun, observer, -1, now, 1);
+        const sunrise = SearchRiseSet(Body.Sun, observer, +1, now, 1);
+        const tomorrowSunrise = SearchRiseSet(Body.Sun, observer, +1, new Date(now.getTime() + 24 * 60 * 60 * 1000), 1);
+        
+        // Calculate astronomical twilight times
+        const astronomicalDusk = SearchAltitude(Body.Sun, observer, -1, now, 1, -18);
+        const astronomicalDawn = SearchAltitude(Body.Sun, observer, +1, new Date(now.getTime() + 24 * 60 * 60 * 1000), 1, -18);
+        
+        // Use existing calculateMoonData function instead of duplicating calculations
+        const moonData = calculateMoonData(now, location);
 
         // Calculate Galactic Center times
         const gcRa = 17.759; // hours
@@ -172,7 +159,6 @@ export default function TonightCard({
 
         // Calculate optimal viewing window using the same logic as Calendar
         const gcData = calculateGalacticCenterPosition(now, location);
-        const moonData = calculateMoonData(now, location);
         const twilightData = calculateTwilightTimes(now, location);
         const optimalWindow = calculateOptimalViewingWindow(
           gcData,
@@ -200,25 +186,25 @@ export default function TonightCard({
 
         setEvents({
           sunRise:
-            sunTimes.sunrise > now
-              ? sunTimes.sunrise
-              : tomorrowSunTimes.sunrise,
-          sunSet: sunTimes.sunset > now ? sunTimes.sunset : undefined,
+            sunrise && sunrise.date > now
+              ? sunrise.date
+              : tomorrowSunrise?.date,
+          sunSet: sunset && sunset.date > now ? sunset.date : undefined,
           astronomicalTwilightEnd:
-            sunTimes.astronomicalDusk > now
-              ? sunTimes.astronomicalDusk
+            astronomicalDusk && astronomicalDusk.date > now
+              ? astronomicalDusk.date
               : undefined,
-          astronomicalTwilightStart: tomorrowSunTimes.astronomicalDawn,
+          astronomicalTwilightStart: astronomicalDawn?.date,
           moonRise:
-            moonTimes.rise && moonTimes.rise > now ? moonTimes.rise : undefined,
+            moonData.rise && moonData.rise > now ? moonData.rise : undefined,
           moonSet:
-            moonTimes.set && moonTimes.set > now ? moonTimes.set : undefined,
+            moonData.set && moonData.set > now ? moonData.set : undefined,
           gcRise: undefined,
           gcTransit: transitTime,
           gcSet: undefined,
           maxGcAltitude: maxAltitude,
-          moonPhase: moonIllumination.phase,
-          moonIllumination: moonIllumination.fraction * 100,
+          moonPhase: moonData.phase,
+          moonIllumination: moonData.illumination * 100,
           visibility,
           optimalWindow,
         });
@@ -352,56 +338,60 @@ export default function TonightCard({
           )}
         </div>
 
-        {/* Galactic Center Events */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-3xl mb-2 text-center">
-            Galactic Center
-          </h3>
-          {events.gcRise && (
-            <div className="flex justify-center items-center gap-4">
-              <Icon
-                name="rise"
-                title="Galactic Center Rise"
-                className="w-8 h-8 text-gray-300"
-              />
-              <span className="font-mono">{formatTime(events.gcRise)}</span>
-            </div>
-          )}
-          <div className="flex justify-center items-center gap-4">
-            <Icon
-              name="rise2"
-              title="Galactic Core Rise (Optimal)"
-              className="w-8 h-8 text-gray-300"
-            />
-            <span className="font-mono">
-              {formatOptimalViewingTime(events.optimalWindow, location)} for{" "}
-              {formatOptimalViewingDuration(events.optimalWindow)}
-            </span>
+        {/* Galactic Center Events - only show if there's an optimal viewing window */}
+        {(events.optimalWindow.startTime || events.gcTransit || events.maxGcAltitude > 0) && (
+          <div className="space-y-2">
+            <h3 className="font-semibold text-3xl mb-2 text-center">
+              Galactic Center
+            </h3>
+            {events.gcRise && (
+              <div className="flex justify-center items-center gap-4">
+                <Icon
+                  name="rise"
+                  title="Galactic Center Rise"
+                  className="w-8 h-8 text-gray-300"
+                />
+                <span className="font-mono">{formatTime(events.gcRise)}</span>
+              </div>
+            )}
+            {events.optimalWindow.startTime && (
+              <div className="flex justify-center items-center gap-4">
+                <Icon
+                  name="rise2"
+                  title="Galactic Core Rise (Optimal)"
+                  className="w-8 h-8 text-gray-300"
+                />
+                <span className="font-mono">
+                  {formatOptimalViewingTime(events.optimalWindow, location)} for{" "}
+                  {formatOptimalViewingDuration(events.optimalWindow)}
+                </span>
+              </div>
+            )}
+            {events.gcTransit && events.maxGcAltitude > 0 && (
+              <div className="flex justify-center items-center gap-4">
+                <Icon
+                  name="transit"
+                  title="Maximum Altitude"
+                  className="w-8 h-8 text-gray-300"
+                />
+                <span className="font-mono">
+                  {events.maxGcAltitude.toFixed(0)}° at{" "}
+                  {formatTime(events.gcTransit)}
+                </span>
+              </div>
+            )}
+            {events.gcSet && (
+              <div className="flex justify-center items-center gap-4">
+                <Icon
+                  name="set"
+                  title="Galactic Center Set"
+                  className="w-8 h-8 text-gray-300"
+                />
+                <span className="font-mono">{formatTime(events.gcSet)}</span>
+              </div>
+            )}
           </div>
-          {events.gcTransit && (
-            <div className="flex justify-center items-center gap-4">
-              <Icon
-                name="transit"
-                title="Maximum Altitude"
-                className="w-8 h-8 text-gray-300"
-              />
-              <span className="font-mono">
-                {events.maxGcAltitude.toFixed(0)}° at{" "}
-                {formatTime(events.gcTransit)}
-              </span>
-            </div>
-          )}
-          {events.gcSet && (
-            <div className="flex justify-center items-center gap-4">
-              <Icon
-                name="set"
-                title="Galactic Center Set"
-                className="w-8 h-8 text-gray-300"
-              />
-              <span className="font-mono">{formatTime(events.gcSet)}</span>
-            </div>
-          )}
-        </div>
+        )}
       </div>
       <div className="mt-8">
         <div className="flex justify-center">

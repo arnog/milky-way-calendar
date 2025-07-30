@@ -1,41 +1,64 @@
-import * as SunCalc from "suncalc";
+import * as Astronomy from "astronomy-engine";
 import { Location, MoonData } from "../types/astronomy";
 
 export function calculateMoonData(date: Date, location: Location): MoonData {
   try {
-    const moonPosition = SunCalc.getMoonPosition(
+    const observer = new Astronomy.Observer(location.lat, location.lng, 0);
+    
+    // Calculate moon position
+    const moonEquator = Astronomy.Equator(Astronomy.Body.Moon, date, observer, false, true);
+    const moonHorizon = Astronomy.Horizon(date, observer, moonEquator.ra, moonEquator.dec, "normal");
+    
+    // Calculate moon illumination
+    const moonIllum = Astronomy.Illumination(Astronomy.Body.Moon, date);
+    const moonPhaseAngle = moonIllum.phase_angle;
+    const moonPhase = (moonPhaseAngle + 180) / 360; // Convert to 0-1 range where 0.5 is full moon
+    const moonIllumination = moonIllum.phase_fraction; // Fraction of moon's visible disk that is illuminated
+    
+    // Calculate moon rise/set times
+    // Direction: +1 = Rise, -1 = Set
+    const moonRise = Astronomy.SearchRiseSet(
+      Astronomy.Body.Moon,
+      observer,
+      +1,
       date,
-      location.lat,
-      location.lng
+      1
     );
-    const moonIllumination = SunCalc.getMoonIllumination(date);
-    const moonTimes = SunCalc.getMoonTimes(date, location.lat, location.lng);
+    
+    const moonSet = Astronomy.SearchRiseSet(
+      Astronomy.Body.Moon,
+      observer,
+      -1,
+      date,
+      1
+    );
 
-    // SunCalc returns events in the same calendar day. If the set‑time precedes
-    // the rise‑time it means the Moon sets after midnight.  Query the next day
-    // to obtain the proper set time.
-    if (moonTimes.rise && moonTimes.set && moonTimes.set < moonTimes.rise) {
+    // If moon set precedes rise, get the next set time
+    if (moonRise && moonSet && moonSet.date < moonRise.date) {
       const nextDay = new Date(date);
       nextDay.setDate(nextDay.getDate() + 1);
-      const nextTimes = SunCalc.getMoonTimes(
+      const nextSet = Astronomy.SearchRiseSet(
+        Astronomy.Body.Moon,
+        observer,
+        -1,
         nextDay,
-        location.lat,
-        location.lng
+        1
       );
-      moonTimes.set =
-        nextTimes.set ??
-        new Date(moonTimes.set.getTime() + 24 * 60 * 60 * 1000); // fallback
+      if (nextSet) {
+        moonSet.date = nextSet.date;
+      }
     }
+
     return {
-      phase: moonIllumination.phase,
-      illumination: moonIllumination.fraction,
-      altitude: moonPosition.altitude * (180 / Math.PI), // Convert to degrees
-      azimuth: moonPosition.azimuth * (180 / Math.PI), // Convert to degrees
-      rise: moonTimes.rise || null,
-      set: moonTimes.set || null,
+      phase: moonPhase,
+      illumination: moonIllumination,
+      altitude: moonHorizon.altitude,
+      azimuth: moonHorizon.azimuth,
+      rise: moonRise ? moonRise.date : null,
+      set: moonSet ? moonSet.date : null,
     };
   } catch (error) {
-    console.error("Error calculating moon data:", error);
+    console.error("Error calculating moon data with astronomy-engine:", error);
     return {
       phase: 0,
       illumination: 0,
