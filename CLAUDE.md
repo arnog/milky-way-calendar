@@ -122,9 +122,10 @@ The app uses astronomy-engine exclusively for all astronomical calculations to e
 ✅ **Phase 3**: Advanced UI/UX - Location popover, timezone-aware displays, SVG icons  
 ✅ **Phase 4**: Map Integration - Interactive world map with drag support  
 ✅ **Phase 5**: Dark Sky Sites Explorer - Dedicated page showcasing curated dark sky locations  
-✅ **Phase 6**: Code Quality Improvements - Migrated to astronomy-engine, eliminated code duplication, improved high-latitude handling
+✅ **Phase 6**: Code Quality Improvements - Migrated to astronomy-engine, eliminated code duplication, improved high-latitude handling  
+✅ **Phase 7**: Navigation & FAQ System - Comprehensive navigation with centered layout, FAQ page with educational content, global dark/field mode
 
-**Current state**: Feature-complete astronomy calendar with consistent astronomical calculations, proper high-latitude handling, and comprehensive dark sky site discovery.
+**Current state**: Feature-complete astronomy calendar with consistent astronomical calculations, proper high-latitude handling, comprehensive dark sky site discovery, and educational FAQ system with modern navigation.
 
 ## Hosting
 
