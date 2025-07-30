@@ -16,7 +16,10 @@ import { getMoonPhaseEmoji } from "../utils/moonCalculations";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import { formatTimeInLocationTimezone, calculateVisibilityRating } from "../utils/visibilityRating";
+import {
+  formatTimeInLocationTimezone,
+  calculateVisibilityRating,
+} from "../utils/visibilityRating";
 import { getSpecialLocationDescription } from "../utils/locationParser";
 import {
   calculateOptimalViewingWindow,
@@ -88,7 +91,9 @@ export default function TonightCard({
   const [isLoading, setIsLoading] = useState(true);
   const [showLocationPopover, setShowLocationPopover] = useState(false);
   const [locationDisplayName, setLocationDisplayName] = useState<string>("");
-  const [locationDescription, setLocationDescription] = useState<string | null>(null);
+  const [locationDescription, setLocationDescription] = useState<string | null>(
+    null
+  );
   const locationButtonRef = useRef<HTMLButtonElement>(null);
 
   // Update location display name and description when location changes
@@ -129,7 +134,11 @@ export default function TonightCard({
         const observer = new Observer(location.lat, location.lng, 0);
 
         // Calculate sun times using SunCalc
-        const sunTimes = SunCalc.getTimes(now, location.lat, location.lng) as ExtendedTimes;
+        const sunTimes = SunCalc.getTimes(
+          now,
+          location.lat,
+          location.lng
+        ) as ExtendedTimes;
         const tomorrowSunTimes = SunCalc.getTimes(
           new Date(now.getTime() + 24 * 60 * 60 * 1000),
           location.lat,
@@ -180,7 +189,7 @@ export default function TonightCard({
             location
           );
         }
-        
+
         const visibility = calculateVisibilityRating(
           gcDataForRating,
           moonData,
@@ -228,7 +237,6 @@ export default function TonightCard({
     return formatTimeInLocationTimezone(date, location);
   };
 
-
   if (isLoading) {
     return (
       <div className="glass-morphism p-6 mb-8">
@@ -243,13 +251,15 @@ export default function TonightCard({
   return (
     <div className="glass-morphism p-6 mb-8">
       <div className="flex flex-col items-center mb-4">
-        <h2 className="text-6xl font-semibold mb-2 text-center">
+        <h2 className="text-7xl font-semibold mb-2 text-center">
           Tonight{" "}
-          {events && <StarRating rating={events.visibility} size="lg" />}
+          <div>
+            {events && <StarRating rating={events.visibility} size="lg" />}
+          </div>
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-32 text-xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-32 mt-24 mb-24 text-xl">
         {/* Sun Events */}
         <div className="space-y-2">
           <h3 className="font-semibold text-3xl mb-2 text-center">Sun</h3>
@@ -312,7 +322,10 @@ export default function TonightCard({
         {/* Moon Events */}
         <div className="space-y-2">
           <h3 className="font-semibold text-3xl mb-2 text-center">
-            Moon {getMoonPhaseEmoji(events.moonPhase)}{" "}
+            Moon{" "}
+            <span style={{ fontFamily: "Times" }}>
+              {getMoonPhaseEmoji(events.moonPhase)}
+            </span>{" "}
             <span className="opacity-60 text-xl">
               {events.moonIllumination.toFixed(0)}%
             </span>
@@ -397,11 +410,11 @@ export default function TonightCard({
             onClick={() => setShowLocationPopover(true)}
             className="text-blue-200 hover:text-blue-100 underline decoration-dotted transition-colors text-xl"
           >
-            Near {locationDisplayName}
+            📍 {locationDisplayName}
           </button>
         </div>
         {locationDescription && (
-          <div 
+          <div
             className="mt-4 max-w-4xl mx-auto text-lg text-blue-100 opacity-90 leading-relaxed location-description"
             dangerouslySetInnerHTML={{ __html: locationDescription }}
           />

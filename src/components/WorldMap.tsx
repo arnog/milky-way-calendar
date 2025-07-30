@@ -23,20 +23,40 @@ export default function WorldMap({
     fetch("/world-map.svg")
       .then((res) => res.text())
       .then((svg) => {
-        // Use regex to extract path elements with landxx class
+        // Extract all content inside g elements with landxx class
+        const groupRegex =
+          /<g[^>]*class="[^"]*landxx[^"]*"[^>]*>([\s\S]*?)<\/g>/g;
+        // Also extract path elements with landxx class that are not inside groups
         const pathRegex =
           /<path[^>]*class="[^"]*landxx[^"]*"[^>]*d="([^"]+)"[^>]*>/g;
-        let pathsHtml = "";
+
+        let svgPaths = "";
         let match;
 
-        while ((match = pathRegex.exec(svg)) !== null) {
-          const d = match[1];
-          if (d) {
-            pathsHtml += `<path d="${d}" fill="none" stroke="rgba(255, 255, 255, 1)" stroke-width="5" />`;
+        // First, process all groups with landxx class
+        while ((match = groupRegex.exec(svg)) !== null) {
+          const groupContent = match[1];
+          // Extract paths from within the group
+          const innerPathRegex = /<path[^>]*d="([^"]+)"[^>]*>/g;
+          let innerMatch;
+
+          while ((innerMatch = innerPathRegex.exec(groupContent)) !== null) {
+            const d = innerMatch[1];
+            if (d) {
+              svgPaths += `<path d="${d}" fill="none" stroke="rgba(116, 163, 238, 0.8)" stroke-width="3" />`;
+            }
           }
         }
 
-        setSvgContent(pathsHtml);
+        // Then, process standalone paths with landxx class
+        while ((match = pathRegex.exec(svg)) !== null) {
+          const d = match[1];
+          if (d) {
+            svgPaths += `<path d="${d}" fill="none" stroke="rgba(116, 163, 238, 0.8)" stroke-width="3" />`;
+          }
+        }
+
+        setSvgContent(svgPaths);
       })
       .catch(() => {
         // Fallback to simple map if loading fails
@@ -53,18 +73,20 @@ export default function WorldMap({
       });
   }, []);
 
-  const getLocationFromEvent = (event: React.MouseEvent<SVGSVGElement> | MouseEvent): Location => {
-    const svg = containerRef.current?.querySelector('svg') as SVGSVGElement;
+  const getLocationFromEvent = (
+    event: React.MouseEvent<SVGSVGElement> | MouseEvent
+  ): Location => {
+    const svg = containerRef.current?.querySelector("svg") as SVGSVGElement;
     if (!svg) return { lat: 0, lng: 0 };
 
     // Use SVG's built-in coordinate conversion
     const point = svg.createSVGPoint();
     point.x = event.clientX;
     point.y = event.clientY;
-    
+
     // Transform screen coordinates to SVG coordinates
     const svgPoint = point.matrixTransform(svg.getScreenCTM()?.inverse());
-    
+
     // Convert SVG coordinates to lat/lng
     const viewBoxWidth = 2754;
     const viewBoxHeight = 1398;
@@ -76,27 +98,27 @@ export default function WorldMap({
 
   const handleMouseDown = (event: React.MouseEvent<SVGSVGElement>) => {
     if (event.button !== 0) return; // Only left mouse button
-    
+
     event.preventDefault(); // Prevent default behavior
-    
+
     let hasDragged = false;
     const startX = event.clientX;
     const startY = event.clientY;
     const initialLocation = getLocationFromEvent(event);
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       // Check if mouse has moved more than 3 pixels (to differentiate from click)
       const distance = Math.sqrt(
         Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2)
       );
-      
+
       if (!hasDragged && distance > 3) {
         // First move - start dragging
         hasDragged = true;
         setIsDragging(true);
         onDragStart?.();
       }
-      
+
       if (hasDragged) {
         const newLocation = getLocationFromEvent(e as any);
         onLocationChange(newLocation, true);
@@ -104,9 +126,9 @@ export default function WorldMap({
     };
 
     const handleMouseUp = (e: MouseEvent) => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+
       if (hasDragged) {
         // End of drag - get final location and notify parent
         const finalLocation = getLocationFromEvent(e as any);
@@ -120,20 +142,22 @@ export default function WorldMap({
       }
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
   };
 
   return (
     <div ref={containerRef}>
       <svg
         viewBox="0 0 2754 1398"
-        className={`w-full border border-white/20 rounded ${isDragging ? 'cursor-grabbing' : 'cursor-crosshair'}`}
+        className={`w-full border border-white/20 rounded ${
+          isDragging ? "cursor-grabbing" : "cursor-crosshair"
+        }`}
         onMouseDown={handleMouseDown}
-        style={{ 
+        style={{
           backgroundColor: "rgba(255, 255, 255, 0.02)",
           aspectRatio: "2754 / 1398",
-          userSelect: "none"
+          userSelect: "none",
         }}
       >
         <g dangerouslySetInnerHTML={{ __html: svgContent }} />

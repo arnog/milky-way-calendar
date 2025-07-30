@@ -5,6 +5,7 @@ import Header from './components/Header'
 import TonightCard from './components/TonightCard'
 import Calendar from './components/Calendar'
 import LocationPage from './pages/LocationPage'
+import ExplorePage from './pages/ExplorePage'
 import { Location } from './types/astronomy'
 import { findNearestSpecialLocation } from './utils/locationParser'
 import { locationToSlug } from './utils/urlHelpers'
@@ -134,6 +135,7 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/location/:locationSlug" element={<LocationPage />} />
+      <Route path="/explore" element={<ExplorePage />} />
     </Routes>
   )
 }

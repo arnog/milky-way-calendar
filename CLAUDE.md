@@ -26,10 +26,12 @@ npm run preview      # Preview production build
 - **SVG icon system** with custom tooltips for better UX
 - **Glassmorphism UI** with starry sky background and responsive design
 - **Location parsing** supporting coordinates, city names, and special astronomy locations
+- **Explore page** (`/explore`) showcasing world's best dark sky sites with interactive map
 
 ## Project Structure
 
 - `src/components/` - React components (Calendar, TonightCard, LocationPopover, WorldMap, StarRating)
+- `src/pages/` - Page components (HomePage, LocationPage, ExplorePage)
 - `src/utils/` - Utility functions for astronomical calculations and location parsing
 - `src/types/` - TypeScript type definitions
 - `public/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set, transit)
@@ -69,14 +71,29 @@ The app calculates:
 - **Drag Handling**: Fixed race conditions between drag events and location state updates
 - **Event Flow**: Proper mouseup handling prevents location reset on drag release
 
+### Routing and Navigation
+- **Route Structure**: 
+  - `/` - Home page with calendar for current/saved location
+  - `/location/:locationSlug` - Location-specific calendar (supports both named locations and coordinates)
+  - `/explore` - Interactive dark sky sites explorer
+- **Location URLs**: Support both named locations (e.g., `/location/yellowstone`) and coordinates (e.g., `/location/@44.6,-110.5`)
+- **Navigation**: Header dynamically shows "Explore Locations" or "Back to Calendar" based on current page
+
+### Dark Sky Sites Explorer
+- **Curated List**: Uses `DARK_SITES` constant containing ~80 prime stargazing locations worldwide
+- **Regional Grouping**: Locations organized into balanced regions (Western USA, Central USA, Eastern USA, Canada, Europe, etc.)
+- **Interactive Map**: WorldMap component with blue markers for each dark sky site, hover tooltips, and click navigation
+- **Smart Categorization**: Location grouping logic handles edge cases (Alaska, Hawaii) and creates balanced regional distributions
+
 ## Current Status
 
 ✅ **Phase 1**: Project Foundation - React/TypeScript setup with Vite, Tailwind CSS  
 ✅ **Phase 2**: Core Astronomical Engine - Real calculations implemented  
 ✅ **Phase 3**: Advanced UI/UX - Location popover, timezone-aware displays, SVG icons  
 ✅ **Phase 4**: Map Integration - Interactive world map with drag support  
+✅ **Phase 5**: Dark Sky Sites Explorer - Dedicated page showcasing curated dark sky locations
 
-**Current state**: Feature-complete astronomy calendar with international timezone support.
+**Current state**: Feature-complete astronomy calendar with international timezone support and dark sky site discovery.
 
 ## Hosting
 

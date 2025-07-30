@@ -50,28 +50,31 @@ export function calculateMoonData(date: Date, location: Location): MoonData {
 export function getMoonPhaseEmoji(phase: number): string {
   // Phase is 0-1, where 0.5 is full moon
   // Using Unicode moon phase symbols to properly represent the 8 moon phases
-  if (phase < 0.0625 || phase >= 0.9375) return "●"; // New Moon
-  if (phase < 0.1875) return "◐"; // Waxing Crescent
-  if (phase < 0.3125) return "◑"; // First Quarter
-  if (phase < 0.4375) return "◒"; // Waxing Gibbous
-  if (phase < 0.5625) return "○"; // Full Moon
-  if (phase < 0.6875) return "◓"; // Waning Gibbous
-  if (phase < 0.8125) return "◒"; // Last Quarter
-  return "◑"; // Waning Crescent
+  if (phase < 0.0625 || phase >= 0.9375) return "🌑"; // New Moon
+  if (phase < 0.1875) return "🌒"; // Waxing Crescent
+  if (phase < 0.3125) return "🌓"; // First Quarter
+  if (phase < 0.4375) return "🌔"; // Waxing Gibbous
+  if (phase < 0.5625) return "🌕"; // Full Moon
+  if (phase < 0.6875) return "🌖"; // Waning Gibbous
+  if (phase < 0.8125) return "🌗"; // Last Quarter
+  return "🌘"; // Waning Crescent
 }
 
 export function getMoonInterference(moonData: MoonData): number {
   // Calculate moon interference factor (0 = no interference, 1 = maximum interference)
   const illuminationFactor = moonData.illumination;
-  
+
   // If moon is below horizon, no interference regardless of illumination
   if (moonData.altitude <= 0) {
     return 0;
   }
-  
+
   // Altitude factor: moon interference increases non-linearly with altitude
   // Moon at 45° has nearly full interference, moon at horizon has minimal
-  const altitudeFactor = Math.min(1, Math.pow(Math.max(0, moonData.altitude) / 45, 0.7));
+  const altitudeFactor = Math.min(
+    1,
+    Math.pow(Math.max(0, moonData.altitude) / 45, 0.7)
+  );
 
   // Combine illumination and altitude - high moon with high illumination = maximum interference
   return illuminationFactor * altitudeFactor;
