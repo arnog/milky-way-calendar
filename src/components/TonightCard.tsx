@@ -17,6 +17,7 @@ import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
 import { formatTimeInLocationTimezone, calculateVisibilityRating } from "../utils/visibilityRating";
+import { getSpecialLocationDescription } from "../utils/locationParser";
 import {
   calculateOptimalViewingWindow,
   formatOptimalViewingTime,
@@ -87,9 +88,10 @@ export default function TonightCard({
   const [isLoading, setIsLoading] = useState(true);
   const [showLocationPopover, setShowLocationPopover] = useState(false);
   const [locationDisplayName, setLocationDisplayName] = useState<string>("");
+  const [locationDescription, setLocationDescription] = useState<string | null>(null);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Update location display name when location changes
+  // Update location display name and description when location changes
   useEffect(() => {
     const savedLocation = localStorage.getItem("milkyway-location");
     if (savedLocation) {
@@ -112,6 +114,10 @@ export default function TonightCard({
         `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
       );
     }
+
+    // Get special location description if available
+    const description = getSpecialLocationDescription(location);
+    setLocationDescription(description);
   }, [location]);
 
   useEffect(() => {
@@ -384,22 +390,32 @@ export default function TonightCard({
           )}
         </div>
       </div>
-      <div className="mt-8 flex justify-center">
-        <button
-          ref={locationButtonRef}
-          onClick={() => setShowLocationPopover(true)}
-          className="text-blue-200 hover:text-blue-100 underline decoration-dotted transition-colors text-xl"
-        >
-          Near {locationDisplayName}
-        </button>
+      <div className="mt-8">
+        <div className="flex justify-center">
+          <button
+            ref={locationButtonRef}
+            onClick={() => setShowLocationPopover(true)}
+            className="text-blue-200 hover:text-blue-100 underline decoration-dotted transition-colors text-xl"
+          >
+            Near {locationDisplayName}
+          </button>
+        </div>
+        {locationDescription && (
+          <div 
+            className="mt-4 max-w-4xl mx-auto text-lg text-blue-100 opacity-90 leading-relaxed location-description"
+            dangerouslySetInnerHTML={{ __html: locationDescription }}
+          />
+        )}
       </div>
 
       {showLocationPopover && (
         <LocationPopover
           location={location}
-          onLocationChange={(newLocation) => {
+          onLocationChange={(newLocation, shouldClose = false) => {
             onLocationChange(newLocation);
-            setShowLocationPopover(false);
+            if (shouldClose) {
+              setShowLocationPopover(false);
+            }
           }}
           onClose={() => setShowLocationPopover(false)}
           triggerRef={locationButtonRef}

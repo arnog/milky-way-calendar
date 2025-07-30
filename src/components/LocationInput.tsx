@@ -6,7 +6,7 @@ import { useLocationManager } from "../hooks/useLocationManager";
 
 interface LocationInputProps {
   location: Location | null;
-  onLocationChange: (location: Location) => void;
+  onLocationChange: (location: Location, shouldClose?: boolean) => void;
 }
 
 export default function LocationInput({
@@ -15,8 +15,7 @@ export default function LocationInput({
 }: LocationInputProps) {
   const {
     inputValue,
-    setInputValue,
-    matchedLocationName,
+    suggestion,
     isLoading,
     dragLocation,
     handleInputChange,
@@ -24,7 +23,8 @@ export default function LocationInput({
     handleDragStart,
     handleDragEnd,
     getCurrentLocation,
-    formatLocationDisplay,
+    acceptSuggestion,
+    confirmCurrentInput,
   } = useLocationManager({ initialLocation: location, onLocationChange });
 
   const [isFocused, setIsFocused] = useState(false);
@@ -118,11 +118,17 @@ export default function LocationInput({
                 autoComplete="off"
                 spellCheck={false}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === "Tab") {
+                  if (e.key === "Enter") {
                     e.preventDefault();
-                    // The handleInputChange already handles all parsing and updating
-                    if (matchedLocationName) {
-                      setInputValue(matchedLocationName);
+                    if (suggestion) {
+                      acceptSuggestion();
+                    } else {
+                      confirmCurrentInput();
+                    }
+                  } else if (e.key === "Tab") {
+                    e.preventDefault();
+                    if (suggestion) {
+                      acceptSuggestion();
                     }
                   }
                 }}
@@ -154,12 +160,16 @@ export default function LocationInput({
               </button>
             </div>
 
-            {/* Always reserve space for Near label to prevent card resizing */}
+            {/* Always reserve space for suggestion to prevent card resizing */}
             <div className="mt-2 min-h-[28px] flex items-start">
-              {matchedLocationName && (
-                <p className="text-xl text-blue-200">
-                  {formatLocationDisplay()}
-                </p>
+              {suggestion && (
+                <button
+                  onClick={acceptSuggestion}
+                  className="text-xl text-blue-200 hover:text-blue-100 hover:bg-white/10 px-2 py-1 rounded transition-colors"
+                >
+                  📍 {suggestion}
+                  <span className="text-sm text-gray-400 ml-2">(Click or Tab to select)</span>
+                </button>
               )}
             </div>
           </div>

@@ -73,7 +73,7 @@ export function calculateGalacticCenterPosition(
       const endTime = new Date(date.getTime() + 36 * 60 * 60 * 1000); // +36 h
 
       // Find ALL altitude crossings through the day
-      let crossings: Array<{
+      const crossings: Array<{
         time: Date;
         crossing: "rise" | "set";
         altitude: number;
@@ -144,8 +144,8 @@ export function calculateGalacticCenterPosition(
 
       // Process crossings to find the main rise and set times
       // Look for the first rise and its corresponding set
-      let firstRise = crossings.find((c) => c.crossing === "rise");
-      let correspondingSet = crossings.find((c, index) => {
+      const firstRise = crossings.find((c) => c.crossing === "rise");
+      const correspondingSet = crossings.find((c, index) => {
         const riseIndex = crossings.indexOf(firstRise!);
         return c.crossing === "set" && index > riseIndex;
       });

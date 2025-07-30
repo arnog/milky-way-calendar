@@ -6,7 +6,7 @@ import { useLocationManager } from "../hooks/useLocationManager";
 
 interface LocationPopoverProps {
   location: Location | null;
-  onLocationChange: (location: Location) => void;
+  onLocationChange: (location: Location, shouldClose?: boolean) => void;
   onClose: () => void;
   triggerRef: React.RefObject<HTMLElement>;
 }
@@ -19,8 +19,7 @@ export default function LocationPopover({
 }: LocationPopoverProps) {
   const {
     inputValue,
-    setInputValue,
-    matchedLocationName,
+    suggestion,
     isLoading,
     dragLocation,
     handleInputChange,
@@ -28,7 +27,8 @@ export default function LocationPopover({
     handleDragStart,
     handleDragEnd,
     getCurrentLocation,
-    formatLocationDisplay,
+    acceptSuggestion,
+    confirmCurrentInput,
   } = useLocationManager({ initialLocation: location, onLocationChange });
 
   const [popoverPosition, setPopoverPosition] = useState({
@@ -58,7 +58,7 @@ export default function LocationPopover({
   }, [triggerRef]);
 
 
-  // Close on outside click, scroll, or resize
+  // Close on outside click, scroll, resize, or escape key
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -67,6 +67,12 @@ export default function LocationPopover({
         triggerRef.current &&
         !triggerRef.current.contains(event.target as Node)
       ) {
+        onClose();
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
         onClose();
       }
     };
@@ -80,11 +86,13 @@ export default function LocationPopover({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleResize);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
     };
@@ -143,11 +151,17 @@ export default function LocationPopover({
                 autoComplete="off"
                 spellCheck={false}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === "Tab") {
+                  if (e.key === "Enter") {
                     e.preventDefault();
-                    // The handleInputChange already handles all parsing and updating
-                    if (matchedLocationName) {
-                      setInputValue(matchedLocationName);
+                    if (suggestion) {
+                      acceptSuggestion(); // Accept suggestion and close
+                    } else {
+                      confirmCurrentInput(); // Try to parse and confirm current input
+                    }
+                  } else if (e.key === "Tab") {
+                    e.preventDefault();
+                    if (suggestion) {
+                      acceptSuggestion(); // Accept suggestion (but don't close on Tab)
                     }
                   }
                 }}
@@ -180,10 +194,16 @@ export default function LocationPopover({
               </button>
             </div>
 
-            {matchedLocationName && (
-              <p className="text-sm text-blue-300 mt-1">
-                {formatLocationDisplay()}
-              </p>
+            {suggestion && (
+              <div className="mt-2">
+                <button
+                  onClick={acceptSuggestion}
+                  className="text-sm text-blue-300 hover:text-blue-200 hover:bg-white/10 px-2 py-1 rounded transition-colors w-full text-left"
+                >
+                  📍 {suggestion}
+                  <span className="text-xs text-gray-400 ml-2">(Press Tab or click to select)</span>
+                </button>
+              </div>
             )}
           </div>
 

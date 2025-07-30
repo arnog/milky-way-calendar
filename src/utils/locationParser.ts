@@ -1,5 +1,5 @@
 import { Location } from '../types/astronomy'
-import { SPECIAL_LOCATIONS, SPECIAL_AREAS } from './locations'
+import { SPECIAL_LOCATIONS, SPECIAL_AREAS, SPECIAL_LOCATION_DESCRIPTIONS } from './locations'
 
 // Normalize string for comparison by removing punctuation and normalizing whitespace
 function normalizeForComparison(str: string): string {
@@ -190,4 +190,21 @@ export function findNearestSpecialLocation(location: Location, thresholdKm: numb
   }
   
   return nearest
+}
+
+// Get special location description by finding matching location identifier
+export function getSpecialLocationDescription(location: Location): string | null {
+  // Look for the special location entry that matches this location
+  for (const loc of SPECIAL_LOCATIONS) {
+    const specialLoc = { lat: loc[2] as number, lng: loc[3] as number }
+    const distance = calculateDistance(location, specialLoc)
+    
+    // If it's a very close match (within 1km) and has an identifier (5th element)
+    if (distance < 1 && loc[4]) {
+      const identifier = loc[4] as string
+      return SPECIAL_LOCATION_DESCRIPTIONS[identifier] || null
+    }
+  }
+  
+  return null
 }
