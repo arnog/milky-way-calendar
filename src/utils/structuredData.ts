@@ -46,7 +46,7 @@ function getLocationName(location: Location): string {
         return parsed.matchedName;
       }
     }
-  } catch (e) {
+  } catch {
     // Fall through to other methods if localStorage fails
   }
 

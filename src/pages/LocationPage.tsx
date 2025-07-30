@@ -11,7 +11,8 @@ interface LocationPageProps {
   isDarkroomMode: boolean;
 }
 
-function LocationPage({}: LocationPageProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
   const { locationSlug } = useParams<{ locationSlug: string }>()
   const navigate = useNavigate()
   const [location, setLocation] = useState<Location | null>(null)

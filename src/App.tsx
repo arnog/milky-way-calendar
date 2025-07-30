@@ -15,7 +15,8 @@ interface HomePageProps {
   isDarkroomMode: boolean;
 }
 
-function HomePage({}: HomePageProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
   const [location, setLocation] = useState<Location | null>(null)
   const navigate = useNavigate()
 
@@ -29,7 +30,7 @@ function HomePage({}: HomePageProps) {
           setLocation(parsed.location);
           return;
         }
-      } catch (e) {
+      } catch {
         // Invalid saved data, fall through to geolocation
       }
     }

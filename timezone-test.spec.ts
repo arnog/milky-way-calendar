@@ -25,8 +25,8 @@ test('timezone fix verification for coordinates 42, 80', async ({ page }) => {
   const calendarTable = page.locator('table, .calendar');
   await expect(calendarTable).toBeVisible();
 
-  // Look for star ratings or visibility indicators
-  const visibilityRatings = page.locator('.star-rating, [data-testid="star-rating"], .rating');
+  // Look for star ratings or visibility indicators (unused currently)
+  // const visibilityRatings = page.locator('.star-rating, [data-testid="star-rating"], .rating');
   
   // Take a screenshot to show the results
   await page.screenshot({ 

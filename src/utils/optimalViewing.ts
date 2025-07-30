@@ -61,7 +61,7 @@ export function calculateOptimalViewingWindow(
   }
   // If GC rises after the current dark window ends, move the dark window to the following night
   if (gcStartTs > adjDarkEndTs) {
-    adjDarkStartTs += 24 * 60 * 60 * 1000; // shift both by +24 h
+    adjDarkStartTs += 24 * 60 * 60 * 1000; // shift both by +24 h
     adjDarkEndTs += 24 * 60 * 60 * 1000;
   }
 

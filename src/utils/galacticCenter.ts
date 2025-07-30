@@ -60,17 +60,17 @@ export function calculateGalacticCenterPosition(
     // We'll use the current horizontal position for altitude/azimuth in the return value
 
     // Adaptive altitude threshold:
-    //   • Jan – Jul  → 20°
-    //   • Aug – Sep → 15°
-    //   • Oct – Dec → 10°
+    //   • Jan - Jul  -> 20°
+    //   • Aug - Sep -> 15°
+    //   • Oct - Dec -> 10°
     const month = date.getMonth(); // 0 = January
     const targetAltitude = month < 7 ? 20 : month < 9 ? 15 : 10;
 
     try {
-      // Search from 6 h before the given date to 36 h after,
+      // Search from 6 h before the given date to 36 h after,
       // capturing cases where the GC is already up at midnight.
-      const startTime = new Date(date.getTime() - 6 * 60 * 60 * 1000); // −6 h
-      const endTime = new Date(date.getTime() + 36 * 60 * 60 * 1000); // +36 h
+      const startTime = new Date(date.getTime() - 6 * 60 * 60 * 1000); // -6 h
+      const endTime = new Date(date.getTime() + 36 * 60 * 60 * 1000); // +36 h
 
       // Find ALL altitude crossings through the day
       const crossings: Array<{

@@ -100,7 +100,7 @@ export default function TonightCard({
             `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
           );
         }
-      } catch (e) {
+      } catch {
         setLocationDisplayName(
           `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
         );

@@ -98,7 +98,7 @@ export default function Calendar({ location }: CalendarProps) {
 
       return weeks;
     },
-    [location, currentYear]
+    [location]
   );
 
 
@@ -154,6 +154,9 @@ export default function Calendar({ location }: CalendarProps) {
     };
   };
 
+  // Filter out weeks with no visibility
+  const visibleWeeks = useMemo(() => weekData.filter((week) => week.visibility > 0), [weekData]);
+
   if (isLoading) {
     return (
       <div className="glass-morphism p-6">
@@ -176,9 +179,6 @@ export default function Calendar({ location }: CalendarProps) {
       </div>
     );
   }
-
-  // Filter out weeks with no visibility
-  const visibleWeeks = useMemo(() => weekData.filter((week) => week.visibility > 0), [weekData]);
   
   // Don't render anything if there are no visible weeks
   if (visibleWeeks.length === 0 && !isLoadingMore) {

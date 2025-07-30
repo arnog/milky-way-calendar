@@ -74,14 +74,14 @@ export function useLocationManager({
           );
           setSuggestion(null);
         }
-      } catch (e) {
+      } catch {
         // Invalid saved data, get current location
         getCurrentLocation();
       }
     } else if (!initialLocation) {
       getCurrentLocation();
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Update input value when location changes externally
   useEffect(() => {
@@ -101,7 +101,7 @@ export function useLocationManager({
             setSuggestion(null);
             setIsNearbyMatch(false);
           }
-        } catch (e) {
+        } catch {
           setInputValue(
             `${initialLocation.lat.toFixed(1)}, ${initialLocation.lng.toFixed(1)}`
           );

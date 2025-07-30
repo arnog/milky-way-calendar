@@ -35,6 +35,32 @@ Calculate moonset time vs. GC rise and transit time.
 ✅ 3. Darkness Window • Astronomical twilight must be over: Sun >18° below the
 horizon
 
+## Time Zone Handling
+
+The application currently approximates the user's timezone based on longitude
+(Math.round(location.lng / 15)). This is not accurate and will produce incorrect
+times for many users.
+
+Problem: Timezones are political, not purely geographical. They don't always
+align with 15-degree longitude lines and many have non-integer offsets (e.g.,
+India at UTC+5:30, parts of Australia at UTC+9:30).
+
+Recommendation: Implement a more robust timezone solution.
+
+Client-Side (Good): Use the browser's native
+`Intl.DateTimeFormat().resolvedOptions().timeZone` to get the user's IANA
+timezone name (e.g., "America/Los_Angeles"). This works for the user's current
+location but not for locations they look up.
+
+Server-Side/Library (Better): Use a library like latlon-to-timezone or a simple
+API to convert a given latitude/longitude into its corresponding IANA timezone
+name. Once you have the IANA name, you can use date-fns-tz or the
+`Intl.DateTimeFormat` API to format all dates and times correctly for that
+specific location. This is crucial for accuracy.
+
+The timezone should be calculated accurately in particular for the Structured
+Data.
+
 ## Tools
 
 Consider using the following tools to build this project:

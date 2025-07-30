@@ -10,7 +10,8 @@ interface ExplorePageProps {
   isDarkroomMode: boolean;
 }
 
-function ExplorePage({}: ExplorePageProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const navigate = useNavigate();
   const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
