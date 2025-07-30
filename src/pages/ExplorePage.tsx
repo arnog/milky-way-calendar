@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import Header from "../components/Header";
 import WorldMap from "../components/WorldMap";
 import { Location } from "../types/astronomy";
 import { DARK_SITES } from "../utils/locations";
 import { locationNameToSlug } from "../utils/urlHelpers";
 
-function ExplorePage() {
+interface ExplorePageProps {
+  isDarkroomMode: boolean;
+}
+
+function ExplorePage({}: ExplorePageProps) {
   const navigate = useNavigate();
-  const [isDarkroomMode, setIsDarkroomMode] = useState(false);
   const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
@@ -134,20 +136,13 @@ function ExplorePage() {
         />
       </Helmet>
 
-      <div
-        className={`min-h-screen p-4 ${isDarkroomMode ? "darkroom-mode" : ""}`}
-      >
+      <div className="min-h-screen p-4">
         <div className="max-w-6xl mx-auto">
-          <Header
-            isDarkroomMode={isDarkroomMode}
-            onToggleDarkroomMode={() => setIsDarkroomMode(!isDarkroomMode)}
-          />
-
           <div className="mt-8">
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-6xl font-bold text-white mb-2">
               Explore Dark Sky Sites
             </h1>
-            <p className="text-white/70 mb-8">
+            <p className="text-2xl text-white/70 mb-8">
               Discover the world's best dark sky parks, reserves, and national
               parks for Milky Way viewing. Click on any location to view
               detailed visibility conditions throughout the year.
@@ -155,9 +150,6 @@ function ExplorePage() {
 
             {/* Interactive World Map */}
             <div className="mb-12">
-              <h2 className="text-xl font-semibold text-white mb-4">
-                Interactive Map
-              </h2>
               <div className="relative">
                 <WorldMap
                   location={selectedLocation}

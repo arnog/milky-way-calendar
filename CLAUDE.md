@@ -27,11 +27,14 @@ npm run preview      # Preview production build
 - **Glassmorphism UI** with starry sky background and responsive design
 - **Location parsing** supporting coordinates, city names, and special astronomy locations
 - **Explore page** (`/explore`) showcasing world's best dark sky sites with interactive map
+- **FAQ page** (`/faq`) with comprehensive Milky Way information and astrophotography guidance
+- **Centered navigation bar** with Home, Explore, and FAQ sections
+- **Dark/Field mode toggle** positioned at far right of navigation for optimal field use
 
 ## Project Structure
 
 - `src/components/` - React components (Calendar, TonightCard, LocationPopover, WorldMap, StarRating)
-- `src/pages/` - Page components (HomePage, LocationPage, ExplorePage)
+- `src/pages/` - Page components (HomePage, LocationPage, ExplorePage, FAQPage)
 - `src/utils/` - Utility functions for astronomical calculations and location parsing
 - `src/types/` - TypeScript type definitions
 - `public/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set, transit)
@@ -81,14 +84,23 @@ The app uses astronomy-engine exclusively for all astronomical calculations to e
   - `/` - Home page with calendar for current/saved location
   - `/location/:locationSlug` - Location-specific calendar (supports both named locations and coordinates)
   - `/explore` - Interactive dark sky sites explorer
+  - `/faq` - Comprehensive FAQ about the Milky Way galaxy
 - **Location URLs**: Support both named locations (e.g., `/location/yellowstone`) and coordinates (e.g., `/location/@44.6,-110.5`)
-- **Navigation**: Header dynamically shows "Explore Locations" or "Back to Calendar" based on current page
+- **Navigation Bar**: Centered navigation with Home, Explore, and FAQ links, plus Dark/Field mode toggle at far right
+- **Global State**: Dark/Field mode maintained across all pages with app-level state management
+- **Active States**: Navigation links show bold styling when on current page
 
 ### Dark Sky Sites Explorer
 - **Curated List**: Uses `DARK_SITES` constant containing ~80 prime stargazing locations worldwide
 - **Regional Grouping**: Locations organized into balanced regions (Western USA, Central USA, Eastern USA, Canada, Europe, etc.)
 - **Interactive Map**: WorldMap component with blue markers for each dark sky site, hover tooltips, and click navigation
 - **Smart Categorization**: Location grouping logic handles edge cases (Alaska, Hawaii) and creates balanced regional distributions
+
+### FAQ System
+- **Comprehensive Content**: 10 detailed questions covering galaxy basics, visibility, observation tips, and astrophotography
+- **Educational Focus**: Covers Galactic Center location, seasonal visibility, light pollution effects, and photography techniques
+- **Responsive Design**: Mobile-friendly layout with proper typography scaling and glassmorphism styling
+- **SEO Optimized**: Proper meta tags and structured content for search engine discoverability
 
 ### High Latitude Handling
 - **Galactic Center Visibility**: Automatically detects when GC is never visible (>60°N) and shows explanatory message

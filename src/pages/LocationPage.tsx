@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet'
-import Header from '../components/Header'
 import TonightCard from '../components/TonightCard'
 import Calendar from '../components/Calendar'
 import { Location } from '../types/astronomy'
 import { slugToLocation, generateLocationTitle, generateLocationDescription, locationToSlug } from '../utils/urlHelpers'
 import { findNearestSpecialLocation } from '../utils/locationParser'
 
-function LocationPage() {
+interface LocationPageProps {
+  isDarkroomMode: boolean;
+}
+
+function LocationPage({}: LocationPageProps) {
   const { locationSlug } = useParams<{ locationSlug: string }>()
   const navigate = useNavigate()
   const [location, setLocation] = useState<Location | null>(null)
-  const [isDarkroomMode, setIsDarkroomMode] = useState(false)
   const [isInvalidLocation, setIsInvalidLocation] = useState(false)
 
   useEffect(() => {
@@ -59,10 +61,6 @@ function LocationPage() {
     return (
       <div className="min-h-screen p-4">
         <div className="max-w-6xl mx-auto">
-          <Header 
-            isDarkroomMode={isDarkroomMode}
-            onToggleDarkroomMode={() => setIsDarkroomMode(!isDarkroomMode)}
-          />
           <div className="flex justify-center items-center h-64">
             <div className="text-lg text-white/70">Loading location...</div>
           </div>
@@ -108,13 +106,8 @@ function LocationPage() {
         <meta name="twitter:description" content={pageDescription} />
       </Helmet>
       
-      <div className={`min-h-screen p-4 ${isDarkroomMode ? 'darkroom-mode' : ''}`}>
+      <div className="min-h-screen p-4">
         <div className="max-w-6xl mx-auto">
-          <Header 
-            isDarkroomMode={isDarkroomMode}
-            onToggleDarkroomMode={() => setIsDarkroomMode(!isDarkroomMode)}
-          />
-          
           <TonightCard location={location} onLocationChange={handleLocationChange} />
           <Calendar location={location} />
         </div>

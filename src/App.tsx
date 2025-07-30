@@ -6,13 +6,17 @@ import TonightCard from './components/TonightCard'
 import Calendar from './components/Calendar'
 import LocationPage from './pages/LocationPage'
 import ExplorePage from './pages/ExplorePage'
+import FAQPage from './pages/FAQPage'
 import { Location } from './types/astronomy'
 import { findNearestSpecialLocation } from './utils/locationParser'
 import { locationToSlug } from './utils/urlHelpers'
 
-function HomePage() {
+interface HomePageProps {
+  isDarkroomMode: boolean;
+}
+
+function HomePage({}: HomePageProps) {
   const [location, setLocation] = useState<Location | null>(null)
-  const [isDarkroomMode, setIsDarkroomMode] = useState(false)
   const navigate = useNavigate()
 
   // Initialize location from localStorage or geolocation
@@ -111,13 +115,8 @@ function HomePage() {
         <meta name="twitter:description" content="Find the best times to photograph the Milky Way throughout the year. Real astronomical calculations showing Galactic Center position, moon phases, and darkness windows for any location worldwide." />
       </Helmet>
       
-      <div className={`min-h-screen p-4 ${isDarkroomMode ? 'darkroom-mode' : ''}`}>
+      <div className="min-h-screen p-4">
         <div className="max-w-6xl mx-auto">
-          <Header 
-            isDarkroomMode={isDarkroomMode}
-            onToggleDarkroomMode={() => setIsDarkroomMode(!isDarkroomMode)}
-          />
-          
           {location && (
             <>
               <TonightCard location={location} onLocationChange={handleLocationChange} />
@@ -131,12 +130,21 @@ function HomePage() {
 }
 
 function App() {
+  const [isDarkroomMode, setIsDarkroomMode] = useState(false)
+
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/location/:locationSlug" element={<LocationPage />} />
-      <Route path="/explore" element={<ExplorePage />} />
-    </Routes>
+    <div className={isDarkroomMode ? 'darkroom-mode' : ''}>
+      <Header 
+        isDarkroomMode={isDarkroomMode}
+        onToggleDarkroomMode={() => setIsDarkroomMode(!isDarkroomMode)}
+      />
+      <Routes>
+        <Route path="/" element={<HomePage isDarkroomMode={isDarkroomMode} />} />
+        <Route path="/location/:locationSlug" element={<LocationPage isDarkroomMode={isDarkroomMode} />} />
+        <Route path="/explore" element={<ExplorePage isDarkroomMode={isDarkroomMode} />} />
+        <Route path="/faq" element={<FAQPage />} />
+      </Routes>
+    </div>
   )
 }
 
