@@ -29,11 +29,9 @@ const LARGE_CITIES = [
     -118.24368,
     "los-angeles-area",
   ],
-  ["Moscow, Russia", "Moscow", 55.75583, 37.6173],
   ["Shenzhen, China", "Shenzhen", 22.5431, 114.05786, "pearl-river-delta"],
   ["Lahore, Pakistan", "Lahore", 31.52037, 74.35875],
   ["Bengaluru, India", "Bangalore", 12.9716, 77.5946],
-  ["Paris, France", "Paris", 48.85661, 2.35222],
   ["Bogotá, Colombia", "Bogotá", 4.711, -74.0721],
   ["Jakarta, Indonesia", "Jakarta", -6.20876, 106.8456],
   ["Chennai, India", "Chennai", 13.08268, 80.27072],
@@ -42,7 +40,6 @@ const LARGE_CITIES = [
   ["Seoul, South Korea", "Seoul", 37.56654, 126.978],
   ["Nagoya, Japan", "Nagoya", 35.18145, 136.9064],
   ["Hyderabad, India", "Hyderabad", 17.38504, 78.48667],
-  ["London, UK", "London", 51.50735, -0.12776],
   ["Chicago, Illinois, USA", "Chicago", 41.87811, -87.6298],
   ["Chengdu, China", "Chengdu", 30.57281, 104.0668],
   ["Nanjing, China", "Nanjing", 32.06025, 118.79687],
@@ -61,7 +58,6 @@ const LARGE_CITIES = [
   ["Baghdad, Iraq", "Baghdad", 33.31524, 44.36606],
   ["Santiago, Chile", "Santiago", -33.44889, -70.66927],
   ["Surat, India", "Surat", 21.17024, 72.83106],
-  ["Madrid, Spain", "Madrid", 40.41678, -3.70379],
   ["Suzhou, China", "Suzhou", 31.29834, 120.58319, "shanghai-suzhou"],
   ["Pune, India", "Pune", 18.52043, 73.85674],
   ["Harbin, China", "Harbin", 45.80377, 126.53497],
@@ -76,9 +72,7 @@ const LARGE_CITIES = [
   ["Atlanta, USA", "Atlanta", 33.749, -84.38798],
   ["Fukuoka, Japan", "Fukuoka", 33.59035, 130.40172],
   ["Khartoum, Sudan", "Khartoum", 15.50065, 32.5599],
-  ["Barcelona, Spain", "Barcelona", 41.38506, 2.1734],
   ["Johannesburg, South Africa", "Joburg", -26.2041, 28.04731],
-  ["Saint Petersburg, Russia", "St. Petersburg", 59.93428, 30.3351],
   ["Qingdao, China", "Qingdao", 36.06711, 120.38261],
   ["Dalian, China", "Dalian", 38.91369, 121.61476],
   ["Washington, Washington DC, USA", "Washington DC", 38.90719, -77.03687],
@@ -105,6 +99,49 @@ const LARGE_CITIES = [
   ["New Taipei, Taiwan", "New Taipei", 25.01698, 121.46279],
   ["Shijiazhuang, China", "Shijiazhuang", 38.04276, 114.5143],
   ["Jaipur, India", "Jaipur", 26.91243, 75.78727],
+
+  /* Canada large cities */
+
+  ["Toronto, Canada", "Toronto", 43.706, -79.399, "greater-toronto"],
+  ["Mississauga, Canada", "Mississauga", null, null, "greater-toronto"],
+  ["Brampton, Canada", "Brampton", null, null, "greater-toronto"],
+  ["Montreal, Canada", "Montreal", 45.509, -73.588, "montreal"],
+  ["Quebec City, Canada", "Quebec City", null, null, "quebec-city"],
+  ["Calgary, Canada", "Calgary", 51.05, -114.085, "calgary"],
+  ["Edmonton, Canada", "Edmonton", 53.55, -113.469, "edmonton"],
+  ["Ottawa, Canada", "Ottawa", 45.411, -75.698, "ottawa"],
+  ["Winnipeg, Canada", "Winnipeg", null, null, "winnipeg"],
+  ["Vancouver, Canada", "Vancouver", null, null, "vancouver"],
+  ["Hamilton, Canada", "Hamilton", null, null, "hamilton"],
+  ["Surrey, Canada", "Surrey", null, null, "surrey"],
+
+  /* Europe large cities */
+  ["Moscow, Russia", "Moscow", 55.75, 37.61, "moscow"],
+  ["Paris, France", "Paris", 48.85, 2.35, "paris"],
+  ["London, UK", "London", 51.5, -0.12, "london"],
+  ["Madrid, Spain", "Madrid", 40.42, -3.7, "madrid"],
+  ["Barcelona, Spain", "Barcelona", 41.38, 2.17, "barcelona"],
+  [
+    "Saint Petersburg, Russia",
+    "Saint Petersburg",
+    59.93428,
+    30.3351,
+    "saint-petersburg",
+  ],
+  ["Rome, Italy", "Rome", 41.9, 12.5, "rome"],
+  ["Berlin, Germany", "Berlin", 52.52, 13.41, "berlin"],
+  ["Athens, Greece", "Athens", 37.98, 23.72, "athens"],
+  ["Milan, Italy", "Milan", 45.47, 9.19, "milan"],
+  ["Kyiv, Ukraine", "Kyiv", 50.45, 30.52, "kyiv"],
+  ["Lisbon, Portugal", "Lisbon", 38.72, -9.13, "lisbon"],
+  ["Budapest, Hungary", "Budapest", 47.5, 19.04, "budapest"],
+  ["Brussels, Belgium", "Brussels", 50.85, 4.35, "brussels"],
+  ["Hamburg, Germany", "Hamburg", 53.55, 10.0, "hamburg"],
+  ["Warsaw, Poland", "Warsaw", 52.23, 21.01, "warsaw"],
+  ["Vienna, Austria", "Vienna", 48.21, 16.37, "vienna"],
+  ["Frankfurt, Germany", "Frankfurt", 50.11, 8.68, "frankfurt"],
+  ["Munich, Germany", "Munich", 48.14, 11.58, "munich"],
+  ["Bucharest, Romania", "Bucharest", 44.43, 26.11, "bucharest"],
 
   /* California Largest Cities */
   [
@@ -728,6 +765,18 @@ export const DARK_SITES = [
 
 export const SPECIAL_LOCATIONS = [...DARK_SITES, ...LARGE_CITIES];
 
+export const HIGH_LATITUDE_MESSAGE = `<p>The center of our galaxy, the Milky Way, lies in the constellation Sagittarius. In the sky, it has a fixed position just like a bright star, with a “declination” of about <strong>29 degrees south</srong>. Declination is a coordinate similar to latitude on Earth, but it’s used for the celestial sphere. Because the Galactic Center is so far south in the sky, your location on Earth determines whether you can see it at all.</p>
+
+<p>If you live <strong>north of about 61° N</strong> — for example in northern Alaska, parts of Canada, or far northern Scandinavia — the Galactic Center never rises above the horizon, so it’s permanently hidden from view. The farther south you go, the higher it climbs in the sky at its peak each night. Around <strong>30° N</strong> (southern United States, North Africa, southern China) it reaches about 60° above the horizon. Near the <strong>29° S</strong> line (central Chile, South Africa, southern Australia), it passes directly overhead. In the far south, below 61° S (deep Antarctica), the Galactic Center never sets and is visible all year round.</p>
+
+<p>This is why astrophotographers often travel to southern latitudes — from there, the Milky Way’s core appears higher in the sky, stays visible longer, and can be seen in darker parts of the night.</p>
+
+`;
+
+export const LARGE_CITY_MESSAGE = `<p>Even if the Galactic Center is high in the sky where you live, you might not be able to see the Milky Way at all if you are in or near a large city. This is because of <strong>light pollution</strong> — the glow from streetlights, buildings, billboards, and cars that scatters in the atmosphere and drowns out faint objects in the night sky. The Milky Way is made up of billions of stars, but most of them are faint. Under heavy light pollution, only the brightest stars remain visible, and the Milky Way’s soft, cloudlike glow disappears completely.</p>
+
+<p>To see it clearly, you need to be under <strong>dark skies</strong> — far from cities, towns, and major roads. Astronomers often use the <strong>Bortle scale</strong> to measure sky darkness. In the brightest city skies (Bortle 9), you might see only a dozen stars. In very dark rural areas (Bortle 1–2), thousands of stars are visible, and the Milky Way shines brightly across the sky. If you live in an urban area, plan to travel at least an hour or two away from the city lights, ideally to a place protected from development such as a national park or an official “Dark Sky” preserve.</p>`;
+
 export const SPECIAL_AREAS = {
   "los-angeles-area": "Los Angeles",
   "san-diego-area": "San Diego",
@@ -871,6 +920,106 @@ export const SPECIAL_AREAS = {
 //   yosemite:
 //     '<h2>Yosemite National Park, California</h2><p>Yosemite’s iconic cliffs and peaks don’t disappear at night – they become magnificent silhouettes beneath the starry sky.</p><p> While parts of Yosemite Valley have some light from lodges, much of the park has very dark skies (Bortle 2 in high country). On a clear summer night at Glacier Point or Tuolumne Meadows, the Milky Way splashes across the sky brilliantly.</p><h3>Popular stargazing spots</h3><p><ol><li><strong>Glacier Point</strong> – a famous viewpoint where rangers often hold an evening star program; you can see the Milky Way arch above Half Dome and the valley far below.</li><li> <strong>Tuolumne Meadows</strong> – at 8600 feet, wide open and away from lights, it offers an incredible bowl of sky (many climbers bivy here and are amazed by the star density). </li><li><strong>Olmsted Point</strong> is also great, with views towards Tenaya Lake and very low light pollution. </li><li>In Yosemite Valley, <strong>Curry Village Meadow</strong> or <strong>El Capitan Meadow</strong> can be nice after midnight when most lights are off – you’ll see stars between the towering valley walls and maybe climbers’ headlamps on El Capitan like tiny stars of their own.</ol><p> Yosemite also hosts an annual astronomy event with SF Amateur Astronomers at Glacier Point. Because Yosemite’s air is generally dry (especially in late summer) and you have high elevations, the night sky is crisp. Expect to see thousands of stars, and if you’re lucky, perhaps the Andromeda Galaxy and some satellite flares. And on nights with a bright moon, the park’s waterfalls create “moonbows” – rainbows by moonlight – which, while reducing star visibility, are a unique sight.</p><p>📷 <a href="https://www.nps.gov/yose">Official Yosemite NPS Site</a> – check the “Plan Your Visit” calendar for any stargazing talks. </p><h3>🌙 Camping</h3><p> Many campgrounds. For stargazing, those at higher elevation or more open areas are better: Tuolumne Meadows Campground (when open, superb sky but it’s huge and busy), Porcupine Flat or Tamarack Flat (no lights, fairly high altitude), even Wawona Campground is decent. Valley campgrounds (North Pines, etc.) are under trees – not ideal for sky, but you can walk to meadows. Reservations are often needed far in advance. </p><h3>🏨 Lodging</h3><p> The Ahwahnee and Yosemite Valley Lodge have quite a bit of ambient light around (for safety). Try to get a room with a view and then go to a meadow for stars.</p><p> Glacier Point has no lodging except a summer tent camp, but staying there is not possible by car at night unless camping at Bridalveil Creek Campground (on Glacier Point Road) or doing the astronomy program which allows late departure.</p><p> Outside the park, Lee Vining or Groveland are small towns with some lodging – their lights won’t affect Yosemite’s sky much, but you’d then have to drive into park at night (long drive). If you can, lodging in park or camping gives you more nighttime flexibility. </p><h3>🚗 Access</h3><p> Glacier Point Road (where Glacier Point is) is typically open late spring to fall, and at night you can drive up – it’s a popular thing to do. Just be careful driving back down in the dark (steep drop-offs).</p><p> Tioga Road (through Tuolumne) likewise open in summer; lots of pulloffs to stop.</p><p>The valley is open 24/7; driving at night is peaceful, but watch for deer and even the occasional bear on roads.</p><p>There are no gates except park entrances (which are not staffed late but open).</p><p>Summer nights can be pleasant (50-60°F), but high country gets colder. Always bring a jacket. </p><h3>Light pollution sources</h3><p>A slight skyglow to west from Fresno if up on Glacier Point looking that way, but it’s minor.</p><p>Eastern horizon from Tioga might faintly show Carson City lights. But overhead and rest is dark.</p><p> Yosemite occasionally has smoke from wildfires mid-late summer, which can impact sky clarity – something to keep in mind. </p> <h3>🎫 Permits</h3><p> No permits needed for night stargazing. Just your entry fee.</p><p> If you set up expensive astronomy equipment in a busy spot, just keep an eye on it – but generally, folks in Yosemite are friendly and curious. In fact, you may become the center of an impromptu star party if you have a telescope! It’s a great way to meet people.</p><p> Above all, be safe near viewpoints (don’t wander off cliffs in the dark). With that, you’re set to enjoy Yosemite’s heavens – a perfect complement to its daytime grandeur.</p>',
 // };
+
+/*
+## Instructions
+
+
+Instructions for Writing Location Descriptions
+
+Each entry should be an HTML string that will render nicely in a web app.
+Use the compact location identifier as the key (matching your SPECIAL_LOCATIONS fifth element).
+
+⸻
+
+1. Heading:
+	•	Begin with an <h2> containing the official site name (e.g., “Bryce Canyon National Park”).
+
+⸻
+
+2. Introductory Paragraphs:
+	•	Describe the overall darkness and sky quality:
+	•	Give the typical Bortle scale rating and a qualitative summary (“Bortle 2 skies”, “virtually no light pollution”, etc.).
+	•	Analyze light pollution:
+	•	Name nearby cities and note where glows appear on the horizon.
+	•	Mention if these can be avoided by facing certain directions or by choosing specific areas.
+	•	Seasonal & Celestial Highlights:
+	•	Milky Way core season: Which months is it visible?
+	•	Best time of night or year (e.g., “core at zenith in July”, “best after midnight in spring”).
+	•	Other phenomena: Mention notable meteor showers, potential for aurora (if applicable), southern objects (Magellanic Clouds), etc.
+	•	Moon phase tips: Recommend new moon or “week after first quarter” for best dark sky photography.
+	•	Unique site extras:
+	•	Mention any famous astronomy events (star parties, festivals, ranger-led programs).
+	•	Any signature experiences or unique challenges (e.g., fog, wildlife, temperature swings).
+
+⸻
+
+3. Stargazing Spots (Ordered List):
+	•	Use an <ol> with at least two, up to four, specific named locations in the park for night sky photography.
+	•	Each <li> should include:
+	•	The location name (bolded).
+	•	A phrase about what makes it ideal (“wide open horizons”, “iconic foregrounds”, “reflective water”, etc.).
+	•	If possible, tips on what’s visible (e.g., “core aligns with the arch in June”).
+
+⸻
+
+4. Practical Sections (Each as a Subheading and Paragraph):
+
+Use <h3> for subheadings:
+
+Camping
+	•	Options inside the park (campgrounds, backcountry, dispersed, or none).
+	•	Which are best for dark skies or easy night access?
+	•	Mention reservations, seasonality, or special rules if relevant.
+
+Lodging
+	•	Notable hotels, lodges, or towns nearby.
+	•	Which ones are closest or offer the least light pollution?
+
+Access
+	•	Best time(s) of year, seasonal closures, weather challenges.
+	•	Park hours, road access, need for permits, or other tips for night shooters.
+
+Official Links
+	•	Always close with:
+
+<p><a href="...">Official [Site Name] Website</a></p>
+
+(or the most authoritative astronomy link if it’s a dark sky park)
+
+⸻
+
+Style/Tone Guidelines
+	•	Friendly, knowledgeable, and encouraging.
+	•	Write to an audience that includes both serious astrophotographers and newcomers.
+	•	Avoid long, dense paragraphs; break up ideas for clarity.
+	•	Specific, actionable info is better than generic prose (“shoot facing east from X trail for the darkest skies”).
+	•	Add small “insider tips” where possible (“arrive early for astronomy events,” “bring bug spray in May”).
+	•	Emphasize what makes the location special for stargazers.
+
+⸻
+
+Example Template
+
+<h2>Official Site Name</h2>
+<p>Describe overall sky quality and darkness, with Bortle scale.</p>
+<p>Discuss sources of light pollution and how to avoid them.</p>
+<p><em>Seasonal highlights:</em> When is the Milky Way visible? Are there notable meteor showers, aurora, or other celestial events?</p>
+<ol>
+  <li><strong>Best Spot #1</strong> – Why it’s great for stargazing or astrophotography.</li>
+  <li><strong>Best Spot #2</strong> – What’s visible or unique about this spot.</li>
+</ol>
+<h3>Camping</h3>
+<p>Options and tips for overnight stays.</p>
+<h3>Lodging</h3>
+<p>Closest/most useful places to stay for night sky access.</p>
+<h3>Access</h3>
+<p>When and how to get there, road/seasonal tips, safety info.</p>
+<h3>Official Links</h3>
+<p><a href="...">Official [Site Name] Website</a></p>
+
+
+  */
 
 export const SPECIAL_LOCATION_DESCRIPTIONS: Record<string, string> = {
   yellowstone: `
@@ -2321,4 +2470,209 @@ export const SPECIAL_LOCATION_DESCRIPTIONS: Record<string, string> = {
     <h3>Official Links</h3>
     <p><a href="https://forestryandland.gov.scot/visit/galloway-forest-park">Official Galloway Forest Park Website</a></p>
   `,
+
+  greatbasin: `
+    <h2>Great Basin National Park</h2>
+    <p>Great Basin, a Gold Tier International Dark Sky Park, is renowned for its extraordinarily dark, clear skies—among the darkest in the continental U.S. (Bortle 1–2). The high elevation, remote desert setting, and dry climate combine for incredible celestial clarity. With virtually no urban centers nearby, light pollution is almost non-existent.</p>
+    <p>Milky Way core season peaks from late April to early September, with the galaxy arching high overhead by midnight in midsummer. Summer is prime for new moon stargazing and the park’s annual Astronomy Festival. In winter, expect dazzling Orion and crisp star fields, though nighttime temps are frigid. Meteor showers—especially the Perseids and Geminids—are spectacular here.</p>
+    <ol>
+      <li><strong>Mather Overlook</strong> – Sweeping, high-elevation views, perfect for panoramic Milky Way shots and astronomy events.</li>
+      <li><strong>Stella Lake</strong> – Reflects Wheeler Peak and stars in its still waters; a magical spot for night photography.</li>
+      <li><strong>Lehman Caves Area</strong> – Close to ranger-led night sky programs and public telescope viewing.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Four main campgrounds (Upper and Lower Lehman Creek, Baker Creek, and Wheeler Peak). Wheeler Peak Campground sits at 10,000 feet for the ultimate sky but can be very cold—even in summer. Summer fills fast during astronomy events; reserve if possible.</p>
+    <h3>Lodging</h3>
+    <p>No in-park lodging; motels and cabins in tiny Baker, NV. For best darkness, camp in the park or stay at Wheeler Peak Lodge just outside the entrance.</p>
+    <h3>Access</h3>
+    <p>Best access late spring through early fall. Wheeler Peak Scenic Drive closes in winter beyond Upper Lehman. Prepare for mountain weather and big temperature swings.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.nps.gov/grba">Official Great Basin NPS Site</a></p>
+  `,
+
+  flagstaffmonuments: `
+    <h2>Flagstaff Area National Monuments</h2>
+    <p>Flagstaff, the world's first “International Dark Sky City,” is surrounded by protected monuments—<strong>Wupatki</strong>, <strong>Sunset Crater Volcano</strong>, and <strong>Walnut Canyon</strong>—all certified for their night skies. Bortle 3–4 overall, but at Wupatki you can get true darkness (Bortle 2) with minimal city glow on the horizon. Flagstaff’s strict lighting codes help, but avoid looking southwest toward the city lights.</p>
+    <p>Milky Way core is best May–September, rising above the painted desert and ancient pueblos. Watch for meteor showers in August (Perseids) and December (Geminids). Occasional ranger “Explore the Stars” nights are hosted at Wupatki or Sunset Crater—arrive early for a spot!</p>
+    <ol>
+      <li><strong>Wukoki Pueblo (Wupatki)</strong> – Striking ruins and dark desert backdrop; best for darkest skies and wide horizons.</li>
+      <li><strong>Sunset Crater Cinder Fields</strong> – Open volcanic landscape, dramatic Milky Way rises in summer.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Bonito Campground (adjacent to Sunset Crater) is a favorite for night access. No camping at Wupatki or Walnut Canyon; use Coconino National Forest sites nearby.</p>
+    <h3>Lodging</h3>
+    <p>Many hotels in Flagstaff, just a short drive away. For darkest skies, stay outside the city limits near Sunset Crater.</p>
+    <h3>Access</h3>
+    <p>Monuments close at sunset except for special programs, but public lands nearby offer open access. Bonito Campground is open seasonally; check for event nights for after-dark entry.</p>
+    <h3>Official Links</h3>
+    <p>
+      <a href="https://www.nps.gov/wupa">Wupatki NPS</a> |
+      <a href="https://www.nps.gov/sucr">Sunset Crater NPS</a> |
+      <a href="https://www.nps.gov/waca">Walnut Canyon NPS</a>
+    </p>
+  `,
+
+  mammothcave: `
+    <h2>Mammoth Cave National Park</h2>
+    <p>Mammoth Cave is best known for its immense underground labyrinth, but above ground, it’s also an International Dark Sky Park. Night skies here are Bortle 3, remarkably dark for the eastern U.S. The park hosts public astronomy events and “Star Party” nights in summer and fall.</p>
+    <p>The Milky Way is visible June–September, with best clarity after midnight and around new moon. Humid summer nights can produce haze, so check the forecast. Light domes from Bowling Green and Nashville are faint and low on the horizon.</p>
+    <ol>
+      <li><strong>Doyle Valley Overlook</strong> – Sweeping sky views above the forested hills.</li>
+      <li><strong>Visitor Center Parking Area</strong> – Used for ranger programs; decent darkness and convenience.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Three campgrounds (Mammoth Cave, Maple Springs, Houchin Ferry) with good sky access; backcountry sites offer even more solitude and darkness.</p>
+    <h3>Lodging</h3>
+    <p>Mammoth Cave Lodge is inside the park. Nearby Cave City and Park City have motels.</p>
+    <h3>Access</h3>
+    <p>Park is open year-round; main roads are paved. Night sky events are most frequent late spring through fall.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.nps.gov/maca">Official Mammoth Cave NPS Site</a></p>
+  `,
+
+  buffaloriver: `
+    <h2>Buffalo National River</h2>
+    <p>Arkansas’s Buffalo River is a gem for stargazers—an International Dark Sky Park since 2019, with Bortle 2–3 skies over the Ozarks. The river corridor is especially dark between Tyler Bend and Buffalo Point. Light domes are minimal; small glows from Mountain Home and Harrison are low and avoidable.</p>
+    <p>The Milky Way is spectacular May–September, arching over river bluffs and reflecting in calm water. Park hosts “Night Sky Viewing” events in summer and early fall. Best under new moon or after moonset for darkest skies.</p>
+    <ol>
+      <li><strong>Tyler Bend</strong> – Wide river bend with open sky; campground ideal for night shoots.</li>
+      <li><strong>Buffalo Point</strong> – High bluff views and ranger programs for stargazers.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Several developed campgrounds and many riverside sites. Best darkness away from main access points; reserve ahead in peak season.</p>
+    <h3>Lodging</h3>
+    <p>No in-park lodging; cabins at Buffalo Point and motels in Yellville, Marshall, or Jasper.</p>
+    <h3>Access</h3>
+    <p>Park is open 24/7. Summer is warm, spring and fall offer crisp skies; humidity can bring haze at times.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.nps.gov/buff">Official Buffalo National River Site</a></p>
+  `,
+
+  capelookout: `
+    <h2>Cape Lookout National Seashore</h2>
+    <p>Stretching along North Carolina’s Outer Banks, Cape Lookout offers Bortle 2–3 skies—some of the darkest on the U.S. East Coast. Once the last ferries depart, you’re left with quiet barrier islands and the vast Atlantic. Light domes from the mainland are faint and low; face east for inky darkness.</p>
+    <p>The Milky Way is stunning March–October, rising over dunes and lighthouses. The Perseids are a highlight in August, with rangers sometimes hosting night sky events. In fall and spring, you can catch the zodiacal light along the eastern horizon.</p>
+    <ol>
+      <li><strong>Cape Lookout Lighthouse Area</strong> – Iconic Milky Way shots with the lighthouse; open Atlantic skies.</li>
+      <li><strong>Shackleford Banks</strong> – Remote island, wild horses under the stars, outstanding darkness.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Primitive beach camping is allowed on all islands—no developed sites or facilities. Bring all supplies and follow Leave No Trace.</p>
+    <h3>Lodging</h3>
+    <p>Rustic cabins on Portsmouth Island or on the Core Banks (reserve ahead). Nearest hotels are on the mainland (Beaufort, Harkers Island).</p>
+    <h3>Access</h3>
+    <p>Accessible only by ferry or private boat. Weather changes rapidly; check forecasts. Mosquitoes can be fierce in summer—come prepared!</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.nps.gov/calo">Official Cape Lookout NPS Site</a></p>
+  `,
+
+  curecanti: `
+    <h2>Curecanti National Recreation Area</h2>
+    <p>Western Colorado’s Curecanti offers surprisingly dark skies (Bortle 2–3), thanks to its distance from cities and open reservoirs. The best views are along Blue Mesa Reservoir and at higher overlooks. Gunnison and Montrose create very faint domes low to the east and west.</p>
+    <p>Milky Way season is April–September; summer is best for mirror-like reflections of the galaxy in calm water. The park hosts night sky interpretive events in summer and fall.</p>
+    <ol>
+      <li><strong>Dry Gulch Campground</strong> – Expansive water and sky vistas, excellent for night photography.</li>
+      <li><strong>Lake Fork Area</strong> – Quiet, remote spot with minimal light pollution.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Multiple lakeshore campgrounds; best stargazing right from your tent by the water. Campgrounds fill in peak summer, so book early if possible.</p>
+    <h3>Lodging</h3>
+    <p>No in-park lodging. Gunnison (30 min) has motels and cabins. Sapinero Village offers limited lakeside cabins and RV sites.</p>
+    <h3>Access</h3>
+    <p>Open year-round, but some high-elevation roads close in winter. Summer is most reliable for clear skies.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.nps.gov/cure">Official Curecanti NPS Site</a></p>
+  `,
+
+  dinosaur: `
+    <h2>Dinosaur National Monument</h2>
+    <p>Spanning the Colorado–Utah border, Dinosaur is a stargazing secret—Bortle 2 skies in its remote canyons and river valleys. Distant glows from Vernal, CO and Jensen, UT are present but can be avoided by heading deeper into the park.</p>
+    <p>Milky Way best June–September, rising over Echo Park’s rock towers and rivers. Park occasionally offers night sky programs at the Quarry and Echo Park. Meteor showers and even zodiacal light can be caught from high overlooks.</p>
+    <ol>
+      <li><strong>Echo Park Campground</strong> – Wild, remote darkness with dramatic canyon walls.</li>
+      <li><strong>Harpers Corner Overlook</strong> – Panoramic view; good for both casual stargazing and time-lapse photography.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Several campgrounds, with Echo Park being the darkest and most scenic for the Milky Way. Deerlodge Park (CO side) is also quiet and remote.</p>
+    <h3>Lodging</h3>
+    <p>No in-park lodging. Motels in Vernal, Utah or Craig, Colorado (20–60 min drives).</p>
+    <h3>Access</h3>
+    <p>Remote gravel roads to Echo Park—avoid them in storms. Main Quarry area is paved and easier to reach for evening programs. Summer is best for warmth and clear skies.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.nps.gov/dino">Official Dinosaur NPS Site</a></p>
+  `,
+
+  mesaverde: `
+    <h2>Mesa Verde National Park</h2>
+    <p>Mesa Verde, a UNESCO World Heritage Site, is also a designated International Dark Sky Park (Bortle 2–3). You’ll find beautifully dark skies over ancient cliff dwellings—especially away from the visitor center, which has some lighting. Small light domes from Cortez and Durango are low and easy to avoid.</p>
+    <p>Milky Way arches above the mesa May–September. Meteor showers and the occasional lightning storm add drama in monsoon season. Watch for ranger-led stargazing events in summer.</p>
+    <ol>
+      <li><strong>Park Point Overlook</strong> – Highest point in the park; vast views in all directions.</li>
+      <li><strong>Morefield Campground Area</strong> – Wide open sky and easy access after dark.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Morefield Campground is the only one in the park—excellent access to darkness. Book early for summer stargazing.</p>
+    <h3>Lodging</h3>
+    <p>Far View Lodge inside the park. Additional motels in Cortez (10 miles west).</p>
+    <h3>Access</h3>
+    <p>Park is open year-round, but high mesa roads can close in winter. Summer is best for warm, dry nights and active astronomy programs.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.nps.gov/meve">Official Mesa Verde NPS Site</a></p>
+  `,
+
+  goosenecks: `
+    <h2>Goosenecks State Park</h2>
+    <p>This small Utah state park is famed for its deep meanders of the San Juan River—and its excellent dark skies (Bortle 2). There’s virtually no light pollution; you’ll see a faint glow from Monument Valley on rare occasions.</p>
+    <p>Milky Way core is stunning from April to September, rising over the canyon twists. Perseids and Geminids meteor showers are especially memorable with such open sky.</p>
+    <ol>
+      <li><strong>Main Overlook</strong> – Set up along the rim for classic Milky Way/canyon compositions.</li>
+      <li><strong>South Rim Pullouts</strong> – For more solitude and new foregrounds.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Primitive camping on the rim—no facilities, but amazing darkness. First-come, first-served.</p>
+    <h3>Lodging</h3>
+    <p>Closest motels in Mexican Hat, Utah (4 miles). Consider camping for the full night sky experience.</p>
+    <h3>Access</h3>
+    <p>Open year-round, accessible by paved road. Summer brings warm, dry nights. The rim is unfenced—use caution in the dark.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://stateparks.utah.gov/parks/goosenecks/">Official Goosenecks State Park Site</a></p>
+  `,
+
+  picturedrocks: `
+    <h2>Pictured Rocks National Lakeshore</h2>
+    <p>Pictured Rocks, on Lake Superior, is known for its sea cliffs—and its dark, northern skies (Bortle 2–3). Light domes from Munising and Marquette are faint and mostly low in the south and west; looking north over the lake is inky black.</p>
+    <p>Milky Way and northern lights are both possible here. Best viewing May–September for the galaxy, March/April and September/October for aurora. Perseids meteor shower is a highlight every August.</p>
+    <ol>
+      <li><strong>Miners Castle Overlook</strong> – Lake views and dark sky, easy access.</li>
+      <li><strong>Chapel Beach</strong> – Remote, beautiful stargazing with aurora potential over Lake Superior.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Several lakeshore campgrounds; backcountry camping offers best solitude. Camp on the beach for Milky Way over water.</p>
+    <h3>Lodging</h3>
+    <p>Hotels and cabins in Munising. For maximum darkness, camp in the park.</p>
+    <h3>Access</h3>
+    <p>Accessible spring–fall. Some sites require hikes of 1–2 miles from parking. Prepare for sudden weather changes on the lake.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.nps.gov/piro">Official Pictured Rocks NPS Site</a></p>
+`,
+
+  portcrescent: `
+    <h2>Port Crescent State Park</h2>
+    <p>This Michigan state park on Lake Huron is famed for its dark skies (Bortle 3), with wide, sandy beaches facing north over open water. Town lights from Port Austin and Caseville are low and behind you if you shoot north.</p>
+    <p>Milky Way arches across the sky May–August; aurora borealis sometimes dances above the lake in spring and autumn. Watch for meteor showers reflected in the water.</p>
+    <ol>
+      <li><strong>Beachfront</strong> – Expansive northern views; ideal for aurora and Milky Way shots over water.</li>
+      <li><strong>Dune Overlook Trail</strong> – For higher perspective and quiet night skies.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Modern campground with beach access; reserve early for new moon weekends.</p>
+    <h3>Lodging</h3>
+    <p>No in-park lodging. Motels in Port Austin and Caseville (10–20 min drives).</p>
+    <h3>Access</h3>
+    <p>Accessible year-round; best skies late spring–fall. Prepare for mosquitoes in summer and chilly winds from the lake.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.michigan.gov/dnr/places/state-parks/port-crescent">Official Port Crescent State Park Site</a></p>
+  `,
+
+  aorakimackenzie: `<h2>Aoraki Mackenzie International Dark Sky Reserve</h2> <p>New Zealand’s South Island is home to this legendary reserve—the world’s largest dark sky reserve, with Bortle 1–2 skies over the Southern Alps and Mackenzie Basin. Virtually no light pollution for 100 km in all directions; the Milky Way is brilliant, and the Magellanic Clouds are visible to the naked eye.</p> <p>Milky Way is visible year-round, with the core highest April–August. Aurora Australis is occasionally visible low in the south. Major stargazing events and tours at the Mt. John Observatory (Lake Tekapo).</p> <ol> <li><strong>Lake Tekapo Foreshore</strong> – Iconic church foreground and wide sky views.</li> <li><strong>Mt. John Summit</strong> – Observatory site; highest public road in NZ and 360° sky.</li> </ol> <h3>Camping</h3> <p>Multiple holiday parks and freedom camping options around Tekapo and Twizel.</p> <h3>Lodging</h3> <p>Hotels, motels, and lodges in Tekapo, Twizel, and Lake Pukaki area.</p> <h3>Access</h3> <p>Best in southern autumn and winter for clear, crisp skies. Weather can be unpredictable—bring warm layers year-round.</p> <h3>Official Links</h3> <p><a href="https://www.darksky.org/our-work/conservation/idsp/reserves/aoraki-mackenzie/">Aoraki Mackenzie Dark Sky Reserve Info</a></p>`,
 };

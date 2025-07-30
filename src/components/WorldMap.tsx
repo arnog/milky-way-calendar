@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Location } from "../types/astronomy";
 
 interface WorldMapProps {
@@ -15,88 +15,58 @@ export default function WorldMap({
   onDragEnd,
 }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [svgContent, setSvgContent] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string>('/world2024B-sm.jpg');
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
-  useEffect(() => {
-    // Load the SVG content
-    fetch("/world-map.svg")
-      .then((res) => res.text())
-      .then((svg) => {
-        // Extract all content inside g elements with landxx class
-        const groupRegex =
-          /<g[^>]*class="[^"]*landxx[^"]*"[^>]*>([\s\S]*?)<\/g>/g;
-        // Also extract path elements with landxx class that are not inside groups
-        const pathRegex =
-          /<path[^>]*class="[^"]*landxx[^"]*"[^>]*d="([^"]+)"[^>]*>/g;
+  // Determine which image to use based on screen size
+  const getMapSrc = () => {
+    if (typeof window === 'undefined') return '/world2024B-md.jpg';
+    const width = window.innerWidth;
+    
+    // Use WebP for better compression when supported
+    const supportsWebP = typeof window !== 'undefined' && 
+      document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    
+    if (width < 768) {
+      // Mobile devices - use small resolution
+      return supportsWebP ? '/world2024B-sm.webp' : '/world2024B-sm.jpg';
+    } else if (width < 1920) {
+      // Tablets and regular screens - use medium resolution
+      return supportsWebP ? '/world2024B-md.webp' : '/world2024B-md.jpg';
+    } else {
+      // Large screens - use full resolution PNG for best quality
+      return '/world2024B-lg.png';
+    }
+  };
 
-        let svgPaths = "";
-        let match;
-
-        // First, process all groups with landxx class
-        while ((match = groupRegex.exec(svg)) !== null) {
-          const groupContent = match[1];
-          // Extract paths from within the group
-          const innerPathRegex = /<path[^>]*d="([^"]+)"[^>]*>/g;
-          let innerMatch;
-
-          while ((innerMatch = innerPathRegex.exec(groupContent)) !== null) {
-            const d = innerMatch[1];
-            if (d) {
-              svgPaths += `<path d="${d}" fill="none" stroke="rgba(116, 163, 238, 0.8)" stroke-width="3" />`;
-            }
-          }
-        }
-
-        // Then, process standalone paths with landxx class
-        while ((match = pathRegex.exec(svg)) !== null) {
-          const d = match[1];
-          if (d) {
-            svgPaths += `<path d="${d}" fill="none" stroke="rgba(116, 163, 238, 0.8)" stroke-width="3" />`;
-          }
-        }
-
-        setSvgContent(svgPaths);
-      })
-      .catch(() => {
-        // Fallback to simple map if loading fails
-        setSvgContent(`
-          <g stroke="rgba(255, 255, 255, 0.3)" strokeWidth="0.5" fill="none">
-            <path d="M50,50 L70,45 L80,50 L85,60 L80,70 L70,65 L60,70 L50,60 Z" />
-            <path d="M70,90 L75,85 L80,90 L78,100 L75,110 L70,115 L65,110 L65,95 Z" />
-            <path d="M180,45 L190,43 L195,45 L193,50 L185,52 L180,50 Z" />
-            <path d="M180,70 L190,65 L195,70 L193,85 L190,95 L185,100 L180,95 L175,85 L178,75 Z" />
-            <path d="M200,40 L240,38 L260,45 L255,55 L240,60 L220,55 L210,50 L200,45 Z" />
-            <path d="M250,110 L270,108 L275,115 L270,120 L260,118 L255,115 Z" />
-          </g>
-        `);
-      });
-  }, []);
-
-  const getLocationFromEvent = (
-    event: React.MouseEvent<SVGSVGElement> | MouseEvent
-  ): Location => {
-    const svg = containerRef.current?.querySelector("svg") as SVGSVGElement;
-    if (!svg) return { lat: 0, lng: 0 };
-
-    // Use SVG's built-in coordinate conversion
-    const point = svg.createSVGPoint();
-    point.x = event.clientX;
-    point.y = event.clientY;
-
-    // Transform screen coordinates to SVG coordinates
-    const svgPoint = point.matrixTransform(svg.getScreenCTM()?.inverse());
-
-    // Convert SVG coordinates to lat/lng
-    const viewBoxWidth = 2754;
-    const viewBoxHeight = 1398;
-    const lng = (svgPoint.x / viewBoxWidth) * 360 - 180;
-    const lat = 90 - (svgPoint.y / viewBoxHeight) * 180;
-
+  // Equirectangular projection inverse transform (for the light pollution map)
+  const equirectangularUnproject = (x: number, y: number): { lat: number; lng: number } => {
+    // The map uses equirectangular projection
+    // x: 0 to 1 maps to -180 to 180 longitude
+    // y: 0 to 1 maps to 90 to -90 latitude (top to bottom)
+    
+    const lng = (x - 0.5) * 360;
+    const lat = (0.5 - y) * 180;
+    
     return { lat, lng };
   };
 
-  const handleMouseDown = (event: React.MouseEvent<SVGSVGElement>) => {
+  const getLocationFromEvent = (
+    event: React.MouseEvent<HTMLDivElement> | MouseEvent
+  ): Location => {
+    const container = containerRef.current;
+    if (!container) return { lat: 0, lng: 0 };
+
+    const rect = container.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+
+    // Apply equirectangular projection inverse transform
+    return equirectangularUnproject(x, y);
+  };
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.button !== 0) return; // Only left mouse button
 
     event.preventDefault(); // Prevent default behavior
@@ -120,7 +90,7 @@ export default function WorldMap({
       }
 
       if (hasDragged) {
-        const newLocation = getLocationFromEvent(e as any);
+        const newLocation = getLocationFromEvent(e);
         onLocationChange(newLocation, true);
       }
     };
@@ -131,7 +101,7 @@ export default function WorldMap({
 
       if (hasDragged) {
         // End of drag - get final location and notify parent
-        const finalLocation = getLocationFromEvent(e as any);
+        const finalLocation = getLocationFromEvent(e);
         setIsDragging(false);
         onDragEnd?.();
         // Send final location as non-dragging to commit it
@@ -146,54 +116,86 @@ export default function WorldMap({
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  return (
-    <div ref={containerRef}>
-      <svg
-        viewBox="0 0 2754 1398"
-        className={`w-full border border-white/20 rounded ${
-          isDragging ? "cursor-grabbing" : "cursor-crosshair"
-        }`}
-        onMouseDown={handleMouseDown}
-        style={{
-          backgroundColor: "rgba(255, 255, 255, 0.02)",
-          aspectRatio: "2754 / 1398",
-          userSelect: "none",
-        }}
-      >
-        <g dangerouslySetInnerHTML={{ __html: svgContent }} />
+  // Equirectangular projection forward transform for marker positioning
+  const equirectangularProject = (lat: number, lng: number): { x: number; y: number } => {
+    // Convert lat/lng to x/y coordinates for equirectangular projection
+    const x = (lng + 180) / 360;
+    const y = (90 - lat) / 180;
+    
+    return { x, y };
+  };
 
-        {/* Location marker */}
-        {location && (
-          <>
-            {/* Crosshair lines */}
-            <line
-              x1={0}
-              y1={((90 - location.lat) * 1398) / 180}
-              x2={2754}
-              y2={((90 - location.lat) * 1398) / 180}
-              stroke="#ff0000"
-              strokeWidth="20"
-              opacity="0.5"
-            />
-            <line
-              x1={((location.lng + 180) * 2754) / 360}
-              y1={0}
-              x2={((location.lng + 180) * 2754) / 360}
-              y2={1398}
-              stroke="#ff0000"
-              strokeWidth="20"
-              opacity="0.5"
-            />
-            {/* Red dot */}
-            <circle
-              cx={((location.lng + 180) * 2754) / 360}
-              cy={((90 - location.lat) * 1398) / 180}
-              r="50"
-              fill="#ff0000"
-            />
-          </>
-        )}
-      </svg>
+  const markerPosition = location ? equirectangularProject(location.lat, location.lng) : null;
+
+  // Update image source based on window size
+  useEffect(() => {
+    const updateImageSrc = () => {
+      const newSrc = getMapSrc();
+      if (newSrc !== imageSrc) {
+        setImageSrc(newSrc);
+        setIsImageLoading(true);
+      }
+    };
+
+    // Initial load
+    updateImageSrc();
+
+    // Update on resize
+    const handleResize = () => {
+      updateImageSrc();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [imageSrc]);
+
+  return (
+    <div 
+      ref={containerRef}
+      className="relative overflow-hidden border border-white/20 rounded bg-gray-900"
+      style={{ aspectRatio: '18 / 7' }}
+    >
+      {/* Loading state */}
+      {isImageLoading && (
+        <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+          <div className="text-white/50">Loading map...</div>
+        </div>
+      )}
+      
+      <img
+        src={imageSrc}
+        alt="World map showing light pollution"
+        className={`w-full h-full object-contain ${
+          isDragging ? "cursor-grabbing" : "cursor-crosshair"
+        } ${isImageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+        onMouseDown={handleMouseDown}
+        onLoad={() => setIsImageLoading(false)}
+        style={{ userSelect: "none" }}
+        draggable={false}
+      />
+      
+      {/* Location marker overlay */}
+      {location && markerPosition && (
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Crosshair lines */}
+          <div
+            className="absolute w-full h-0.5 bg-red-500 opacity-50"
+            style={{ top: `${markerPosition.y * 100}%` }}
+          />
+          <div
+            className="absolute h-full w-0.5 bg-red-500 opacity-50"
+            style={{ left: `${markerPosition.x * 100}%` }}
+          />
+          {/* Red dot */}
+          <div
+            className="absolute w-3 h-3 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+            style={{
+              left: `${markerPosition.x * 100}%`,
+              top: `${markerPosition.y * 100}%`,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

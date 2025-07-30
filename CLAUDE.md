@@ -35,6 +35,7 @@ npm run preview      # Preview production build
 - `src/utils/` - Utility functions for astronomical calculations and location parsing
 - `src/types/` - TypeScript type definitions
 - `public/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set, transit)
+- `public/world2024B-*.{webp,jpg,png}` - Light pollution maps in multiple resolutions
 
 ## Astronomical Calculations
 
@@ -68,6 +69,10 @@ The app calculates:
 - **Tooltips**: Custom CSS tooltips replace browser defaults for better mobile support
 
 ### Map Integration
+- **Light Pollution Maps**: Uses high-resolution light pollution maps (world2024B series) showing dark areas in black and light-polluted areas in yellow/orange
+- **Multiple Resolutions**: Responsive loading with WebP support - small (3600x1400), medium (7200x2800), and large (14400x5600) versions
+- **Projection System**: Equirectangular projection for accurate coordinate mapping (replaced Robinson projection)
+- **Aspect Ratio**: Proper 18:7 aspect ratio matching source images prevents clipping of Alaska and New Zealand
 - **Drag Handling**: Fixed race conditions between drag events and location state updates
 - **Event Flow**: Proper mouseup handling prevents location reset on drag release
 
