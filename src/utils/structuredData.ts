@@ -1,5 +1,6 @@
 import { WeekData, Location } from "../types/astronomy";
 import { findNearestSpecialLocation } from "./locationParser";
+import { formatDateForStructuredData } from "./timezoneUtils";
 
 export interface StructuredEventData {
   "@context": string;
@@ -72,20 +73,9 @@ export function generateEventStructuredData(
   const startDate = weekData.optimalWindow.startTime;
   const endDate = weekData.optimalWindow.endTime;
   
-  // Format dates in ISO 8601 format with timezone offset
-  const timezoneOffset = Math.round(location.lng / 15); // Approximate timezone from longitude
-  const offsetMinutes = timezoneOffset * 60;
-  const offsetString = timezoneOffset >= 0 
-    ? `+${timezoneOffset.toString().padStart(2, '0')}:00`
-    : `${timezoneOffset.toString().padStart(3, '0')}:00`;
-
-  const startDateISO = new Date(startDate.getTime() + (offsetMinutes * 60 * 1000))
-    .toISOString()
-    .replace('Z', offsetString);
-  
-  const endDateISO = new Date(endDate.getTime() + (offsetMinutes * 60 * 1000))
-    .toISOString()
-    .replace('Z', offsetString);
+  // Format dates in ISO 8601 format with proper timezone handling
+  const startDateISO = formatDateForStructuredData(startDate, location);
+  const endDateISO = formatDateForStructuredData(endDate, location);
 
   const visibilityDesc = getVisibilityDescription(weekData.visibility);
   const starRating = "★".repeat(weekData.visibility);

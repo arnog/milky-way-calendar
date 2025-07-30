@@ -49,7 +49,7 @@ The app uses astronomy-engine exclusively for all astronomical calculations to e
 - **Sun & Twilight Times**: Sunrise/sunset and astronomical twilight calculations using astronomy-engine
 - **Optimal Viewing Windows**: Intersection of GC visibility (≥10° altitude), astronomical darkness, and moon interference
 - **Visibility Rating**: 1-4 star system combining GC altitude, moon interference, and darkness duration
-- **Timezone Conversion**: All times displayed in location's local timezone using longitude-based approximation
+- **Timezone Conversion**: All times displayed in location's local timezone using proper IANA timezone lookup with `tz-lookup` library
 
 ## Astronomical Observation Notes
 
@@ -60,10 +60,17 @@ The app uses astronomy-engine exclusively for all astronomical calculations to e
 
 ## Technical Learnings
 
-### Timezone Challenges
-- **Issue**: Browser `getHours()` returns time in user's timezone, not observation location's timezone
-- **Solution**: Longitude-based timezone approximation (`Math.round(lng / 15)` hours from UTC)
-- **Implementation**: Custom `formatTimeInLocationTimezone()` function for consistent time display
+### Timezone Implementation
+- **Challenge**: Browser `getHours()` returns time in user's timezone, not observation location's timezone
+- **Previous Solution**: Longitude-based approximation (`Math.round(lng / 15)`) was inaccurate for many locations
+- **Current Solution**: Proper IANA timezone lookup using `tz-lookup` library with coordinate-to-timezone conversion
+- **Implementation**: `src/utils/timezoneUtils.ts` with comprehensive timezone handling functions
+- **Accuracy Improvements**: 
+  - Non-integer offsets (India UTC+5:30, Australia UTC+9:30) now handled correctly
+  - Political timezone boundaries respected (not just longitude lines)
+  - Daylight saving time automatically calculated
+  - Fallback to longitude approximation if timezone lookup fails
+- **Performance**: Coordinate-based caching for efficient timezone lookups
 
 ### UI/UX Evolution
 - **Location Input**: Evolved from standalone card to integrated popover for better space utilization
@@ -114,6 +121,8 @@ The app uses astronomy-engine exclusively for all astronomical calculations to e
 - **Consistent Moon Data**: All components now use `calculateMoonData()` function for moon phase, illumination, and rise/set times
 - **Proper Error Handling**: Robust fallbacks for edge cases like extreme latitudes and failed calculations
 - **Library Migration**: Successfully migrated from SunCalc to astronomy-engine for better accuracy and consistency
+- **Timezone Accuracy**: Replaced longitude approximation with proper IANA timezone lookup using `tz-lookup` library
+- **Modular Timezone Utils**: Created `src/utils/timezoneUtils.ts` with comprehensive timezone conversion functions
 
 ## Current Status
 
@@ -123,9 +132,10 @@ The app uses astronomy-engine exclusively for all astronomical calculations to e
 ✅ **Phase 4**: Map Integration - Interactive world map with drag support  
 ✅ **Phase 5**: Dark Sky Sites Explorer - Dedicated page showcasing curated dark sky locations  
 ✅ **Phase 6**: Code Quality Improvements - Migrated to astronomy-engine, eliminated code duplication, improved high-latitude handling  
-✅ **Phase 7**: Navigation & FAQ System - Comprehensive navigation with centered layout, FAQ page with educational content, global dark/field mode
+✅ **Phase 7**: Navigation & FAQ System - Comprehensive navigation with centered layout, FAQ page with educational content, global dark/field mode  
+✅ **Phase 8**: Timezone Accuracy Implementation - Replaced longitude approximation with proper IANA timezone lookup using `tz-lookup` library
 
-**Current state**: Feature-complete astronomy calendar with consistent astronomical calculations, proper high-latitude handling, comprehensive dark sky site discovery, and educational FAQ system with modern navigation.
+**Current state**: Feature-complete astronomy calendar with consistent astronomical calculations, accurate timezone handling for international users, proper high-latitude handling, comprehensive dark sky site discovery, and educational FAQ system with modern navigation.
 
 ## Hosting
 

@@ -2,48 +2,31 @@ import { GalacticCenterData, MoonData, TwilightData, Location } from '../types/a
 import { getMoonInterference } from './moonCalculations'
 import { calculateDarkDuration } from './twilightCalculations'
 import { OptimalViewingWindow } from './optimalViewing'
+import { getLocationTimezone } from './timezoneUtils'
 
-// Get the local hour for a given date and location using timezone approximation
-function getLocalHour(date: Date, _lat: number, lng: number): number | null {
+// Get the local hour for a given date and location using proper timezone handling
+function getLocalHour(date: Date, lat: number, lng: number): number | null {
   try {
-    // Approximate timezone based on longitude (15 degrees per hour)
-    const timezoneOffset = Math.round(lng / 15)
+    const location = { lat, lng };
+    const timezoneInfo = getLocationTimezone(location);
     
-    // Create a new date with the estimated timezone offset
-    const localTime = new Date(date.getTime() + (timezoneOffset * 60 * 60 * 1000))
+    // Use Intl.DateTimeFormat to get the hour in the proper timezone
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezoneInfo.iana,
+      hour: 'numeric',
+      hour12: false
+    });
     
-    return localTime.getUTCHours()
+    const hourStr = formatter.format(date);
+    return parseInt(hourStr, 10);
   } catch (error) {
-    console.error('Error calculating local hour:', error)
-    return null
+    console.error('Error calculating local hour:', error);
+    return null;
   }
 }
 
-// Format time in the location's timezone
-export function formatTimeInLocationTimezone(date: Date | undefined, location: Location): string {
-  if (!date) return "—"
-  
-  try {
-    // Approximate timezone based on longitude (15 degrees per hour)
-    const timezoneOffset = Math.round(location.lng / 15)
-    
-    // Create a new date with the estimated timezone offset
-    const localTime = new Date(date.getTime() + (timezoneOffset * 60 * 60 * 1000))
-    
-    // Format as HH:MM in 24-hour format using UTC methods (since we already adjusted the time)
-    const hours = localTime.getUTCHours().toString().padStart(2, '0')
-    const minutes = localTime.getUTCMinutes().toString().padStart(2, '0')
-    
-    return `${hours}:${minutes}`
-  } catch (error) {
-    console.error('Error formatting time in location timezone:', error)
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit", 
-      hour12: false,
-    })
-  }
-}
+// Re-export the formatTimeInLocationTimezone function from timezoneUtils
+export { formatTimeInLocationTimezone } from './timezoneUtils';
 
 export function calculateVisibilityRating(
   gcData: GalacticCenterData,
