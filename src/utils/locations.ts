@@ -392,6 +392,13 @@ export const DARK_SITES = [
     "naturalbridges",
   ],
   [
+    "Death Valley National Park, California/Nevada, USA",
+    "Death Valley",
+    36.5323,
+    -117.0794,
+    "deathvalley",
+  ],
+  [
     "Joshua Tree National Park, California, USA",
     "Joshua Tree",
     33.87,
@@ -1353,6 +1360,26 @@ export const SPECIAL_LOCATION_DESCRIPTIONS: Record<string, string> = {
 
     <h3>Official Links</h3>
     <p><a href="https://www.nps.gov/nabr/">Official Natural Bridges NM Website</a></p>
+  `,
+  deathvalley: `
+    <h2>Death Valley National Park</h2>
+    <p>Death Valley offers some of the darkest skies in North America, with pristine Bortle 1-2 conditions throughout most of the park. The vast desert landscape, dramatic mountain ranges, and unique geological features create stunning foregrounds for astrophotography.</p>
+    <p>Light pollution is virtually nonexistent except for a faint glow from Las Vegas to the southeast, which can be avoided by facing north or west. The park's extreme elevation changes—from 282 feet below sea level to over 11,000 feet—offer diverse photographic opportunities.</p>
+    <p>Death Valley's dry desert air provides exceptional atmospheric clarity, making it ideal for deep-sky photography. The Milky Way core is visible from spring through fall, with optimal viewing from May through September.</p>
+    <ol>
+      <li><strong>Badwater Basin</strong> – The lowest point in North America offers unique salt flat reflections under starry skies.</li>
+      <li><strong>Mesquite Flat Sand Dunes</strong> – Rolling dunes create flowing foregrounds for Milky Way compositions.</li>
+      <li><strong>Zabriskie Point</strong> – Iconic badlands terrain with panoramic dark sky views.</li>
+      <li><strong>Racetrack Playa</strong> – Remote dry lakebed with mysterious moving rocks and pristine darkness.</li>
+    </ol>
+    <h3>Camping</h3>
+    <p>Furnace Creek Campground is central but has some light pollution from facilities. Texas Spring offers darker skies. Backcountry camping is permitted with restrictions.</p>
+    <h3>Lodging</h3>
+    <p>The Inn at Death Valley (formerly Furnace Creek Inn) offers luxury accommodations, while Stovepipe Wells Village provides more budget-friendly options in a darker location.</p>
+    <h3>Access</h3>
+    <p>Summer temperatures can exceed 120°F, making fall through spring the best visiting seasons. Many roads are paved, but high-clearance vehicles are recommended for remote areas.</p>
+    <h3>Official Links</h3>
+    <p><a href="https://www.nps.gov/deva/">Official Death Valley NP Website</a></p>
   `,
   joshuatree: `
     <h2>Joshua Tree National Park</h2>
