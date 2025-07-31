@@ -39,25 +39,42 @@ export default function LocationPopover({
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  // Position popover relative to trigger
+  // Position popover relative to trigger and update on scroll
   useEffect(() => {
-    if (triggerRef.current) {
-      const triggerRect = triggerRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const desiredWidth = Math.min(Math.max(viewportWidth * 0.5, 500), 800);
+    const updatePosition = () => {
+      if (triggerRef.current) {
+        const triggerRect = triggerRef.current.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const desiredWidth = Math.min(Math.max(viewportWidth * 0.5, 500), 800);
 
-      // Center the popover horizontally on the page
-      const left = (viewportWidth - desiredWidth) / 2;
+        // Center the popover horizontally on the page
+        const left = (viewportWidth - desiredWidth) / 2;
 
-      setPopoverPosition({
-        top: triggerRect.bottom + window.scrollY + 8,
-        left: left,
-        width: desiredWidth,
-      });
-    }
+        // Position popover directly below the trigger button (viewport coordinates)
+        // Since we're using position: fixed, we use viewport coordinates, not document coordinates
+        const top = triggerRect.bottom + 8;
+
+        setPopoverPosition({
+          top: top,
+          left: left,
+          width: desiredWidth,
+        });
+      }
+    };
+
+    // Update position immediately when popover opens
+    updatePosition();
+
+    // Update position when user scrolls to keep it relative to the trigger
+    const handleScroll = () => {
+      updatePosition();
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [triggerRef]);
 
-  // Close on outside click, scroll, resize, or escape key
+  // Close on outside click, resize, or escape key (but NOT on scroll)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -76,23 +93,17 @@ export default function LocationPopover({
       }
     };
 
-    const handleScroll = () => {
-      onClose();
-    };
-
     const handleResize = () => {
       onClose();
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleResize);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
     };
   }, [onClose, triggerRef]);
