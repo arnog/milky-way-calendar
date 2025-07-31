@@ -117,11 +117,6 @@ export function calculateTwilightTimes(
   }
 }
 
-export function isDarkTime(ts: number, tw: TwilightData): boolean {
-  return tw.night < tw.dayEnd
-    ? ts >= tw.night && ts <= tw.dayEnd
-    : ts >= tw.night || ts <= tw.dayEnd;
-}
 
 export function calculateDarkDuration(tw: TwilightData): number {
   const ms =

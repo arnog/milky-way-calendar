@@ -57,7 +57,6 @@ export default function LocationPopover({
     }
   }, [triggerRef]);
 
-
   // Close on outside click, scroll, resize, or escape key
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -98,11 +97,10 @@ export default function LocationPopover({
     };
   }, [onClose, triggerRef]);
 
-
   return createPortal(
     <div
       ref={popoverRef}
-      className="fixed z-50 p-6 rounded-lg shadow-2xl border border-white/30"
+      className="fixed z-50 p-6 rounded-2xl shadow-2xl border border-white/30"
       style={{
         top: popoverPosition.top,
         left: popoverPosition.left,
@@ -114,13 +112,13 @@ export default function LocationPopover({
       }}
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-2xl font-semibold"></h3>
+        <h3></h3>
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-white transition-colors"
         >
           <svg
-            className="w-6 h-6"
+            className="w-8 h-8"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -139,14 +137,14 @@ export default function LocationPopover({
         <p className="text-blue-200 text-3xl">Detecting your location...</p>
       ) : (
         <>
-          <div className="mb-4">
+          <div className="mb-8">
             <div className="relative">
               <input
                 ref={inputRef}
                 type="text"
                 value={inputValue}
                 onChange={(e) => handleInputChange(e.target.value)}
-                className="text-lg w-full px-3 py-2 pr-12 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors bg-white/10 border border-white/20"
+                className="text-4xl w-full px-3 py-2 pr-12 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors bg-white/10 border border-white/20"
                 placeholder="Enter coordinates or location name"
                 autoComplete="off"
                 spellCheck={false}
@@ -173,7 +171,7 @@ export default function LocationPopover({
                 title="Use current location"
               >
                 <svg
-                  className="w-6 h-6"
+                  className="w-8 h-8"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -198,10 +196,12 @@ export default function LocationPopover({
               <div className="mt-2">
                 <button
                   onClick={acceptSuggestion}
-                  className="text-sm text-blue-300 hover:text-blue-200 hover:bg-white/10 px-2 py-1 rounded transition-colors w-full text-left"
+                  className="text-xl text-blue-300 hover:text-blue-200 hover:bg-white/10 px-2 py-1 rounded transition-colors w-full text-left"
                 >
                   📍 {suggestion}
-                  <span className="text-xs text-gray-400 ml-2">(Press Tab or click to select)</span>
+                  <span className="text-lg text-gray-400 ml-2">
+                    (Press Tab or click to select)
+                  </span>
                 </button>
               </div>
             )}

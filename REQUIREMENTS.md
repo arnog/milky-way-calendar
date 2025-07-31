@@ -18,8 +18,8 @@ Each row includes:
 - an indicator (one to four stars) indicating the visibility of the Milky Way on
   that week
 - an icon indicating the moon phase for that week
-- the time when the Galactic Center is 20deg above the horizon and the duration
-  of visibility
+- the time when the Galactic Core is 20deg above the horizon and the duration of
+  visibility
 
 To rate the quality of the Milky Way visibility, we use the a combination of the
 following factors:
@@ -117,10 +117,10 @@ has a time component) and only include elements that are in the future:
 - Astronomical twilight start time
 - Moon rise time
 - Moon set time
-- Galactic Center rise time
-- Galactic Center transit time
-- Galactic Center set time
-- Maximum altitude of the Galactic Center
+- Galactic Core rise time
+- Galactic Core transit time
+- Galactic Core set time
+- Maximum altitude of the Galactic Core
 - An icon representing the moon phase for the night
 - An indicator of the Bortle scale for the location
 - An indicator of the visibility of the Milky Way (one to four stars)
@@ -131,8 +131,8 @@ table has the following columns:
 
 - Week start date
 - Visibility of the Milky Way (one to four stars)
-- Galactic Center rise time
-- Galactic Center transit time
+- Galactic Core rise time
+- Galactic Core transit time
 
 The background of each row should vary between completely dark (indicating poor
 visibility) to a light blue with some visible stars/and or picture of the Milky
@@ -208,7 +208,7 @@ The website should include a FAQ section:
       a supermassive black hole called <em>Sagittarius A*</em>, with about 4 million times
       the Sun’s mass.
     </p>
-    <!-- Illustration: Star map showing location of the Galactic Center -->
+    <!-- Illustration: Star map showing location of the Galactic Core -->
   </article>
 
   <article>
@@ -225,7 +225,7 @@ The website should include a FAQ section:
   <article>
     <h3>5. Why is the Milky Way brighter in some months?</h3>
     <p>
-      The <strong>brightest part</strong> of the Milky Way — the Galactic Center — is above
+      The <strong>brightest part</strong> of the Milky Way — the Galactic Core — is above
       the horizon at night during certain months. In the northern hemisphere, the best views
       are between <strong>April and September</strong>. In the southern hemisphere, it can be
       seen for longer and higher in the sky.
@@ -236,7 +236,7 @@ The website should include a FAQ section:
   <article>
     <h3>6. Is the Milky Way moving?</h3>
     <p>
-      Yes — the Sun and our entire solar system orbit the Galactic Center at about
+      Yes — the Sun and our entire solar system orbit the Galactic Core at about
       <strong>828,000 km/h</strong>, taking roughly <strong>225–250 million years</strong>
       to complete one orbit. The Milky Way itself is also moving relative to other galaxies.
     </p>
@@ -244,7 +244,7 @@ The website should include a FAQ section:
   </article>
 
   <article>
-    <h3>7. How far away is the Galactic Center?</h3>
+    <h3>7. How far away is the Galactic Core?</h3>
     <p>
       It’s about <strong>26,500 light-years</strong> away. The light we see tonight left
       the center around the time humans were first developing agriculture.

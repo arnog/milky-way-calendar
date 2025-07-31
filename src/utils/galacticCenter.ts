@@ -1,25 +1,10 @@
 import * as Astronomy from "astronomy-engine";
 import { Location, GalacticCenterData } from "../types/astronomy";
 
-// Galactic Center coordinates (J2000)
+// Galactic Core coordinates (J2000)
 const GALACTIC_CENTER_RA = 17.759; // hours (17h 45m 36s)
 const GALACTIC_CENTER_DEC = -29.007; // degrees (-29° 0' 25")
 
-/** Return the Galactic Center altitude (deg) for a given date & location */
-export function getGalacticCenterAltitude(
-  date: Date,
-  latitude: number,
-  longitude: number
-): number {
-  const observer = new Astronomy.Observer(latitude, longitude, 0);
-  const horiz = Astronomy.Horizon(
-    date,
-    observer,
-    GALACTIC_CENTER_RA,
-    GALACTIC_CENTER_DEC
-  );
-  return horiz.altitude;
-}
 
 export function calculateGalacticCenterPosition(
   date: Date,
@@ -37,7 +22,7 @@ export function calculateGalacticCenterPosition(
       GALACTIC_CENTER_DEC
     );
 
-    // Calculate rise, set, and transit times for the Galactic Center
+    // Calculate rise, set, and transit times for the Galactic Core
     let riseTime: Date | null = null;
     let setTime: Date | null = null;
     let transitTime: Date | null = null;
@@ -216,7 +201,7 @@ export function calculateGalacticCenterPosition(
       transitTime,
     };
   } catch (error) {
-    console.error("Error calculating Galactic Center position:", error);
+    console.error("Error calculating Galactic Core position:", error);
     return {
       altitude: 0,
       azimuth: 0,
@@ -228,45 +213,3 @@ export function calculateGalacticCenterPosition(
   }
 }
 
-export function formatGalacticCenterTime(gcData: GalacticCenterData): string {
-  if (!gcData.riseTime && !gcData.transitTime) {
-    return "Not visible";
-  }
-
-  const time = gcData.riseTime || gcData.transitTime;
-  if (!time) return "Not visible";
-
-  return time.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
-export function calculateGalacticCenterDuration(
-  gcData: GalacticCenterData,
-  twilightEnd: Date | null,
-  twilightStart: Date | null
-): string {
-  if (!gcData.riseTime || !twilightEnd || !twilightStart) {
-    return "No dark time";
-  }
-
-  // Calculate overlap between GC visibility and dark time
-  const gcStart = gcData.riseTime;
-  const gcEnd =
-    gcData.setTime || new Date(gcStart.getTime() + 6 * 60 * 60 * 1000); // Assume 6h if no set time
-
-  const darkStart = Math.max(gcStart.getTime(), twilightEnd.getTime());
-  const darkEnd = Math.min(gcEnd.getTime(), twilightStart.getTime());
-
-  if (darkStart >= darkEnd) {
-    return "No overlap";
-  }
-
-  const durationMs = darkEnd - darkStart;
-  const hours = Math.floor(durationMs / (1000 * 60 * 60));
-  const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-
-  return `${hours}h ${minutes}m`;
-}

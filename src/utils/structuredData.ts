@@ -112,6 +112,3 @@ export function generateEventStructuredData(
   };
 }
 
-export function generateStructuredDataScript(structuredData: StructuredEventData): string {
-  return `<script type="application/ld+json">\n${JSON.stringify(structuredData, null, 2)}\n</script>`;
-}

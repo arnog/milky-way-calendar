@@ -2,7 +2,13 @@ import { useEffect, useState, useRef } from "react";
 import { Location } from "../types/astronomy";
 import LocationPopover from "./LocationPopover";
 import StarRating from "./StarRating";
-import { Observer, Horizon, SearchRiseSet, Body, SearchAltitude } from "astronomy-engine";
+import {
+  Observer,
+  Horizon,
+  SearchRiseSet,
+  Body,
+  SearchAltitude,
+} from "astronomy-engine";
 import { getMoonPhaseEmoji } from "../utils/moonCalculations";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
@@ -127,16 +133,36 @@ export default function TonightCard({
         // Calculate sun times using astronomy-engine
         const sunset = SearchRiseSet(Body.Sun, observer, -1, now, 1);
         const sunrise = SearchRiseSet(Body.Sun, observer, +1, now, 1);
-        const tomorrowSunrise = SearchRiseSet(Body.Sun, observer, +1, new Date(now.getTime() + 24 * 60 * 60 * 1000), 1);
-        
+        const tomorrowSunrise = SearchRiseSet(
+          Body.Sun,
+          observer,
+          +1,
+          new Date(now.getTime() + 24 * 60 * 60 * 1000),
+          1
+        );
+
         // Calculate astronomical twilight times
-        const astronomicalDusk = SearchAltitude(Body.Sun, observer, -1, now, 1, -18);
-        const astronomicalDawn = SearchAltitude(Body.Sun, observer, +1, new Date(now.getTime() + 24 * 60 * 60 * 1000), 1, -18);
-        
+        const astronomicalDusk = SearchAltitude(
+          Body.Sun,
+          observer,
+          -1,
+          now,
+          1,
+          -18
+        );
+        const astronomicalDawn = SearchAltitude(
+          Body.Sun,
+          observer,
+          +1,
+          new Date(now.getTime() + 24 * 60 * 60 * 1000),
+          1,
+          -18
+        );
+
         // Use existing calculateMoonData function instead of duplicating calculations
         const moonData = calculateMoonData(now, location);
 
-        // Calculate Galactic Center times
+        // Calculate Galactic Core times
         const gcRa = 17.759; // hours
         const gcDec = -29.008; // degrees
 
@@ -338,17 +364,19 @@ export default function TonightCard({
           )}
         </div>
 
-        {/* Galactic Center Events - only show if there's an optimal viewing window */}
-        {(events.optimalWindow.startTime || events.gcTransit || events.maxGcAltitude > 0) && (
+        {/* Galactic Core Events - only show if there's an optimal viewing window */}
+        {(events.optimalWindow.startTime ||
+          events.gcTransit ||
+          events.maxGcAltitude > 0) && (
           <div className="space-y-2">
             <h3 className="font-semibold text-3xl mb-2 text-center">
-              Galactic Center
+              Galactic Core
             </h3>
             {events.gcRise && (
               <div className="flex justify-center items-center gap-4">
                 <Icon
                   name="rise"
-                  title="Galactic Center Rise"
+                  title="Galactic Core Rise"
                   className="w-8 h-8 text-gray-300"
                 />
                 <span className="font-mono">{formatTime(events.gcRise)}</span>
@@ -384,7 +412,7 @@ export default function TonightCard({
               <div className="flex justify-center items-center gap-4">
                 <Icon
                   name="set"
-                  title="Galactic Center Set"
+                  title="Galactic Core Set"
                   className="w-8 h-8 text-gray-300"
                 />
                 <span className="font-mono">{formatTime(events.gcSet)}</span>

@@ -16,39 +16,46 @@ export default function WorldMap({
 }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string>('/world2024B-sm.jpg');
+  const [imageSrc, setImageSrc] = useState<string>("/world2024B-sm.jpg");
   const [isImageLoading, setIsImageLoading] = useState(true);
 
   // Determine which image to use based on screen size
   const getMapSrc = () => {
-    if (typeof window === 'undefined') return '/world2024B-md.jpg';
+    if (typeof window === "undefined") return "/world2024B-md.jpg";
     const width = window.innerWidth;
-    
+
     // Use WebP for better compression when supported
-    const supportsWebP = typeof window !== 'undefined' && 
-      document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0;
-    
+    const supportsWebP =
+      typeof window !== "undefined" &&
+      document
+        .createElement("canvas")
+        .toDataURL("image/webp")
+        .indexOf("data:image/webp") === 0;
+
     if (width < 768) {
       // Mobile devices - use small resolution
-      return supportsWebP ? '/world2024B-sm.webp' : '/world2024B-sm.jpg';
+      return supportsWebP ? "/world2024B-sm.webp" : "/world2024B-sm.jpg";
     } else if (width < 1920) {
       // Tablets and regular screens - use medium resolution
-      return supportsWebP ? '/world2024B-md.webp' : '/world2024B-md.jpg';
+      return supportsWebP ? "/world2024B-md.webp" : "/world2024B-md.jpg";
     } else {
       // Large screens - use full resolution PNG for best quality
-      return '/world2024B-lg.png';
+      return "/world2024B-lg.png";
     }
   };
 
   // Equirectangular projection inverse transform (for the light pollution map)
-  const equirectangularUnproject = (x: number, y: number): { lat: number; lng: number } => {
+  const equirectangularUnproject = (
+    x: number,
+    y: number
+  ): { lat: number; lng: number } => {
     // The map uses equirectangular projection
     // x: 0 to 1 maps to -180 to 180 longitude
     // y: 0 to 1 maps to 90 to -90 latitude (top to bottom)
-    
+
     const lng = (x - 0.5) * 360;
     const lat = (0.5 - y) * 180;
-    
+
     return { lat, lng };
   };
 
@@ -117,15 +124,20 @@ export default function WorldMap({
   };
 
   // Equirectangular projection forward transform for marker positioning
-  const equirectangularProject = (lat: number, lng: number): { x: number; y: number } => {
+  const equirectangularProject = (
+    lat: number,
+    lng: number
+  ): { x: number; y: number } => {
     // Convert lat/lng to x/y coordinates for equirectangular projection
     const x = (lng + 180) / 360;
     const y = (90 - lat) / 180;
-    
+
     return { x, y };
   };
 
-  const markerPosition = location ? equirectangularProject(location.lat, location.lng) : null;
+  const markerPosition = location
+    ? equirectangularProject(location.lat, location.lng)
+    : null;
 
   // Update image source based on window size
   useEffect(() => {
@@ -145,15 +157,15 @@ export default function WorldMap({
       updateImageSrc();
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [imageSrc]);
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="relative overflow-hidden border border-white/20 rounded bg-gray-900"
-      style={{ aspectRatio: '18 / 7' }}
+      className="relative overflow-hidden border border-white/20 rounded-xl bg-gray-900"
+      style={{ aspectRatio: "18 / 7" }}
     >
       {/* Loading state */}
       {isImageLoading && (
@@ -161,19 +173,21 @@ export default function WorldMap({
           <div className="text-white/50">Loading map...</div>
         </div>
       )}
-      
+
       <img
         src={imageSrc}
         alt="World map showing light pollution"
         className={`w-full h-full object-contain ${
           isDragging ? "cursor-grabbing" : "cursor-crosshair"
-        } ${isImageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+        } ${
+          isImageLoading ? "opacity-0" : "opacity-100"
+        } transition-opacity duration-300`}
         onMouseDown={handleMouseDown}
         onLoad={() => setIsImageLoading(false)}
         style={{ userSelect: "none" }}
         draggable={false}
       />
-      
+
       {/* Location marker overlay */}
       {location && markerPosition && (
         <div className="absolute inset-0 pointer-events-none">

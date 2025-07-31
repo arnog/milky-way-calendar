@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react'
-import { Routes, Route, useNavigate } from 'react-router-dom'
-import { Helmet } from 'react-helmet'
-import Header from './components/Header'
-import TonightCard from './components/TonightCard'
-import Calendar from './components/Calendar'
-import LocationPage from './pages/LocationPage'
-import ExplorePage from './pages/ExplorePage'
-import FAQPage from './pages/FAQPage'
-import { Location } from './types/astronomy'
-import { findNearestSpecialLocation } from './utils/locationParser'
-import { locationToSlug } from './utils/urlHelpers'
+import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet";
+import Header from "./components/Header";
+import TonightCard from "./components/TonightCard";
+import Calendar from "./components/Calendar";
+import LocationPage from "./pages/LocationPage";
+import ExplorePage from "./pages/ExplorePage";
+import FAQPage from "./pages/FAQPage";
+import { Location } from "./types/astronomy";
+import { findNearestSpecialLocation } from "./utils/locationParser";
+import { locationToSlug } from "./utils/urlHelpers";
 
 interface HomePageProps {
   isDarkroomMode: boolean;
@@ -17,8 +17,8 @@ interface HomePageProps {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
-  const [location, setLocation] = useState<Location | null>(null)
-  const navigate = useNavigate()
+  const [location, setLocation] = useState<Location | null>(null);
+  const navigate = useNavigate();
 
   // Initialize location from localStorage or geolocation
   useEffect(() => {
@@ -85,11 +85,11 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
   // Navigate to location URL when location changes
   const handleLocationChange = (newLocation: Location) => {
     setLocation(newLocation);
-    
+
     // Try to find matched name for the new location
     const nearbyLocation = findNearestSpecialLocation(newLocation);
     const matchedName = nearbyLocation ? nearbyLocation.matchedName : null;
-    
+
     // Update localStorage
     localStorage.setItem(
       "milkyway-location",
@@ -98,7 +98,7 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
         matchedName: matchedName,
       })
     );
-    
+
     const slug = locationToSlug(newLocation);
     navigate(`/location/${slug}`, { replace: true });
   };
@@ -107,46 +107,73 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
     <>
       <Helmet>
         <title>Milky Way Calendar - Optimal Viewing Conditions</title>
-        <meta name="description" content="Find the best times to photograph the Milky Way throughout the year. Real astronomical calculations showing Galactic Center position, moon phases, and darkness windows for any location worldwide." />
-        <meta property="og:title" content="Milky Way Calendar - Optimal Viewing Conditions" />
-        <meta property="og:description" content="Find the best times to photograph the Milky Way throughout the year. Real astronomical calculations showing Galactic Center position, moon phases, and darkness windows for any location worldwide." />
+        <meta
+          name="description"
+          content="Find the best times to photograph the Milky Way throughout the year. Real astronomical calculations showing Galactic Core position, moon phases, and darkness windows for any location worldwide."
+        />
+        <meta
+          property="og:title"
+          content="Milky Way Calendar - Optimal Viewing Conditions"
+        />
+        <meta
+          property="og:description"
+          content="Find the best times to photograph the Milky Way throughout the year. Real astronomical calculations showing Galactic Core position, moon phases, and darkness windows for any location worldwide."
+        />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Milky Way Calendar - Optimal Viewing Conditions" />
-        <meta name="twitter:description" content="Find the best times to photograph the Milky Way throughout the year. Real astronomical calculations showing Galactic Center position, moon phases, and darkness windows for any location worldwide." />
+        <meta
+          name="twitter:title"
+          content="Milky Way Calendar - Optimal Viewing Conditions"
+        />
+        <meta
+          name="twitter:description"
+          content="Find the best times to photograph the Milky Way throughout the year. Real astronomical calculations showing Galactic Core position, moon phases, and darkness windows for any location worldwide."
+        />
       </Helmet>
-      
+
       <div className="min-h-screen p-4">
         <div className="max-w-6xl mx-auto">
           {location && (
             <>
-              <TonightCard location={location} onLocationChange={handleLocationChange} />
+              <TonightCard
+                location={location}
+                onLocationChange={handleLocationChange}
+              />
               <Calendar location={location} />
             </>
           )}
         </div>
       </div>
     </>
-  )
+  );
 }
 
 function App() {
-  const [isDarkroomMode, setIsDarkroomMode] = useState(false)
+  const [isDarkroomMode, setIsDarkroomMode] = useState(false);
 
   return (
-    <div className={isDarkroomMode ? 'darkroom-mode' : ''}>
-      <Header 
+    <div className={isDarkroomMode ? "darkroom-mode" : ""}>
+      <Header
         isDarkroomMode={isDarkroomMode}
         onToggleDarkroomMode={() => setIsDarkroomMode(!isDarkroomMode)}
       />
       <Routes>
-        <Route path="/" element={<HomePage isDarkroomMode={isDarkroomMode} />} />
-        <Route path="/location/:locationSlug" element={<LocationPage isDarkroomMode={isDarkroomMode} />} />
-        <Route path="/explore" element={<ExplorePage isDarkroomMode={isDarkroomMode} />} />
+        <Route
+          path="/"
+          element={<HomePage isDarkroomMode={isDarkroomMode} />}
+        />
+        <Route
+          path="/location/:locationSlug"
+          element={<LocationPage isDarkroomMode={isDarkroomMode} />}
+        />
+        <Route
+          path="/explore"
+          element={<ExplorePage isDarkroomMode={isDarkroomMode} />}
+        />
         <Route path="/faq" element={<FAQPage />} />
       </Routes>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
