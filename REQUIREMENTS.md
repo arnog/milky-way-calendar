@@ -9,7 +9,8 @@ Way and the Galactic Core at a given location.
 
 ## User Interface
 
-The main page displays the Tonight Card and table for each week of the year.
+The main page displays the Tonight Card, the daily visibility for the next seven
+days, and the weekly visibility for the next weeks.
 
 ### Location Picker
 
@@ -63,6 +64,20 @@ are in the future:
 - An icon representing the moon phase for the night
 - An indicator of the visibility of the Milky Way (one to four stars)
 - A percentage of the moon illumination for the night
+
+### Daily Visibility Table
+
+Below the Tonight card is a table with a row for the next seven days. The table
+has the following columns:
+
+- Date
+- Visibility of the Milky Way (one to four stars)
+- Galactic Core optimal viewing time (in local time)
+- Galactic Core optimal viewing duration (in hours)
+
+Clicking on one of the rows expands it to display the same information as the
+Tonight card, but for that day, and perhaps with a more compact layout, but
+without the text information about the location.
 
 ### Weekly Visibility Table
 
