@@ -285,7 +285,7 @@ export default function TonightCard({
                     title="Sunset (Civil Dawn)"
                     className={`global-icon-medium global-icon-blue-300`}
                   />
-                  <span className="global-mono-time">{formatTime(events.sunSet)}</span>
+                  <span className="data-time">{formatTime(events.sunSet)}</span>
                 </>
               )}
               {events.astronomicalTwilightEnd && (
@@ -295,7 +295,7 @@ export default function TonightCard({
                     title="Astronomical Twilight End"
                     className={`global-icon-medium global-icon-blue-400`}
                   />
-                  <span className="global-mono-time">
+                  <span className="data-time">
                     {formatTime(events.astronomicalTwilightEnd)}
                   </span>
                 </>
@@ -311,7 +311,7 @@ export default function TonightCard({
                     title="Astronomical Twilight Start"
                     className={`global-icon-medium global-icon-orange-400`}
                   />
-                  <span className="global-mono-time">
+                  <span className="data-time">
                     {formatTime(events.astronomicalTwilightStart)}
                   </span>
                 </>
@@ -323,7 +323,7 @@ export default function TonightCard({
                     title="Sunrise (Civil Twilight)"
                     className={`global-icon-medium global-icon-yellow-200`}
                   />
-                  <span className="global-mono-time">
+                  <span className="data-time">
                     {formatTime(events.sunRise)}
                   </span>
                 </>
@@ -350,7 +350,7 @@ export default function TonightCard({
                 title="Moonrise"
                 className={`global-icon-medium global-icon-gray-300`}
               />
-              <span className="global-mono-time">{formatTime(events.moonRise)}</span>
+              <span className="data-time">{formatTime(events.moonRise)}</span>
             </div>
           )}
           {events.moonSet && (
@@ -360,7 +360,7 @@ export default function TonightCard({
                 title="Moonset"
                 className={`global-icon-medium global-icon-gray-300`}
               />
-              <span className="global-mono-time">{formatTime(events.moonSet)}</span>
+              <span className="data-time">{formatTime(events.moonSet)}</span>
             </div>
           )}
         </div>
@@ -380,7 +380,7 @@ export default function TonightCard({
                   title="Galactic Core Rise"
                   className={`global-icon-medium global-icon-gray-300`}
                 />
-                <span className="global-mono-time">{formatTime(events.gcRise)}</span>
+                <span className="data-time">{formatTime(events.gcRise)}</span>
               </div>
             )}
             {events.optimalWindow.startTime && (
@@ -390,7 +390,7 @@ export default function TonightCard({
                   title="Galactic Core Rise (Optimal)"
                   className={`global-icon-medium global-icon-gray-300`}
                 />
-                <span className="global-mono-time">
+                <span className="data-time">
                   {formatOptimalViewingTime(events.optimalWindow, location)} for{" "}
                   {formatOptimalViewingDuration(events.optimalWindow)}
                 </span>
@@ -403,7 +403,7 @@ export default function TonightCard({
                   title="Maximum Altitude"
                   className={`global-icon-medium global-icon-gray-300`}
                 />
-                <span className="global-mono-time">
+                <span className="data-time">
                   {events.maxGcAltitude.toFixed(0)}° at{" "}
                   {formatTime(events.gcTransit)}
                 </span>
@@ -416,7 +416,7 @@ export default function TonightCard({
                   title="Galactic Core Set"
                   className={`global-icon-medium global-icon-gray-300`}
                 />
-                <span className="global-mono-time">{formatTime(events.gcSet)}</span>
+                <span className="data-time">{formatTime(events.gcSet)}</span>
               </div>
             )}
           </div>

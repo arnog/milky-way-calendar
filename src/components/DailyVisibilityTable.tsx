@@ -187,10 +187,10 @@ export default function DailyVisibilityTable({ location }: DailyVisibilityTableP
                         <div>
                           <StarRating rating={day.visibility} />
                         </div>
-                        <div className={`${styles.timeText} global-mono-time`}>
+                        <div className={`${styles.timeText} data-time`}>
                           {formatOptimalViewingTime(day.optimalWindow, location) || "Not visible"}
                         </div>
-                        <div className={`${styles.timeText} global-mono-time`}>
+                        <div className={`${styles.timeText} data-time`}>
                           {formatOptimalViewingDuration(day.optimalWindow) || "—"}
                         </div>
                       </div>
@@ -212,25 +212,25 @@ export default function DailyVisibilityTable({ location }: DailyVisibilityTableP
                               {day.sunRise && (
                                 <div className={styles.eventRow}>
                                   <Icon name="sunrise" title="Sunrise" className={styles.icon} />
-                                  <span>Rise: <span className="global-mono-time">{formatTimeInLocationTimezone(day.sunRise, location)}</span></span>
+                                  <span>Rise: <span className="data-time">{formatTimeInLocationTimezone(day.sunRise, location)}</span></span>
                                 </div>
                               )}
                               {day.sunSet && (
                                 <div className={styles.eventRow}>
                                   <Icon name="sunset" title="Sunset" className={styles.icon} />
-                                  <span>Set: <span className="global-mono-time">{formatTimeInLocationTimezone(day.sunSet, location)}</span></span>
+                                  <span>Set: <span className="data-time">{formatTimeInLocationTimezone(day.sunSet, location)}</span></span>
                                 </div>
                               )}
                               {day.astronomicalTwilightEnd && (
                                 <div className={styles.eventRow}>
                                   <Icon name="twilight-end" title="Astronomical Twilight End" className={styles.icon} />
-                                  <span>Dark: <span className="global-mono-time">{formatTimeInLocationTimezone(day.astronomicalTwilightEnd, location)}</span></span>
+                                  <span>Dark: <span className="data-time">{formatTimeInLocationTimezone(day.astronomicalTwilightEnd, location)}</span></span>
                                 </div>
                               )}
                               {day.astronomicalTwilightStart && (
                                 <div className={styles.eventRow}>
                                   <Icon name="twilight-start" title="Astronomical Twilight Start" className={styles.icon} />
-                                  <span>Dawn: <span className="global-mono-time">{formatTimeInLocationTimezone(day.astronomicalTwilightStart, location)}</span></span>
+                                  <span>Dawn: <span className="data-time">{formatTimeInLocationTimezone(day.astronomicalTwilightStart, location)}</span></span>
                                 </div>
                               )}
                             </div>
@@ -247,13 +247,13 @@ export default function DailyVisibilityTable({ location }: DailyVisibilityTableP
                               {day.moonRise && (
                                 <div className={styles.eventRow}>
                                   <Icon name="moonrise" title="Moonrise" className={styles.icon} />
-                                  <span>Rise: <span className="global-mono-time">{formatTimeInLocationTimezone(day.moonRise, location)}</span></span>
+                                  <span>Rise: <span className="data-time">{formatTimeInLocationTimezone(day.moonRise, location)}</span></span>
                                 </div>
                               )}
                               {day.moonSet && (
                                 <div className={styles.eventRow}>
                                   <Icon name="moonset" title="Moonset" className={styles.icon} />
-                                  <span>Set: <span className="global-mono-time">{formatTimeInLocationTimezone(day.moonSet, location)}</span></span>
+                                  <span>Set: <span className="data-time">{formatTimeInLocationTimezone(day.moonSet, location)}</span></span>
                                 </div>
                               )}
                             </div>
@@ -270,19 +270,19 @@ export default function DailyVisibilityTable({ location }: DailyVisibilityTableP
                               {day.gcRise && (
                                 <div className={styles.eventRow}>
                                   <Icon name="gc-rise" title="Galactic Core Rise (≥10°)" className={styles.icon} />
-                                  <span>Rise: <span className="global-mono-time">{formatTimeInLocationTimezone(day.gcRise, location)}</span></span>
+                                  <span>Rise: <span className="data-time">{formatTimeInLocationTimezone(day.gcRise, location)}</span></span>
                                 </div>
                               )}
                               {day.gcTransit && (
                                 <div className={styles.eventRow}>
                                   <Icon name="gc-transit" title="Galactic Core Transit" className={styles.icon} />
-                                  <span>Transit: <span className="global-mono-time">{formatTimeInLocationTimezone(day.gcTransit, location)}</span></span>
+                                  <span>Transit: <span className="data-time">{formatTimeInLocationTimezone(day.gcTransit, location)}</span></span>
                                 </div>
                               )}
                               {day.gcSet && (
                                 <div className={styles.eventRow}>
                                   <Icon name="gc-set" title="Galactic Core Set (≤10°)" className={styles.icon} />
-                                  <span>Set: <span className="global-mono-time">{formatTimeInLocationTimezone(day.gcSet, location)}</span></span>
+                                  <span>Set: <span className="data-time">{formatTimeInLocationTimezone(day.gcSet, location)}</span></span>
                                 </div>
                               )}
                             </div>

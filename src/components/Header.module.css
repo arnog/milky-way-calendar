@@ -2,14 +2,30 @@
 
 .header {
   /* glass-morphism p-6 mb-8 */
-  background-color: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 32px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
   box-sizing: content-box;
   padding: 1.5rem;
   margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/milky-way-hero-3.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+  z-index: -1;
 }
 
 .titleSection {
@@ -26,6 +42,7 @@
 
 .title {
   /* text-4xl md:text-6xl lg:text-8xl font-bold mb-2 hover:text-blue-200 transition-colors */
+  font-family: "Playfair Display", serif;
   font-size: 2.25rem;
   line-height: 2.5rem;
   font-weight: 700;
@@ -50,14 +67,16 @@
 }
 
 .title:hover {
-  color: rgb(191 219 254);
+  color: #A3C4DC;
 }
 
 .subtitle {
   /* text-lg md:text-2xl lg:text-3xl text-blue-200 */
+  font-family: "Playfair Display", serif;
+  font-style: italic;
   font-size: 1.125rem;
   line-height: 1.75rem;
-  color: rgb(191 219 254);
+  color: #A3C4DC;
 }
 
 @media (min-width: 768px) {
@@ -120,18 +139,19 @@
 }
 
 .navLink:hover {
-  color: rgb(191 219 254);
+  color: #6EC6FF;
+  text-shadow: 0 0 8px #B2E3FF;
 }
 
 .navLinkActive {
   /* text-white font-semibold */
-  color: white;
+  color: #F5F5F5;
   font-weight: 600;
 }
 
 .navLinkInactive {
   /* text-blue-200 */
-  color: rgb(191 219 254);
+  color: #A3C4DC;
 }
 
 .darkModeButton {

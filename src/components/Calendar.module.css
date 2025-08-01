@@ -2,10 +2,10 @@
 
 .container {
   /* glass-morphism p-6 */
-  background-color: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 32px;
-  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
   box-sizing: content-box;
   padding: 1.5rem;
@@ -13,6 +13,7 @@
 
 .title {
   /* text-2xl font-semibold mb-6 */
+  font-family: "Playfair Display", serif;
   font-size: 1.5rem;
   line-height: 2rem;
   font-weight: 600;
@@ -123,7 +124,9 @@
   font-size: 1.875rem;
   line-height: 2.25rem;
   text-align: center;
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.03em;
+  color: #6EC6FF;
 }
 
 .loadMoreSection {

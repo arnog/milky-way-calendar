@@ -94,6 +94,30 @@ ensure consistency and accuracy:
 - **Timezone handling**: Critical for international users - times must be shown
   in observation location's timezone
 
+## UI Design System
+
+### Color Palette
+- **Primary**: #A3C4DC - Main buttons, highlights, navigation
+- **Accent**: #6EC6FF - Links, time displays, hover effects
+- **Highlight**: #F5F5F5 - Body text, general content
+- **Secondary**: #273B4A - Background panels, popovers
+- **Glow**: #B2E3FF - Hover/focus glow effects
+- **Background**: #0B0E16 - Deep night blue base
+
+### Typography System
+- **Headlines**: Playfair Display (serif) - All h1, h2, h3 elements
+- **Body Text**: Inter (sans-serif) - Paragraphs, lists, general content
+- **Data/Times**: Orbitron (sans-serif) - Time displays, astronomical data
+- **Special**: Playfair Display italic - Subtitle in header
+
+### Visual Elements
+- **Glassmorphism**: `background: rgba(255, 255, 255, 0.05)`, `backdrop-filter: blur(8px)`, `border-radius: 12px`
+- **Background Images**: 
+  - Body: Repeating `sky-tile.jpg` for seamless starfield
+  - Header: `milky-way-hero-3.jpg` featuring galactic core
+- **Button Styles**: Primary buttons with hover glow effect using #B2E3FF
+- **Dark/Field Mode**: Red color scheme (#ff4444) for astronomy field use
+
 ## Technical Learnings
 
 ### Timezone Implementation
@@ -286,13 +310,18 @@ optimization
 73 tests covering all astronomy calculations, edge cases, and integration scenarios
 ✅ **Phase 11**: CSS Architecture Migration - Migrated from Tailwind CSS to CSS
 Modules for better component encapsulation, maintainability, and reduced dependencies
+✅ **Phase 12**: UI Refresh Implementation - Complete visual redesign following
+UI_REFRESH.md guidelines with new color palette, typography system (Playfair
+Display for headings, Orbitron for data/times, Inter for body), enhanced
+glassmorphism effects, and custom background imagery
 
 **Current state**: Feature-complete astronomy calendar with consistent
 astronomical calculations, accurate timezone handling for international users,
 proper high-latitude handling, comprehensive dark sky site discovery,
 educational FAQ system with modern navigation, full SEO optimization for search
 engine discoverability, robust test coverage ensuring calculation accuracy and
-reliability, and modern CSS Modules architecture for scalable styling.
+reliability, modern CSS Modules architecture for scalable styling, and a
+polished night-sky aesthetic with professional typography and visual design.
 
 ## Hosting
 
@@ -320,4 +349,4 @@ The app is deployed using CloudFlare Pages with automatic Git integration:
 - **Output directory**: `dist`
 - **Node.js version**: Latest LTS
 - **Static assets**: Served from `public/` directory (includes `icons.svg`,
-  `world-map.svg`)
+  `world-map.svg`, `sky-tile.jpg`, `milky-way-hero-3.jpg`)

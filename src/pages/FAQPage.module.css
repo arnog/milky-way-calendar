@@ -13,6 +13,7 @@
 
 .mainTitle {
   /* text-4xl md:text-6xl font-bold mb-8 */
+  font-family: "Playfair Display", serif;
   font-size: 2.25rem;
   font-weight: 700;
   margin-bottom: 2rem;
@@ -43,10 +44,11 @@
 
 .questionTitle {
   /* text-xl md:text-2xl font-semibold mb-4 text-blue-200 */
+  font-family: "Playfair Display", serif;
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: rgb(191 219 254);
+  color: #A3C4DC;
 }
 
 @media (min-width: 768px) {
@@ -57,6 +59,7 @@
 
 .questionText {
   /* text-base md:text-lg leading-relaxed */
+  font-family: "Inter", sans-serif;
   font-size: 1rem;
   line-height: 1.625;
 }
