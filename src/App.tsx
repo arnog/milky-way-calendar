@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import Header from "./components/Header";
 import TonightCard from "./components/TonightCard";
+import DailyVisibilityTable from "./components/DailyVisibilityTable";
 import Calendar from "./components/Calendar";
 import LocationPage from "./pages/LocationPage";
 import ExplorePage from "./pages/ExplorePage";
@@ -139,6 +140,7 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
                 location={location}
                 onLocationChange={handleLocationChange}
               />
+              <DailyVisibilityTable location={location} />
               <Calendar location={location} />
             </>
           )}
