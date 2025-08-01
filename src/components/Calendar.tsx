@@ -12,6 +12,7 @@ import {
   formatOptimalViewingDuration,
 } from "../utils/optimalViewing";
 import { generateEventStructuredData } from "../utils/structuredData";
+import styles from "./Calendar.module.css";
 
 interface CalendarProps {
   location: Location;
@@ -159,21 +160,21 @@ export default function Calendar({ location }: CalendarProps) {
 
   if (isLoading) {
     return (
-      <div className="glass-morphism p-6">
-        <h2 className="text-2xl font-semibold mb-6">
+      <div className={styles.container}>
+        <h2 className={styles.title}>
           {currentYear} Milky Way Visibility Calendar
         </h2>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingContent}>
             <div
-              className="animate-spin rounded-full h-12 w-12 mx-auto mb-4"
+              className={styles.spinner}
               style={{
                 border: "2px solid transparent",
                 borderBottom: "2px solid #a8b5ff",
               }}
             ></div>
-            <p className="text-gray-300">Calculating astronomical data...</p>
-            <p className="text-sm text-gray-400 mt-2">This may take a moment</p>
+            <p className={styles.loadingText}>Calculating astronomical data...</p>
+            <p className={styles.loadingSubtext}>This may take a moment</p>
           </div>
         </div>
       </div>
@@ -186,7 +187,7 @@ export default function Calendar({ location }: CalendarProps) {
   }
 
   return (
-    <div className="glass-morphism p-6">
+    <div className={styles.container}>
       <style>
         {`
           @keyframes shimmer {
@@ -196,16 +197,16 @@ export default function Calendar({ location }: CalendarProps) {
         `}
       </style>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className={styles.tableContainer}>
+        <table className={styles.table}>
           <thead>
-            <tr className="border-b border-white/20">
-              <th className="text-center text-3xl py-3 px-2">Date</th>
-              <th className="text-center text-3xl py-3 px-2">Visibility</th>
-              <th className="text-center text-3xl py-3 px-2">
+            <tr className={styles.tableHeaderRow}>
+              <th className={styles.tableHeader}>Date</th>
+              <th className={styles.tableHeader}>Visibility</th>
+              <th className={styles.tableHeader}>
                 Galactic Core Rise
               </th>
-              <th className="text-center text-3xl py-3 px-2">Duration</th>
+              <th className={styles.tableHeader}>Duration</th>
             </tr>
           </thead>
           <tbody>
@@ -215,7 +216,7 @@ export default function Calendar({ location }: CalendarProps) {
                 return (
                   <tr
                     key={`${week.startDate.getFullYear()}-${week.weekNumber}`}
-                    className="border-b border-white/10 hover:bg-white/5 transition-all duration-300"
+                    className={styles.tableRow}
                     style={getRowBackground(week.visibility)}
                     title={getVisibilityDescription(week.visibility)}
                   >
@@ -227,7 +228,7 @@ export default function Calendar({ location }: CalendarProps) {
                         }}
                       />
                     )}
-                    <td className="py-3 px-2 text-2xl text-center">
+                    <td className={styles.dateCell}>
                       {week.startDate.toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -237,13 +238,13 @@ export default function Calendar({ location }: CalendarProps) {
                             : undefined,
                       })}
                     </td>
-                    <td className="py-3 px-2 text-3xl text-center">
+                    <td className={styles.visibilityCell}>
                       <StarRating rating={week.visibility} size="lg" />
                     </td>
-                    <td className="py-3 px-2 text-3xl text-center font-mono">
+                    <td className={styles.timeCell}>
                       {formatOptimalViewingTime(week.optimalWindow, location)}
                     </td>
-                    <td className="py-3 px-2 text-3xl text-center font-mono">
+                    <td className={styles.timeCell}>
                       {formatOptimalViewingDuration(week.optimalWindow)}
                     </td>
                   </tr>
@@ -254,11 +255,11 @@ export default function Calendar({ location }: CalendarProps) {
       </div>
 
       {weekData.length > 0 && (
-        <div ref={loadMoreRef} className="mt-4 text-center">
+        <div ref={loadMoreRef} className={styles.loadMoreSection}>
           {isLoadingMore && (
-            <div className="inline-flex items-center gap-2 text-gray-400">
+            <div className={styles.loadingMoreContainer}>
               <div
-                className="animate-spin rounded-full h-4 w-4"
+                className={styles.smallSpinner}
                 style={{
                   border: "2px solid transparent",
                   borderBottom: "2px solid #a8b5ff",

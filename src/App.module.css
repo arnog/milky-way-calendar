@@ -1,0 +1,14 @@
+/* App Component Styles */
+
+.container {
+  /* min-h-screen p-4 */
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.content {
+  /* max-w-6xl mx-auto */
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
+}

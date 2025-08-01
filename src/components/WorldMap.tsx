@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Location } from "../types/astronomy";
+import styles from "./WorldMap.module.css";
 
 interface WorldMapProps {
   location: Location | null;
@@ -164,45 +165,44 @@ export default function WorldMap({
   return (
     <div
       ref={containerRef}
-      className="relative overflow-hidden border border-white/20 rounded-xl bg-gray-900"
-      style={{ aspectRatio: "18 / 7" }}
+      className={styles.container}
     >
       {/* Loading state */}
       {isImageLoading && (
-        <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-          <div className="text-white/50">Loading map...</div>
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingText}>Loading map...</div>
         </div>
       )}
 
       <img
         src={imageSrc}
         alt="World map showing light pollution"
-        className={`w-full h-full object-contain ${
-          isDragging ? "cursor-grabbing" : "cursor-crosshair"
+        className={`${styles.mapImage} ${
+          isDragging ? styles.mapImageGrabbing : styles.mapImageCrosshair
         } ${
-          isImageLoading ? "opacity-0" : "opacity-100"
-        } transition-opacity duration-300`}
+          isImageLoading ? styles.mapImageLoading : styles.mapImageLoaded
+        }`}
         onMouseDown={handleMouseDown}
         onLoad={() => setIsImageLoading(false)}
-        style={{ userSelect: "none" }}
+        style={{}}
         draggable={false}
       />
 
       {/* Location marker overlay */}
       {location && markerPosition && (
-        <div className="absolute inset-0 pointer-events-none">
+        <div className={styles.markerOverlay}>
           {/* Crosshair lines */}
           <div
-            className="absolute w-full h-0.5 bg-red-500 opacity-50"
+            className={styles.crosshairHorizontal}
             style={{ top: `${markerPosition.y * 100}%` }}
           />
           <div
-            className="absolute h-full w-0.5 bg-red-500 opacity-50"
+            className={styles.crosshairVertical}
             style={{ left: `${markerPosition.x * 100}%` }}
           />
           {/* Red dot */}
           <div
-            className="absolute w-3 h-3 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+            className={styles.marker}
             style={{
               left: `${markerPosition.x * 100}%`,
               top: `${markerPosition.y * 100}%`,

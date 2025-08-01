@@ -50,11 +50,13 @@ npm run test:run     # Run tests once (non-watch mode)
 ## Project Structure
 
 - `src/components/` - React components (Calendar, TonightCard, LocationPopover,
-  WorldMap, StarRating)
+  WorldMap, StarRating) with corresponding `.module.css` files
 - `src/pages/` - Page components (HomePage, LocationPage, ExplorePage, FAQPage)
 - `src/utils/` - Utility functions for astronomical calculations and location
   parsing
 - `src/types/` - TypeScript type definitions
+- `src/styles/` - CSS styling with global utilities (`global.css`) and modular
+  component styles
 - `src/test/` - Comprehensive unit test suite (73 tests across 5 files)
 - `public/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set,
   transit)
@@ -204,6 +206,24 @@ ensure consistency and accuracy:
   timezone lookup using `tz-lookup` library
 - **Modular Timezone Utils**: Created `src/utils/timezoneUtils.ts` with
   comprehensive timezone conversion functions
+- **CSS Architecture Migration**: Migrated from Tailwind CSS to CSS Modules for
+  better component encapsulation and maintainability
+
+### CSS Modules Implementation
+
+- **Component-Scoped Styling**: Each component has its own `.module.css` file
+  with locally scoped class names to prevent style conflicts
+- **Global Utilities**: Shared styles consolidated in `src/styles/global.css`
+  with `global-` prefixed class names for reusable patterns
+- **Vite Configuration**: CSS Modules configured with camelCase conversion and
+  scoped name generation for optimal development experience
+- **Migration Benefits**:
+  - Eliminated Tailwind build dependencies and configuration overhead
+  - Improved component isolation with locally scoped styles
+  - Better maintainability with explicit style imports
+  - Reduced bundle size by removing unused utility classes
+- **Consistent Styling**: All visual appearance preserved during migration with
+  identical glassmorphism effects, responsive design, and dark/field modes
 
 ### Testing & Quality Assurance
 
@@ -245,8 +265,8 @@ ensure consistency and accuracy:
 
 ## Current Status
 
-✅ **Phase 1**: Project Foundation - React/TypeScript setup with Vite, Tailwind
-CSS  
+✅ **Phase 1**: Project Foundation - React/TypeScript setup with Vite and CSS
+framework  
 ✅ **Phase 2**: Core Astronomical Engine - Real calculations implemented  
 ✅ **Phase 3**: Advanced UI/UX - Location popover, timezone-aware displays, SVG
 icons  
@@ -264,13 +284,15 @@ dynamic location parsing, robots.txt configuration, and search engine
 optimization
 ✅ **Phase 10**: Testing & Quality Assurance - Comprehensive unit test suite with
 73 tests covering all astronomy calculations, edge cases, and integration scenarios
+✅ **Phase 11**: CSS Architecture Migration - Migrated from Tailwind CSS to CSS
+Modules for better component encapsulation, maintainability, and reduced dependencies
 
 **Current state**: Feature-complete astronomy calendar with consistent
 astronomical calculations, accurate timezone handling for international users,
 proper high-latitude handling, comprehensive dark sky site discovery,
 educational FAQ system with modern navigation, full SEO optimization for search
-engine discoverability, and robust test coverage ensuring calculation accuracy
-and reliability.
+engine discoverability, robust test coverage ensuring calculation accuracy and
+reliability, and modern CSS Modules architecture for scalable styling.
 
 ## Hosting
 

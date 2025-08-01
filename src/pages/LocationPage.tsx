@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet'
 import TonightCard from '../components/TonightCard'
+import DailyVisibilityTable from '../components/DailyVisibilityTable'
 import Calendar from '../components/Calendar'
 import { Location } from '../types/astronomy'
 import { slugToLocation, generateLocationTitle, generateLocationDescription, locationToSlug } from '../utils/urlHelpers'
+import styles from '../App.module.css'
 import { findNearestSpecialLocation } from '../utils/locationParser'
 
 interface LocationPageProps {
@@ -60,10 +62,10 @@ function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
   // Show loading while location is being parsed
   if (!location) {
     return (
-      <div className="min-h-screen p-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-lg text-white/70">Loading location...</div>
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <div className="global-flex-center" style={{ height: '16rem' }}>
+            <div className="global-text-lg" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Loading location...</div>
           </div>
         </div>
       </div>
@@ -107,9 +109,10 @@ function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
         <meta name="twitter:description" content={pageDescription} />
       </Helmet>
       
-      <div className="min-h-screen p-4">
-        <div className="max-w-6xl mx-auto">
+      <div className={styles.container}>
+        <div className={styles.content}>
           <TonightCard location={location} onLocationChange={handleLocationChange} />
+          <DailyVisibilityTable location={location} />
           <Calendar location={location} />
         </div>
       </div>

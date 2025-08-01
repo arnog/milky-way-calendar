@@ -5,6 +5,8 @@ import WorldMap from "../components/WorldMap";
 import { Location } from "../types/astronomy";
 import { DARK_SITES } from "../utils/locations";
 import { locationNameToSlug } from "../utils/urlHelpers";
+import styles from "../App.module.css";
+import exploreStyles from "./ExplorePage.module.css";
 
 interface ExplorePageProps {
   isDarkroomMode: boolean;
@@ -137,27 +139,27 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
         />
       </Helmet>
 
-      <div className="min-h-screen p-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="mt-8">
-            <h1 className="text-6xl font-bold text-white mb-2">
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <div className={exploreStyles.contentWrapper}>
+            <h1 className={exploreStyles.mainTitle}>
               Explore Dark Sky Sites
             </h1>
-            <p className="text-2xl text-white/70 mb-8">
+            <p className={exploreStyles.subtitle}>
               Discover the world's best dark sky parks, reserves, and national
               parks for Milky Way viewing. Click on any location to view
               detailed visibility conditions throughout the year.
             </p>
 
             {/* Interactive World Map */}
-            <div className="mb-12">
-              <div className="relative">
+            <div className={exploreStyles.mapWrapper}>
+              <div className={exploreStyles.mapContainer}>
                 <WorldMap
                   location={selectedLocation}
                   onLocationChange={handleMapLocationChange}
                 />
                 {/* Overlay markers for dark sites */}
-                <div className="absolute inset-0 pointer-events-none">
+                <div className={exploreStyles.markersOverlay}>
                   {DARK_SITES.map((loc, idx) => {
                     const fullName = loc[0] as string;
                     const shortName = loc[1] as string;
@@ -171,11 +173,11 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                     return (
                       <div
                         key={idx}
-                        className="absolute"
+                        className={exploreStyles.markerPosition}
                         style={{ left: `${x}%`, top: `${y}%` }}
                       >
                         <div
-                          className="absolute w-3 h-3 bg-blue-400 hover:bg-blue-300 border-2 border-white rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2 transition-colors pointer-events-auto"
+                          className={exploreStyles.darkSiteMarker}
                           onMouseEnter={() => setHoveredLocation(fullName)}
                           onMouseLeave={() => setHoveredLocation(null)}
                           onClick={() =>
@@ -183,8 +185,8 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                           }
                         />
                         {hoveredLocation === fullName && (
-                          <div className="absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 -mb-2 pointer-events-none">
-                            <div className="bg-black/80 text-white text-sm px-3 py-1 rounded border border-white/20 whitespace-nowrap">
+                          <div className={exploreStyles.tooltip}>
+                            <div className={exploreStyles.tooltipContent}>
                               {fullName}
                             </div>
                           </div>
@@ -194,11 +196,11 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                   })}
                 </div>
               </div>
-              <p className="text-sm text-white/50 mt-2">
+              <p className={exploreStyles.mapDescription}>
                 Click anywhere on the map to explore, or select a dark sky site
                 marked in blue.
               </p>
-              <p className="text-sm text-white/50 mt-2">
+              <p className={exploreStyles.mapDescription}>
                 Light Pollution Map by{" "}
                 <a href="https://djlorenz.github.io/astronomy/lp/">
                   David J Lorenz
@@ -208,19 +210,19 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
 
             {/* Dark Sites List by Region */}
             <div>
-              <h2 className="text-xl font-semibold text-white mb-4">
+              <h2 className={exploreStyles.sectionTitle}>
                 Dark Sky Sites by Region
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className={exploreStyles.regionsGrid}>
                 {Object.entries(groupedLocations).map(([region, locations]) => {
                   if (locations.length === 0) return null;
 
                   return (
-                    <div key={region} className="bg-white/5 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-white mb-3">
+                    <div key={region} className={exploreStyles.regionCard}>
+                      <h3 className={exploreStyles.regionTitle}>
                         {region}
                       </h3>
-                      <ul className="space-y-2">
+                      <ul className={exploreStyles.locationsList}>
                         {locations.map((loc, idx) => {
                           const fullName = loc[0] as string;
                           const shortName = loc[1] as string;
@@ -237,7 +239,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                     name: shortName,
                                   })
                                 }
-                                className="text-blue-400 hover:text-blue-300 transition-colors text-left"
+                                className={exploreStyles.locationButton}
                               >
                                 {fullName}
                               </button>

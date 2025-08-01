@@ -1,4 +1,4 @@
-// Simple SVG Icon component for stars (no tooltip needed)
+import styles from "./StarRating.module.css";
 
 interface StarRatingProps {
   rating: number;
@@ -12,31 +12,32 @@ export default function StarRating({
   size = "md",
 }: StarRatingProps) {
   if (rating === 0) {
-    return <span className={className}>—</span>;
+    return <span className={`${styles.dash} ${className}`}>—</span>;
   }
 
-  const sizeClasses = {
-    sm: "w-4 h-4",
-    md: "w-6 h-6",
-    lg: "w-8 h-8",
-  };
+  const sizeClass = {
+    sm: styles.starSmall,
+    md: styles.starMedium,
+    lg: styles.starLarge,
+  }[size];
 
   const stars = [];
   for (let i = 0; i < 4; i++) {
+    const isFilled = i < rating;
     stars.push(
       <svg
         key={i}
-        className={`${sizeClasses[size]} inline-block ${
-          i < rating ? "opacity-80" : "opacity-25"
+        className={`${styles.star} ${sizeClass} ${
+          isFilled ? styles.starFilled : styles.starEmpty
         }`}
         style={{ fill: "white", color: "white" }}
       >
         <use
-          href={`/icons.svg#${i < rating ? "star-black" : "star-white"}`}
+          href={`/icons.svg#${isFilled ? "star-black" : "star-white"}`}
         />
       </svg>
     );
   }
 
-  return <span className={`inline-flex ${className}`}>{stars}</span>;
+  return <span className={`${styles.container} ${className}`}>{stars}</span>;
 }

@@ -24,6 +24,7 @@ import {
   formatOptimalViewingDuration,
   OptimalViewingWindow,
 } from "../utils/optimalViewing";
+import styles from "./TonightCard.module.css";
 
 interface TonightCardProps {
   location: Location;
@@ -51,7 +52,7 @@ interface TonightEvents {
 const Icon = ({
   name,
   title,
-  className = "w-8 h-8",
+  className = "",
 }: {
   name: string;
   title?: string;
@@ -61,7 +62,7 @@ const Icon = ({
 
   return (
     <div
-      className="relative inline-block"
+      className="global-icon-wrapper"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
       onTouchStart={() => setShowTooltip(true)}
@@ -71,9 +72,9 @@ const Icon = ({
         <use href={`/icons.svg#${name}`} />
       </svg>
       {showTooltip && title && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xl text-white bg-gray-900 rounded shadow-lg whitespace-nowrap z-50">
+        <div className="global-tooltip">
           {title}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          <div className="global-tooltip-arrow"></div>
         </div>
       )}
     </div>
@@ -251,9 +252,9 @@ export default function TonightCard({
 
   if (isLoading) {
     return (
-      <div className="glass-morphism p-6 mb-8">
-        <h2 className="text-6xl font-semibold mb-4 text-center">Tonight</h2>
-        <p className="text-blue-200">Calculating astronomical events...</p>
+      <div className={styles.container}>
+        <h2 className={styles.title}>Tonight</h2>
+        <p className="global-loading-text">Calculating astronomical events...</p>
       </div>
     );
   }
@@ -261,9 +262,9 @@ export default function TonightCard({
   if (!events) return null;
 
   return (
-    <div className="glass-morphism p-6 mb-8">
-      <div className="flex flex-col items-center mb-4">
-        <h2 className="text-7xl font-semibold mb-2 text-center">
+    <div className={styles.container}>
+      <div className={styles.centerColumn}>
+        <h2 className={styles.title}>
           Tonight{" "}
           <div>
             {events && <StarRating rating={events.visibility} size="lg" />}
@@ -271,20 +272,20 @@ export default function TonightCard({
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-32 mt-24 mb-24 text-xl">
+      <div className={styles.eventGrid}>
         {/* Sun Events */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-3xl mb-2 text-center">Sun</h3>
+        <div className={styles.eventSection}>
+          <h3 className={styles.sectionTitle}>Sun</h3>
           {(events.sunSet || events.astronomicalTwilightEnd) && (
-            <div className="flex justify-center items-center gap-2">
+            <div className={styles.eventRow}>
               {events.sunSet && (
                 <>
                   <Icon
                     name="set"
                     title="Sunset (Civil Dawn)"
-                    className="w-8 h-8 text-blue-300"
+                    className={`global-icon-medium global-icon-blue-300`}
                   />
-                  <span className="font-mono">{formatTime(events.sunSet)}</span>
+                  <span className="global-mono-time">{formatTime(events.sunSet)}</span>
                 </>
               )}
               {events.astronomicalTwilightEnd && (
@@ -292,9 +293,9 @@ export default function TonightCard({
                   <Icon
                     name="set2"
                     title="Astronomical Twilight End"
-                    className="w-8 h-8 text-blue-400"
+                    className={`global-icon-medium global-icon-blue-400`}
                   />
-                  <span className="font-mono">
+                  <span className="global-mono-time">
                     {formatTime(events.astronomicalTwilightEnd)}
                   </span>
                 </>
@@ -302,15 +303,15 @@ export default function TonightCard({
             </div>
           )}
           {(events.astronomicalTwilightStart || events.sunRise) && (
-            <div className="flex justify-center items-center gap-2">
+            <div className={styles.eventRow}>
               {events.astronomicalTwilightStart && (
                 <>
                   <Icon
                     name="rise2"
                     title="Astronomical Twilight Start"
-                    className="w-8 h-8 text-orange-400"
+                    className={`global-icon-medium global-icon-orange-400`}
                   />
-                  <span className="font-mono">
+                  <span className="global-mono-time">
                     {formatTime(events.astronomicalTwilightStart)}
                   </span>
                 </>
@@ -320,9 +321,9 @@ export default function TonightCard({
                   <Icon
                     name="rise"
                     title="Sunrise (Civil Twilight)"
-                    className="w-8 h-8 text-yellow-200"
+                    className={`global-icon-medium global-icon-yellow-200`}
                   />
-                  <span className="font-mono">
+                  <span className="global-mono-time">
                     {formatTime(events.sunRise)}
                   </span>
                 </>
@@ -332,34 +333,34 @@ export default function TonightCard({
         </div>
 
         {/* Moon Events */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-3xl mb-2 text-center">
+        <div className={styles.eventSection}>
+          <h3 className={styles.sectionTitle}>
             Moon{" "}
             <span style={{ fontFamily: "Times" }}>
               {getMoonPhaseEmoji(events.moonPhase)}
             </span>{" "}
-            <span className="opacity-60 text-xl">
+            <span className={styles.moonIllumination}>
               {events.moonIllumination.toFixed(0)}%
             </span>
           </h3>
           {events.moonRise && (
-            <div className="flex justify-center items-center gap-4">
+            <div className={styles.eventRowWide}>
               <Icon
                 name="rise"
                 title="Moonrise"
-                className="w-8 h-8 text-gray-300"
+                className={`global-icon-medium global-icon-gray-300`}
               />
-              <span className="font-mono">{formatTime(events.moonRise)}</span>
+              <span className="global-mono-time">{formatTime(events.moonRise)}</span>
             </div>
           )}
           {events.moonSet && (
-            <div className="flex justify-center items-center gap-4">
+            <div className={styles.eventRowWide}>
               <Icon
                 name="set"
                 title="Moonset"
-                className="w-8 h-8 text-gray-300"
+                className={`global-icon-medium global-icon-gray-300`}
               />
-              <span className="font-mono">{formatTime(events.moonSet)}</span>
+              <span className="global-mono-time">{formatTime(events.moonSet)}</span>
             </div>
           )}
         </div>
@@ -368,72 +369,72 @@ export default function TonightCard({
         {(events.optimalWindow.startTime ||
           events.gcTransit ||
           events.maxGcAltitude > 0) && (
-          <div className="space-y-2">
-            <h3 className="font-semibold text-3xl mb-2 text-center">
+          <div className={styles.eventSection}>
+            <h3 className={styles.sectionTitle}>
               Galactic Core
             </h3>
             {events.gcRise && (
-              <div className="flex justify-center items-center gap-4">
+              <div className={styles.eventRowWide}>
                 <Icon
                   name="rise"
                   title="Galactic Core Rise"
-                  className="w-8 h-8 text-gray-300"
+                  className={`global-icon-medium global-icon-gray-300`}
                 />
-                <span className="font-mono">{formatTime(events.gcRise)}</span>
+                <span className="global-mono-time">{formatTime(events.gcRise)}</span>
               </div>
             )}
             {events.optimalWindow.startTime && (
-              <div className="flex justify-center items-center gap-4">
+              <div className={styles.eventRowWide}>
                 <Icon
                   name="rise2"
                   title="Galactic Core Rise (Optimal)"
-                  className="w-8 h-8 text-gray-300"
+                  className={`global-icon-medium global-icon-gray-300`}
                 />
-                <span className="font-mono">
+                <span className="global-mono-time">
                   {formatOptimalViewingTime(events.optimalWindow, location)} for{" "}
                   {formatOptimalViewingDuration(events.optimalWindow)}
                 </span>
               </div>
             )}
             {events.gcTransit && events.maxGcAltitude > 0 && (
-              <div className="flex justify-center items-center gap-4">
+              <div className={styles.eventRowWide}>
                 <Icon
                   name="transit"
                   title="Maximum Altitude"
-                  className="w-8 h-8 text-gray-300"
+                  className={`global-icon-medium global-icon-gray-300`}
                 />
-                <span className="font-mono">
+                <span className="global-mono-time">
                   {events.maxGcAltitude.toFixed(0)}° at{" "}
                   {formatTime(events.gcTransit)}
                 </span>
               </div>
             )}
             {events.gcSet && (
-              <div className="flex justify-center items-center gap-4">
+              <div className={styles.eventRowWide}>
                 <Icon
                   name="set"
                   title="Galactic Core Set"
-                  className="w-8 h-8 text-gray-300"
+                  className={`global-icon-medium global-icon-gray-300`}
                 />
-                <span className="font-mono">{formatTime(events.gcSet)}</span>
+                <span className="global-mono-time">{formatTime(events.gcSet)}</span>
               </div>
             )}
           </div>
         )}
       </div>
-      <div className="mt-8">
-        <div className="flex justify-center">
+      <div className={styles.footerSection}>
+        <div className={styles.footerCenter}>
           <button
             ref={locationButtonRef}
             onClick={() => setShowLocationPopover(true)}
-            className="text-blue-200 hover:text-blue-100 underline decoration-dotted transition-colors text-xl"
+            className={styles.locationLink}
           >
             📍 {locationDisplayName}
           </button>
         </div>
         {locationDescription && (
           <div
-            className="mt-4 max-w-4xl mx-auto text-lg text-blue-100 opacity-90 leading-relaxed location-description"
+            className={styles.locationDescription}
             dangerouslySetInnerHTML={{ __html: locationDescription }}
           />
         )}
@@ -442,14 +443,9 @@ export default function TonightCard({
       {showLocationPopover && (
         <LocationPopover
           location={location}
-          onLocationChange={(newLocation, shouldClose = false) => {
-            onLocationChange(newLocation);
-            if (shouldClose) {
-              setShowLocationPopover(false);
-            }
-          }}
-          onClose={() => setShowLocationPopover(false)}
           triggerRef={locationButtonRef}
+          onClose={() => setShowLocationPopover(false)}
+          onLocationChange={onLocationChange}
         />
       )}
     </div>

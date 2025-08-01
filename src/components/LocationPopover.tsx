@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Location } from "../types/astronomy";
 import WorldMap from "./WorldMap";
 import { useLocationManager } from "../hooks/useLocationManager";
+import styles from "./LocationPopover.module.css";
 
 interface LocationPopoverProps {
   location: Location | null;
@@ -111,7 +112,7 @@ export default function LocationPopover({
   return createPortal(
     <div
       ref={popoverRef}
-      className="fixed z-50 p-6 rounded-2xl shadow-2xl border border-white/30"
+      className={styles.popover}
       style={{
         top: popoverPosition.top,
         left: popoverPosition.left,
@@ -122,14 +123,14 @@ export default function LocationPopover({
         WebkitBackdropFilter: "blur(32px)",
       }}
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className={styles.header}>
         <h3></h3>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white transition-colors"
+          className={styles.closeButton}
         >
           <svg
-            className="w-8 h-8"
+            className={styles.closeIcon}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -145,17 +146,17 @@ export default function LocationPopover({
       </div>
 
       {isLoading ? (
-        <p className="text-blue-200 text-3xl">Detecting your location...</p>
+        <p className={styles.detectingText}>Detecting your location...</p>
       ) : (
         <>
-          <div className="mb-8">
-            <div className="relative">
+          <div className={styles.inputSection}>
+            <div className={styles.inputWrapper}>
               <input
                 ref={inputRef}
                 type="text"
                 value={inputValue}
                 onChange={(e) => handleInputChange(e.target.value)}
-                className="text-4xl w-full px-3 py-2 pr-12 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors bg-white/10 border border-white/20"
+                className={styles.input}
                 placeholder="Enter coordinates or location name"
                 autoComplete="off"
                 spellCheck={false}
@@ -178,11 +179,11 @@ export default function LocationPopover({
               <button
                 onClick={getCurrentLocation}
                 disabled={isLoading}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-white disabled:text-gray-600 transition-colors"
+                className={styles.clearButton}
                 title="Use current location"
               >
                 <svg
-                  className="w-8 h-8"
+                  className={styles.clearIcon}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -204,13 +205,13 @@ export default function LocationPopover({
             </div>
 
             {suggestion && (
-              <div className="mt-2">
+              <div className={styles.suggestionWrapper}>
                 <button
                   onClick={acceptSuggestion}
-                  className="text-xl text-blue-300 hover:text-blue-200 hover:bg-white/10 px-2 py-1 rounded transition-colors w-full text-left"
+                  className={styles.suggestionButton}
                 >
                   📍 {suggestion}
-                  <span className="text-lg text-gray-400 ml-2">
+                  <span className={styles.suggestionCoords}>
                     (Press Tab or click to select)
                   </span>
                 </button>
@@ -218,7 +219,7 @@ export default function LocationPopover({
             )}
           </div>
 
-          <div className="mb-4">
+          <div className={styles.mapSection}>
             <WorldMap
               location={dragLocation || location}
               onLocationChange={handleMapClick}

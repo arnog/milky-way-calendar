@@ -11,6 +11,7 @@ import FAQPage from "./pages/FAQPage";
 import { Location } from "./types/astronomy";
 import { findNearestSpecialLocation } from "./utils/locationParser";
 import { locationToSlug } from "./utils/urlHelpers";
+import styles from "./App.module.css";
 
 interface HomePageProps {
   isDarkroomMode: boolean;
@@ -132,8 +133,8 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
         />
       </Helmet>
 
-      <div className="min-h-screen p-4">
-        <div className="max-w-6xl mx-auto">
+      <div className={styles.container}>
+        <div className={styles.content}>
           {location && (
             <>
               <TonightCard

@@ -1,0 +1,296 @@
+/* Global shared styles for components */
+
+/* Common text styles */
+.global-loading-text {
+  color: rgb(191 219 254); /* text-blue-200 */
+}
+
+.global-mono-time {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Tooltip styles - can be used by any component */
+.global-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  color: white;
+  background-color: rgb(17 24 39);
+  border-radius: 0.25rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
+  z-index: 50;
+}
+
+.global-tooltip-arrow {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid rgb(17 24 39);
+}
+
+/* Icon wrapper for tooltips */
+.global-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.global-icon-wrapper .global-tooltip {
+  display: none;
+}
+
+.global-icon-wrapper:hover .global-tooltip {
+  display: block;
+}
+
+/* Common icon sizes */
+.global-icon-small {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.global-icon-medium {
+  width: 2rem;
+  height: 2rem;
+}
+
+.global-icon-large {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+/* Common icon colors */
+.global-icon-blue-200 {
+  color: rgb(191 219 254);
+}
+
+.global-icon-blue-300 {
+  color: rgb(147 197 253);
+}
+
+.global-icon-blue-400 {
+  color: rgb(96 165 250);
+}
+
+.global-icon-gray-300 {
+  color: rgb(209 213 219);
+}
+
+.global-icon-gray-400 {
+  color: rgb(156 163 175);
+}
+
+.global-icon-orange-400 {
+  color: rgb(251 146 60);
+}
+
+.global-icon-yellow-200 {
+  color: rgb(254 240 138);
+}
+
+/* Glass morphism effect - shared by multiple components */
+.global-glass-morphism {
+  background-color: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 32px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  box-sizing: content-box;
+  padding: 1.5rem;
+}
+
+/* Common flex layouts */
+.global-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.global-flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.global-flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Common spacing */
+.global-gap-1 {
+  gap: 0.25rem;
+}
+
+.global-gap-2 {
+  gap: 0.5rem;
+}
+
+.global-gap-4 {
+  gap: 1rem;
+}
+
+.global-gap-8 {
+  gap: 2rem;
+}
+
+/* Common text alignments */
+.global-text-center {
+  text-align: center;
+}
+
+.global-text-left {
+  text-align: left;
+}
+
+.global-text-right {
+  text-align: right;
+}
+
+/* Common margins */
+.global-mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.global-mb-4 {
+  margin-bottom: 1rem;
+}
+
+.global-mb-8 {
+  margin-bottom: 2rem;
+}
+
+.global-mt-4 {
+  margin-top: 1rem;
+}
+
+.global-mt-8 {
+  margin-top: 2rem;
+}
+
+/* Loading states */
+.global-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+/* Button base styles */
+.global-button-base {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.global-button-link {
+  color: rgb(191 219 254);
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  transition-property: color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.global-button-link:hover {
+  color: rgb(219 234 254);
+}
+
+/* Typography scales */
+.global-text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.global-text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.global-text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.global-text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.global-text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.global-text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.global-text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.global-text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+
+.global-text-5xl {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.global-text-6xl {
+  font-size: 3.75rem;
+  line-height: 1;
+}
+
+.global-text-7xl {
+  font-size: 4.5rem;
+  line-height: 1;
+}
+
+/* Font weights */
+.global-font-normal {
+  font-weight: 400;
+}
+
+.global-font-medium {
+  font-weight: 500;
+}
+
+.global-font-semibold {
+  font-weight: 600;
+}
+
+.global-font-bold {
+  font-weight: 700;
+}
+
+/* Opacity utilities */
+.global-opacity-60 {
+  opacity: 0.6;
+}
+
+.global-opacity-80 {
+  opacity: 0.8;
+}
+
+.global-opacity-90 {
+  opacity: 0.9;
+}

@@ -1,0 +1,192 @@
+/* TonightCard Component-specific Styles */
+
+.container {
+  /* glass-morphism p-6 mb-8 */
+  background-color: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 32px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  box-sizing: content-box;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.centerColumn {
+  /* flex flex-col items-center mb-4 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.title {
+  /* text-7xl font-semibold mb-2 text-center */
+  font-size: 4.5rem;
+  line-height: 1;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.eventGrid {
+  /* grid grid-cols-1 md:grid-cols-3 gap-32 mt-24 mb-24 text-xl */
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 8rem;
+  margin-top: 6rem;
+  margin-bottom: 6rem;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+@media (min-width: 768px) {
+  .eventGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.eventSection {
+  /* space-y-2 */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sectionTitle {
+  /* font-semibold text-3xl mb-2 text-center */
+  font-weight: 600;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.eventRow {
+  /* flex justify-center items-center gap-2 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.eventRowWide {
+  /* flex justify-center items-center gap-4 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.moonIllumination {
+  /* opacity-60 text-xl */
+  opacity: 0.6;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.footerSection {
+  /* mt-8 */
+  margin-top: 2rem;
+}
+
+.footerCenter {
+  /* flex justify-center */
+  display: flex;
+  justify-content: center;
+}
+
+.locationLink {
+  /* text-blue-200 hover:text-blue-100 underline decoration-dotted transition-colors text-xl */
+  color: rgb(191 219 254);
+  text-decoration-line: none;
+  text-decoration-style: dotted;
+  transition-property: color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  appearance: none;
+  background: none;
+  border: 1px solid #333;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.locationLink:hover {
+  color: rgb(219 234 254);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.locationDescription {
+  /* mt-4 max-w-4xl mx-auto text-lg text-blue-100 opacity-90 leading-relaxed location-description */
+  margin-top: 1rem;
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1.125rem;
+  color: rgb(219 234 254);
+  opacity: 0.9;
+  line-height: 1.625;
+}
+
+.locationDescription h2 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: rgb(219 234 254);
+  line-height: 1.25;
+}
+
+.locationDescription h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: rgb(219 234 254);
+  line-height: 1.25;
+  margin-top: 1.5em;
+}
+
+.locationDescription ol {
+  margin-left: 3rem;
+  font-family: "EB Garamond", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 2rem;
+  line-height: 1.25;
+}
+
+.locationDescription ol li {
+  margin-bottom: 1.5rem;
+}
+
+.locationDescription p {
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+  font-family: "EB Garamond", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 2rem;
+}
+
+.locationDescription strong {
+  font-weight: 600;
+  color: rgb(239 246 255);
+}
+
+.locationDescription em {
+  font-style: italic;
+  color: rgb(191 219 254);
+}
+
+.locationDescription a {
+  color: rgb(147 197 253);
+  text-decoration: underline;
+  transition: color 0.2s ease-in-out;
+}
+
+.locationDescription a:hover {
+  color: rgb(191 219 254);
+}

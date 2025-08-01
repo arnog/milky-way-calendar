@@ -13,6 +13,7 @@ import {
 } from "../utils/optimalViewing";
 import { formatTimeInLocationTimezone } from "../utils/timezoneUtils";
 import { getMoonPhaseEmoji } from "../utils/moonCalculations";
+import styles from "./DailyVisibilityTable.module.css";
 
 interface DailyVisibilityTableProps {
   location: Location;
@@ -51,7 +52,7 @@ const Icon = ({
 
   return (
     <div
-      className="relative inline-block"
+      className="global-icon-wrapper"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
       onTouchStart={() => setShowTooltip(true)}
@@ -61,9 +62,9 @@ const Icon = ({
         <use href={`/icons.svg#${name}`} />
       </svg>
       {showTooltip && title && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-lg text-white bg-gray-900 rounded shadow-lg whitespace-nowrap z-50">
+        <div className="global-tooltip">
           {title}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          <div className="global-tooltip-arrow"></div>
         </div>
       )}
     </div>
@@ -148,8 +149,8 @@ export default function DailyVisibilityTable({ location }: DailyVisibilityTableP
 
   if (isLoading) {
     return (
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-8 mb-8">
-        <div className="text-center text-xl text-white/60">
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingText}>
           Loading daily visibility data...
         </div>
       </div>
@@ -157,79 +158,79 @@ export default function DailyVisibilityTable({ location }: DailyVisibilityTableP
   }
 
   return (
-    <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 mb-8">
-      <h2 className="text-2xl font-bold mb-6 text-white">Next 7 Days</h2>
+    <div className={styles.container}>
+      <h2 className={styles.title}>Next 7 Days</h2>
       
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className={styles.tableContainer}>
+        <table className={styles.table}>
           <thead>
-            <tr className="border-b border-white/20">
-              <th className="text-left py-3 px-4 text-white font-medium">Date</th>
-              <th className="text-left py-3 px-4 text-white font-medium">Visibility</th>
-              <th className="text-left py-3 px-4 text-white font-medium">Optimal Time</th>
-              <th className="text-left py-3 px-4 text-white font-medium">Duration</th>
+            <tr className={styles.tableHeaderRow}>
+              <th className={styles.tableHeader}>Date</th>
+              <th className={styles.tableHeader}>Visibility</th>
+              <th className={styles.tableHeader}>Optimal Time</th>
+              <th className={styles.tableHeader}>Duration</th>
             </tr>
           </thead>
           <tbody>
             {dailyData.map((day, index) => (
               <tr key={index}>
-                <td colSpan={4} className="p-0">
+                <td colSpan={4} className={styles.tableCell}>
                   <div
-                    className="cursor-pointer hover:bg-white/5 transition-colors duration-200"
+                    className={styles.rowClickable}
                     onClick={() => toggleRow(index)}
                   >
-                    <div className="py-3 px-4 flex items-center justify-between">
-                      <div className="grid grid-cols-4 gap-4 flex-1">
-                        <div className="text-white font-medium">
+                    <div className={styles.rowHeader}>
+                      <div className={styles.rowGrid}>
+                        <div className={styles.dateText}>
                           {formatDate(day.date)}
                         </div>
                         <div>
                           <StarRating rating={day.visibility} />
                         </div>
-                        <div className="text-white">
+                        <div className={`${styles.timeText} global-mono-time`}>
                           {formatOptimalViewingTime(day.optimalWindow, location) || "Not visible"}
                         </div>
-                        <div className="text-white">
+                        <div className={`${styles.timeText} global-mono-time`}>
                           {formatOptimalViewingDuration(day.optimalWindow) || "—"}
                         </div>
                       </div>
-                      <div className="ml-4 text-white/60">
+                      <div className={styles.expandIcon}>
                         {expandedRow === index ? "▲" : "▼"}
                       </div>
                     </div>
                   </div>
                   
                   {expandedRow === index && (
-                    <div className="px-4 pb-4 border-b border-white/10">
-                      <div className="bg-white/5 rounded-lg p-4 mt-2">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                    <div className={styles.expandedContent}>
+                      <div className={styles.expandedPanel}>
+                        <div className={styles.expandedGrid}>
                           
                           {/* Sun Events */}
                           <div>
-                            <h4 className="text-white font-medium mb-3 text-base">Sun</h4>
-                            <div className="space-y-2">
+                            <h4 className={styles.sectionTitle}>Sun</h4>
+                            <div className={styles.eventList}>
                               {day.sunRise && (
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Icon name="sunrise" title="Sunrise" className="w-5 h-5" />
-                                  <span>Rise: {formatTimeInLocationTimezone(day.sunRise, location)}</span>
+                                <div className={styles.eventRow}>
+                                  <Icon name="sunrise" title="Sunrise" className={styles.icon} />
+                                  <span>Rise: <span className="global-mono-time">{formatTimeInLocationTimezone(day.sunRise, location)}</span></span>
                                 </div>
                               )}
                               {day.sunSet && (
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Icon name="sunset" title="Sunset" className="w-5 h-5" />
-                                  <span>Set: {formatTimeInLocationTimezone(day.sunSet, location)}</span>
+                                <div className={styles.eventRow}>
+                                  <Icon name="sunset" title="Sunset" className={styles.icon} />
+                                  <span>Set: <span className="global-mono-time">{formatTimeInLocationTimezone(day.sunSet, location)}</span></span>
                                 </div>
                               )}
                               {day.astronomicalTwilightEnd && (
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Icon name="twilight-end" title="Astronomical Twilight End" className="w-5 h-5" />
-                                  <span>Dark: {formatTimeInLocationTimezone(day.astronomicalTwilightEnd, location)}</span>
+                                <div className={styles.eventRow}>
+                                  <Icon name="twilight-end" title="Astronomical Twilight End" className={styles.icon} />
+                                  <span>Dark: <span className="global-mono-time">{formatTimeInLocationTimezone(day.astronomicalTwilightEnd, location)}</span></span>
                                 </div>
                               )}
                               {day.astronomicalTwilightStart && (
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Icon name="twilight-start" title="Astronomical Twilight Start" className="w-5 h-5" />
-                                  <span>Dawn: {formatTimeInLocationTimezone(day.astronomicalTwilightStart, location)}</span>
+                                <div className={styles.eventRow}>
+                                  <Icon name="twilight-start" title="Astronomical Twilight Start" className={styles.icon} />
+                                  <span>Dawn: <span className="global-mono-time">{formatTimeInLocationTimezone(day.astronomicalTwilightStart, location)}</span></span>
                                 </div>
                               )}
                             </div>
@@ -237,22 +238,22 @@ export default function DailyVisibilityTable({ location }: DailyVisibilityTableP
 
                           {/* Moon Events */}
                           <div>
-                            <h4 className="text-white font-medium mb-3 text-base">Moon</h4>
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-white/80">
-                                <span className="text-2xl">{getMoonPhaseEmoji(day.moonPhase)}</span>
+                            <h4 className={styles.sectionTitle}>Moon</h4>
+                            <div className={styles.eventList}>
+                              <div className={styles.eventRow}>
+                                <span className={styles.moonEmoji}>{getMoonPhaseEmoji(day.moonPhase)}</span>
                                 <span>{Math.round(day.moonIllumination * 100)}% illuminated</span>
                               </div>
                               {day.moonRise && (
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Icon name="moonrise" title="Moonrise" className="w-5 h-5" />
-                                  <span>Rise: {formatTimeInLocationTimezone(day.moonRise, location)}</span>
+                                <div className={styles.eventRow}>
+                                  <Icon name="moonrise" title="Moonrise" className={styles.icon} />
+                                  <span>Rise: <span className="global-mono-time">{formatTimeInLocationTimezone(day.moonRise, location)}</span></span>
                                 </div>
                               )}
                               {day.moonSet && (
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Icon name="moonset" title="Moonset" className="w-5 h-5" />
-                                  <span>Set: {formatTimeInLocationTimezone(day.moonSet, location)}</span>
+                                <div className={styles.eventRow}>
+                                  <Icon name="moonset" title="Moonset" className={styles.icon} />
+                                  <span>Set: <span className="global-mono-time">{formatTimeInLocationTimezone(day.moonSet, location)}</span></span>
                                 </div>
                               )}
                             </div>
@@ -260,28 +261,28 @@ export default function DailyVisibilityTable({ location }: DailyVisibilityTableP
 
                           {/* Galactic Core Events */}
                           <div>
-                            <h4 className="text-white font-medium mb-3 text-base">Galactic Core</h4>
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-white/80">
-                                <Icon name="altitude" title="Maximum Altitude" className="w-5 h-5" />
+                            <h4 className={styles.sectionTitle}>Galactic Core</h4>
+                            <div className={styles.eventList}>
+                              <div className={styles.eventRow}>
+                                <Icon name="altitude" title="Maximum Altitude" className={styles.icon} />
                                 <span>Max: {day.maxGcAltitude.toFixed(1)}°</span>
                               </div>
                               {day.gcRise && (
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Icon name="gc-rise" title="Galactic Core Rise (≥10°)" className="w-5 h-5" />
-                                  <span>Rise: {formatTimeInLocationTimezone(day.gcRise, location)}</span>
+                                <div className={styles.eventRow}>
+                                  <Icon name="gc-rise" title="Galactic Core Rise (≥10°)" className={styles.icon} />
+                                  <span>Rise: <span className="global-mono-time">{formatTimeInLocationTimezone(day.gcRise, location)}</span></span>
                                 </div>
                               )}
                               {day.gcTransit && (
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Icon name="gc-transit" title="Galactic Core Transit" className="w-5 h-5" />
-                                  <span>Transit: {formatTimeInLocationTimezone(day.gcTransit, location)}</span>
+                                <div className={styles.eventRow}>
+                                  <Icon name="gc-transit" title="Galactic Core Transit" className={styles.icon} />
+                                  <span>Transit: <span className="global-mono-time">{formatTimeInLocationTimezone(day.gcTransit, location)}</span></span>
                                 </div>
                               )}
                               {day.gcSet && (
-                                <div className="flex items-center gap-2 text-white/80">
-                                  <Icon name="gc-set" title="Galactic Core Set (≤10°)" className="w-5 h-5" />
-                                  <span>Set: {formatTimeInLocationTimezone(day.gcSet, location)}</span>
+                                <div className={styles.eventRow}>
+                                  <Icon name="gc-set" title="Galactic Core Set (≤10°)" className={styles.icon} />
+                                  <span>Set: <span className="global-mono-time">{formatTimeInLocationTimezone(day.gcSet, location)}</span></span>
                                 </div>
                               )}
                             </div>

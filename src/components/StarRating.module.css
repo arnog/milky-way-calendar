@@ -1,0 +1,43 @@
+/* StarRating Component Styles */
+
+.container {
+  /* inline-flex */
+  display: inline-flex;
+}
+
+.dash {
+  /* No specific styles needed, inherits from parent */
+}
+
+.star {
+  /* inline-block */
+  display: inline-block;
+}
+
+.starSmall {
+  /* w-4 h-4 */
+  width: 1rem;
+  height: 1rem;
+}
+
+.starMedium {
+  /* w-6 h-6 */
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.starLarge {
+  /* w-8 h-8 */
+  width: 2rem;
+  height: 2rem;
+}
+
+.starFilled {
+  /* opacity-80 */
+  opacity: 0.8;
+}
+
+.starEmpty {
+  /* opacity-25 */
+  opacity: 0.25;
+}
