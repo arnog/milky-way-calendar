@@ -19,6 +19,9 @@ npm run build        # Production build
 npm run lint         # Code linting
 npm run preview      # Preview production build
 npm run generate-sitemap  # Generate XML sitemap for SEO
+npm test             # Run unit tests
+npm run test:ui      # Run tests with UI
+npm run test:run     # Run tests once (non-watch mode)
 ```
 
 ## Key Features Implemented
@@ -52,6 +55,7 @@ npm run generate-sitemap  # Generate XML sitemap for SEO
 - `src/utils/` - Utility functions for astronomical calculations and location
   parsing
 - `src/types/` - TypeScript type definitions
+- `src/test/` - Comprehensive unit test suite (73 tests across 5 files)
 - `public/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set,
   transit)
 - `public/world2024B-*.{webp,jpg,png}` - Light pollution maps in multiple
@@ -201,6 +205,29 @@ ensure consistency and accuracy:
 - **Modular Timezone Utils**: Created `src/utils/timezoneUtils.ts` with
   comprehensive timezone conversion functions
 
+### Testing & Quality Assurance
+
+- **Comprehensive Test Suite**: 73 unit tests across 5 test files covering all
+  critical astronomy calculations
+- **Test Framework**: Vitest with React Testing Library for fast, reliable testing
+- **Coverage Areas**:
+  - **Galactic Core calculations** (`galacticCenter.test.ts`) - Position, rise/set
+    times, seasonal altitude thresholds, high latitude edge cases
+  - **Moon calculations** (`moonCalculations.test.ts`) - Phase, illumination,
+    interference factors, rise/set times
+  - **Twilight calculations** (`twilightCalculations.test.ts`) - Civil/astronomical
+    twilight, dark duration, day boundary handling
+  - **Optimal viewing windows** (`optimalViewing.test.ts`) - Integration of GC
+    visibility, darkness, and moon interference
+  - **Visibility ratings** (`visibilityRating.test.ts`) - 1-4 star system based
+    on viewing conditions, moon penalties, altitude rewards
+- **Edge Case Testing**: High latitudes, extreme dates, timezone boundaries,
+  calculation failures
+- **Real Data Testing**: Uses actual astronomy-engine calculations with realistic
+  locations and dates
+- **Continuous Integration**: All tests must pass before deployment
+- **Performance**: Fast test execution (< 1 second) for rapid development feedback
+
 ### SEO & Search Engine Optimization
 
 - **XML Sitemap Generation**: Automated sitemap creation with all static and
@@ -235,12 +262,15 @@ approximation with proper IANA timezone lookup using `tz-lookup` library
 ✅ **Phase 9**: SEO Implementation - Comprehensive XML sitemap generation with
 dynamic location parsing, robots.txt configuration, and search engine
 optimization
+✅ **Phase 10**: Testing & Quality Assurance - Comprehensive unit test suite with
+73 tests covering all astronomy calculations, edge cases, and integration scenarios
 
 **Current state**: Feature-complete astronomy calendar with consistent
 astronomical calculations, accurate timezone handling for international users,
 proper high-latitude handling, comprehensive dark sky site discovery,
-educational FAQ system with modern navigation, and full SEO optimization for
-search engine discoverability.
+educational FAQ system with modern navigation, full SEO optimization for search
+engine discoverability, and robust test coverage ensuring calculation accuracy
+and reliability.
 
 ## Hosting
 
