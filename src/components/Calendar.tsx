@@ -106,9 +106,9 @@ export default function Calendar({ location }: CalendarProps) {
   useEffect(() => {
     const loadInitial = async () => {
       setIsLoading(true);
-      const initialWeeks = await loadWeeks(1, 52);
+      const initialWeeks = await loadWeeks(1, 12);
       setWeekData(initialWeeks);
-      setWeeksLoaded(52);
+      setWeeksLoaded(12);
       setIsLoading(false);
     };
     loadInitial();
@@ -120,9 +120,9 @@ export default function Calendar({ location }: CalendarProps) {
       const target = entries[0];
       if (target.isIntersecting && !isLoadingMore && weeksLoaded < 260) {
         setIsLoadingMore(true);
-        loadWeeks(weeksLoaded + 1, 52).then((newWeeks) => {
+        loadWeeks(weeksLoaded + 1, 12).then((newWeeks) => {
           setWeekData((prev) => [...prev, ...newWeeks]);
-          setWeeksLoaded((prev) => prev + 52);
+          setWeeksLoaded((prev) => prev + 12);
           setIsLoadingMore(false);
         });
       }
