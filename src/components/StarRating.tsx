@@ -4,15 +4,24 @@ interface StarRatingProps {
   rating: number;
   className?: string;
   size?: "sm" | "md" | "lg";
+  reason?: string;
 }
 
 export default function StarRating({
   rating,
   className = "",
   size = "md",
+  reason,
 }: StarRatingProps) {
   if (rating === 0) {
-    return <span className={`${styles.dash} ${className}`}>—</span>;
+    return (
+      <span 
+        className={`${styles.dash} ${className}`}
+        title={reason || "No visibility"}
+      >
+        —
+      </span>
+    );
   }
 
   const sizeClass = {
@@ -38,5 +47,12 @@ export default function StarRating({
     );
   }
 
-  return <span className={`${styles.container} ${className}`}>{stars}</span>;
+  return (
+    <span 
+      className={`${styles.container} ${className}`}
+      title={reason}
+    >
+      {stars}
+    </span>
+  );
 }

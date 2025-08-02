@@ -1,11 +1,23 @@
 import { GalacticCenterData, MoonData, TwilightData, Location } from "../types/astronomy";
 import { formatTimeInLocationTimezone } from './timezoneUtils';
+import { 
+  calculateIntegratedOptimalWindow,
+  QualityPeriod
+} from './integratedOptimalViewing';
+
+// Re-export for convenience
+export type { QualityPeriod };
 
 export interface OptimalViewingWindow {
   startTime: Date | null;
   endTime: Date | null;
   duration: number; // in hours
   description: string;
+  // Enhanced fields for quality-based windows
+  averageScore?: number; // 0.0 - 1.0
+  bestTime?: Date | null;
+  qualityPeriods?: QualityPeriod[];
+  isIntegrated?: boolean; // Flag to indicate if this uses integrated analysis
 }
 
 function emptyWindow(description: string): OptimalViewingWindow {
@@ -17,124 +29,7 @@ function emptyWindow(description: string): OptimalViewingWindow {
   };
 }
 
-export function calculateOptimalViewingWindow(
-  gcData: GalacticCenterData,
-  moonData: MoonData,
-  twilightData: TwilightData
-): OptimalViewingWindow {
-  // Conditions for optimal viewing:
-  // 1. GC is ≥10° above horizon
-  // 2. Astronomical night (sun ≥18° below horizon)
-  // 3. Moon is either not risen or has ≤30% illumination (per requirements)
-
-  const gcStart = gcData.riseTime; // When GC reaches 10°
-  const gcEnd = gcData.setTime; // When GC drops below 10°
-
-  // Dark time window (timestamps)
-  const darkStartTs = twilightData.night;
-  const darkEndTs = twilightData.dayEnd;
-
-  if (!gcStart) return emptyWindow("GC not visible (below 10°)");
-
-  if (!darkStartTs || !darkEndTs) {
-    // Use GC time as fallback if twilight calculation fails
-    const duration = gcEnd
-      ? (gcEnd.getTime() - gcStart.getTime()) / (1000 * 60 * 60)
-      : 8; // Assume 8h if no end time
-    return {
-      startTime: gcStart,
-      endTime: gcEnd || new Date(gcStart.getTime() + 8 * 60 * 60 * 1000), // 8 hours from start
-      duration,
-      description: "Using full GC visibility window (no twilight data)",
-    };
-  }
-
-  // Calculate all times as timestamps for consistent day boundary handling
-  const gcStartTs = gcStart.getTime();
-  const gcEndTs = gcEnd ? gcEnd.getTime() : gcStartTs + 8 * 60 * 60 * 1000; // 8h default
-
-  let adjDarkStartTs = darkStartTs;
-  let adjDarkEndTs = darkEndTs;
-
-  // Handle day boundary: if darkEnd is before darkStart, it's next day
-  if (adjDarkEndTs < adjDarkStartTs) {
-    adjDarkEndTs += 24 * 60 * 60 * 1000; // Add 24 hours
-  }
-  // If GC rises after the current dark window ends, move the dark window to the following night
-  if (gcStartTs > adjDarkEndTs) {
-    adjDarkStartTs += 24 * 60 * 60 * 1000; // shift both by +24 h
-    adjDarkEndTs += 24 * 60 * 60 * 1000;
-  }
-
-  // The viewing window starts when BOTH conditions are met:
-  // 1. GC is above 10° (gcStart)
-  // 2. It's astronomically dark (darkStart)
-  const viewingStartTs = Math.max(gcStartTs, adjDarkStartTs);
-
-  // The viewing window ends at the earliest of:
-  // 1. When GC drops below 10° (gcEnd)
-  // 2. Astronomical dawn (darkEnd)
-  const viewingEndTs = Math.min(gcEndTs, adjDarkEndTs);
-
-  // Check if we have a valid viewing window
-  if (viewingStartTs >= viewingEndTs) {
-    return emptyWindow("No overlap between GC visibility and dark time");
-  }
-
-  let description = "";
-
-  // Check moon interference during viewing window
-  let moonPenalty = 0;
-
-  if (moonData.illumination > 0.05) { // Even 5% moon can cause some interference
-    if (moonData.rise && moonData.set) {
-      // Handle day boundary crossing for moon set time
-      let moonSetTime = moonData.set.getTime();
-      if (moonSetTime < moonData.rise.getTime()) {
-        moonSetTime += 24 * 60 * 60 * 1000; // Add 24 hours if set is before rise
-      }
-      
-      const moonUpDuringViewing =
-        moonData.rise.getTime() <= viewingEndTs &&
-        moonSetTime >= viewingStartTs;
-      
-      if (moonUpDuringViewing) {
-        // Calculate what fraction of viewing time the moon is up
-        const moonVisibleStart = Math.max(moonData.rise.getTime(), viewingStartTs);
-        const moonVisibleEnd = Math.min(moonSetTime, viewingEndTs);
-        const moonVisibleDuration = Math.max(0, moonVisibleEnd - moonVisibleStart);
-        const totalViewingDuration = viewingEndTs - viewingStartTs;
-        const moonFraction = moonVisibleDuration / totalViewingDuration;
-        
-        moonPenalty = moonData.illumination * moonFraction;
-      }
-    } else {
-      // Fallback: assume moon is up if altitude > 0
-      if (moonData.altitude > 0) {
-        moonPenalty = moonData.illumination;
-      }
-    }
-  }
-
-  // viewingStartTs and viewingEndTs are always valid here
-  const durationMs = viewingEndTs - viewingStartTs;
-  const durationHours = durationMs / (1000 * 60 * 60);
-
-  if (moonPenalty > 0.05) {
-    description = `Moon interference (${Math.round(
-      moonPenalty * 100
-    )}% illuminated)`;
-  } else {
-    description = "Optimal conditions";
-  }
-
-  return {
-    startTime: new Date(viewingStartTs),
-    endTime: new Date(viewingEndTs),
-    duration: durationHours,
-    description,
-  };
-}
+// Old calculateOptimalViewingWindow function removed - now handled inline in getOptimalViewingWindow
 
 export function formatOptimalViewingTime(window: OptimalViewingWindow, location?: Location): string {
   if (!window.startTime) {
@@ -173,4 +68,97 @@ export function formatOptimalViewingDuration(
   } else {
     return `${hours}h ${minutes}m`;
   }
+}
+
+/**
+ * Calculate optimal viewing window using time-integrated quality analysis
+ * This provides more accurate windows by analyzing hour-by-hour viewing conditions
+ */
+export function calculateIntegratedViewingWindow(
+  gcData: GalacticCenterData,
+  moonData: MoonData,
+  twilightData: TwilightData,
+  location: Location,
+  date: Date,
+  qualityThreshold: number = 0.3 // Minimum score for decent viewing
+): OptimalViewingWindow {
+  
+  // First check basic requirements
+  if (!gcData.riseTime || !twilightData.night || !twilightData.dayEnd) {
+    return emptyWindow("No viewing opportunity available");
+  }
+
+  // Get integrated analysis
+  const integratedResult = calculateIntegratedOptimalWindow(
+    location,
+    date,
+    twilightData.night ? new Date(twilightData.night) : null,
+    twilightData.dayEnd ? new Date(twilightData.dayEnd) : null,
+    moonData.rise,
+    moonData.set,
+    moonData.illumination,
+    gcData.riseTime,
+    gcData.setTime,
+    qualityThreshold
+  );
+
+  if (!integratedResult.startTime || integratedResult.duration === 0) {
+    // No quality periods found - create basic intersection window but mark as poor
+    const gcStart = gcData.riseTime;
+    const gcEnd = gcData.setTime;
+    const darkStart = twilightData.night ? new Date(twilightData.night) : null;
+    const darkEnd = twilightData.dayEnd ? new Date(twilightData.dayEnd) : null;
+    
+    if (!gcStart || !darkStart || !darkEnd) {
+      return emptyWindow("No viewing opportunity available");
+    }
+    
+    // Simple intersection calculation
+    const windowStart = new Date(Math.max(gcStart.getTime(), darkStart.getTime()));
+    const windowEnd = new Date(Math.min(gcEnd?.getTime() || gcStart.getTime() + 8*60*60*1000, darkEnd.getTime()));
+    
+    if (windowStart >= windowEnd) {
+      return emptyWindow("No overlap between GC visibility and dark time");
+    }
+    
+    const duration = (windowEnd.getTime() - windowStart.getTime()) / (1000 * 60 * 60);
+    
+    return {
+      startTime: windowStart,
+      endTime: windowEnd,
+      duration,
+      averageScore: 0.1, // Very low score
+      bestTime: integratedResult.bestTime,
+      qualityPeriods: [],
+      isIntegrated: true,
+      description: "Poor viewing conditions (no quality periods found)"
+    };
+  }
+
+  // Convert integrated result to OptimalViewingWindow format
+  return {
+    startTime: integratedResult.startTime,
+    endTime: integratedResult.endTime,
+    duration: integratedResult.duration,
+    description: integratedResult.description,
+    averageScore: integratedResult.averageScore,
+    bestTime: integratedResult.bestTime,
+    qualityPeriods: integratedResult.qualityPeriods,
+    isIntegrated: true
+  };
+}
+
+/**
+ * Get the optimal viewing window using time-integrated quality analysis
+ * Always uses the integrated approach for accurate, quality-based results
+ */
+export function getOptimalViewingWindow(
+  gcData: GalacticCenterData,
+  moonData: MoonData,
+  twilightData: TwilightData,
+  location: Location,
+  date: Date,
+  qualityThreshold: number = 0.3
+): OptimalViewingWindow {
+  return calculateIntegratedViewingWindow(gcData, moonData, twilightData, location, date, qualityThreshold);
 }

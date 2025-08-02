@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateVisibilityRating, getVisibilityDescription } from '../utils/visibilityRating'
+import { calculateVisibilityRating, getVisibilityDescription, getVisibilityRatingNumber } from '../utils/visibilityRating'
 import { GalacticCenterData, MoonData, TwilightData, Location } from '../types/astronomy'
 import { OptimalViewingWindow } from '../utils/optimalViewing'
 
@@ -152,7 +152,7 @@ describe('visibilityRating', () => {
       const lowGCData = createMockGCData({ altitude: 10 })
       const lowRating = calculateVisibilityRating(lowGCData, darkMoonData, twilightData)
 
-      expect(highRating).toBeGreaterThan(lowRating)
+      expect(getVisibilityRatingNumber(highRating)).toBeGreaterThan(getVisibilityRatingNumber(lowRating))
     })
 
     it('should give no points when GC is below horizon', () => {
@@ -185,7 +185,7 @@ describe('visibilityRating', () => {
       })
       const shortRating = calculateVisibilityRating(gcData, moonData, shortDarkData)
 
-      expect(longRating).toBeGreaterThan(shortRating)
+      expect(getVisibilityRatingNumber(longRating)).toBeGreaterThan(getVisibilityRatingNumber(shortRating))
     })
 
     it('should handle edge cases without errors', () => {
@@ -246,7 +246,7 @@ describe('visibilityRating', () => {
         gcData, moonAboveHorizon, twilightData
       )
 
-      expect(noInterferenceRating).toBeGreaterThan(interferenceRating)
+      expect(getVisibilityRatingNumber(noInterferenceRating)).toBeGreaterThan(getVisibilityRatingNumber(interferenceRating))
     })
   })
 

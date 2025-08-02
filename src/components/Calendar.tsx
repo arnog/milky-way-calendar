@@ -5,9 +5,9 @@ import StarRating from "./StarRating";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import { calculateVisibilityRating } from "../utils/visibilityRating";
+import { calculateVisibilityRating, getVisibilityRatingNumber } from "../utils/visibilityRating";
 import {
-  calculateOptimalViewingWindow,
+  getOptimalViewingWindow,
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
 } from "../utils/optimalViewing";
@@ -50,10 +50,13 @@ export default function Calendar({ location }: CalendarProps) {
           const gcData = calculateGalacticCenterPosition(midWeek, location);
           const moonData = calculateMoonData(midWeek, location);
           const twilightData = calculateTwilightTimes(midWeek, location);
-          const optimalWindow = calculateOptimalViewingWindow(
+          const optimalWindow = getOptimalViewingWindow(
             gcData,
             moonData,
-            twilightData
+            twilightData,
+            location,
+            midWeek,
+            0.3   // Decent viewing threshold
           );
 
           let gcDataForRating = gcData;
@@ -64,13 +67,16 @@ export default function Calendar({ location }: CalendarProps) {
             );
           }
 
-          const visibility = calculateVisibilityRating(
+          const visibilityResult = calculateVisibilityRating(
             gcDataForRating,
             moonData,
             twilightData,
             optimalWindow,
-            location
+            location,
+            midWeek
           );
+          const visibility = getVisibilityRatingNumber(visibilityResult);
+          const visibilityReason = typeof visibilityResult === 'object' ? visibilityResult.reason : undefined;
 
           weeks.push({
             weekNumber: currentWeekNumber + weekOffset,
@@ -89,6 +95,7 @@ export default function Calendar({ location }: CalendarProps) {
               : null,
             optimalConditions: optimalWindow.description,
             optimalWindow: optimalWindow,
+            visibilityReason: visibilityReason,
           });
         } catch (error) {
           console.error(
@@ -223,7 +230,7 @@ export default function Calendar({ location }: CalendarProps) {
                     })}
                   </td>
                   <td className={styles.visibilityCell}>
-                    <StarRating rating={week.visibility} size="md" />
+                    <StarRating rating={week.visibility} size="md" reason={week.visibilityReason} />
                   </td>
                   <td className={styles.timeCell}>
                     <FormattedTime 

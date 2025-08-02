@@ -12,10 +12,10 @@ import {
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import { calculateVisibilityRating } from "../utils/visibilityRating";
+import { calculateVisibilityRating, getVisibilityRatingNumber } from "../utils/visibilityRating";
 import { getSpecialLocationDescription } from "../utils/locationParser";
 import {
-  calculateOptimalViewingWindow,
+  getOptimalViewingWindow,
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
   OptimalViewingWindow,
@@ -42,6 +42,7 @@ interface TonightEvents {
   moonPhase: number;
   moonIllumination: number;
   visibility: number;
+  visibilityReason?: string;
   optimalWindow: OptimalViewingWindow;
 }
 
@@ -179,12 +180,15 @@ export default function TonightCard({
         const gcTransit = gcData.transitTime;
         const maxAltitude = gcData.altitude;
 
-        // Calculate optimal viewing window using the same logic as Calendar
+        // Calculate optimal viewing window using integrated time-based analysis
         const twilightData = calculateTwilightTimes(now, location);
-        const optimalWindow = calculateOptimalViewingWindow(
+        const optimalWindow = getOptimalViewingWindow(
           gcData,
           moonData,
-          twilightData
+          twilightData,
+          location,
+          now,
+          0.3 // Decent viewing threshold
         );
 
         // Calculate visibility rating for tonight using the consistent method
@@ -197,13 +201,16 @@ export default function TonightCard({
           );
         }
 
-        const visibility = calculateVisibilityRating(
+        const visibilityResult = calculateVisibilityRating(
           gcDataForRating,
           moonData,
           twilightData,
           optimalWindow,
-          location
+          location,
+          now
         );
+        const visibility = getVisibilityRatingNumber(visibilityResult);
+        const visibilityReason = typeof visibilityResult === 'object' ? visibilityResult.reason : undefined;
 
         // For "Tonight" viewing, show events from today onwards
         const todayStart = new Date(now);
@@ -231,6 +238,7 @@ export default function TonightCard({
           moonPhase: moonData.phase,
           moonIllumination: moonData.illumination * 100,
           visibility,
+          visibilityReason,
           optimalWindow,
         });
 
@@ -265,7 +273,7 @@ export default function TonightCard({
           Tonight
           <div>
             {events && events.visibility > 0 && (
-              <StarRating rating={events.visibility} size="lg" />
+              <StarRating rating={events.visibility} size="lg" reason={events.visibilityReason} />
             )}
           </div>
         </h2>
@@ -429,7 +437,7 @@ export default function TonightCard({
               <div className={styles.eventRowWide}>
                 <Icon
                   name="telescope"
-                  title="Optimal Viewing Window"
+                  title={events.optimalWindow.isIntegrated ? "Quality-Based Viewing Window" : "Optimal Viewing Window"}
                   className={`global-icon-medium color-gray-300`}
                 />
                 <span className="data-time">
@@ -439,6 +447,9 @@ export default function TonightCard({
                   />
                   <span className="small-caps"> for </span>
                   {formatOptimalViewingDuration(events.optimalWindow)}
+                  {events.optimalWindow.isIntegrated && events.optimalWindow.averageScore && (
+                    <span className="small-caps"> ({Math.round(events.optimalWindow.averageScore * 100)}% quality)</span>
+                  )}
                 </span>
               </div>
             )}

@@ -8,6 +8,12 @@ import { getMoonInterference } from "./moonCalculations";
 import { calculateDarkDuration } from "./twilightCalculations";
 import { OptimalViewingWindow } from "./optimalViewing";
 import { getLocationTimezone } from "./timezoneUtils";
+import { 
+  computeGCObservationScore, 
+  createGCAltitudeFunction, 
+  createMoonAltitudeFunction, 
+  createGCMoonAngleFunction 
+} from "./gcObservationScoring";
 
 // Get the local hour for a given date and location using proper timezone handling
 function getLocalHour(date: Date, lat: number, lng: number): number | null {
@@ -33,19 +39,59 @@ function getLocalHour(date: Date, lat: number, lng: number): number | null {
 // Re-export the formatTimeInLocationTimezone function from timezoneUtils
 export { formatTimeInLocationTimezone } from "./timezoneUtils";
 
+// Helper function to get just the rating number (for backward compatibility)
+export function getVisibilityRatingNumber(
+  result: number | VisibilityRatingResult
+): number {
+  return typeof result === 'number' ? result : result.rating;
+}
+
+export interface VisibilityRatingResult {
+  rating: number;
+  reason?: string;
+}
+
 export function calculateVisibilityRating(
   gcData: GalacticCenterData,
   moonData: MoonData,
   twilightData: TwilightData,
   optimalWindow?: OptimalViewingWindow,
-  location?: Location
-): number {
-  // Factors that affect Milky Way visibility:
-  // 1. Galactic Core altitude (≥20° is ideal)
-  // 2. Moon interference (illumination + altitude)
-  // 3. Dark time duration
-  // 4. Actual optimal viewing window availability
-
+  location?: Location,
+  date?: Date
+): number | VisibilityRatingResult {
+  // Use the new refined algorithm if we have location and date
+  if (location && date) {
+    // Create the altitude and angle functions
+    const gcAltitude = createGCAltitudeFunction(location);
+    const moonAltitude = createMoonAltitudeFunction(location);
+    const gcMoonAngle = createGCMoonAngleFunction(location);
+    
+    // Call the new scoring algorithm
+    const result = computeGCObservationScore({
+      latitude: location.lat,
+      longitude: location.lng,
+      date,
+      nightStart: twilightData.night ? new Date(twilightData.night) : null,
+      nightEnd: twilightData.dayEnd ? new Date(twilightData.dayEnd) : null,
+      moonRise: moonData.rise,
+      moonSet: moonData.set,
+      moonIllumination: moonData.illumination,
+      gcRise: gcData.riseTime,
+      gcSet: gcData.setTime,
+      gcAltitude,
+      moonAltitude,
+      gcMoonAngle
+    });
+    
+    return {
+      rating: result.rating,
+      reason: result.reason
+    };
+  }
+  
+  // Fallback to old algorithm if no location/date provided
+  // (This maintains backward compatibility)
+  
   // If there's no actual optimal viewing window (no start time or daylight hours),
   // there should be no stars (0 stars = no visibility)
   if (

@@ -18,6 +18,7 @@ export interface WeekData {
   twilightStart: Date | null; // When astronomical twilight starts
   optimalConditions: string; // Description of viewing conditions
   optimalWindow: OptimalViewingWindow; // Optimal viewing window data
+  visibilityReason?: string; // Explanation for visibility rating
 }
 
 export interface GalacticCenterData {

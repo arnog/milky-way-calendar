@@ -58,7 +58,7 @@ npm run test:run     # Run tests once (non-watch mode)
 - `src/types/` - TypeScript type definitions
 - `src/styles/` - CSS styling with global utilities (`global.css`) and modular
   component styles
-- `src/test/` - Comprehensive unit test suite (73 tests across 5 files)
+- `src/test/` - Comprehensive unit test suite (109 tests across 8 files)
 - `public/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set,
   transit)
 - `public/world2024B-*.{webp,jpg,png}` - Light pollution maps in multiple
@@ -78,8 +78,8 @@ ensure consistency and accuracy:
   astronomy-engine
 - **Sun & Twilight Times**: Sunrise/sunset and astronomical twilight
   calculations using astronomy-engine
-- **Optimal Viewing Windows**: Intersection of GC visibility (≥10° altitude),
-  astronomical darkness, and moon interference
+- **Optimal Viewing Windows**: Time-integrated quality analysis providing
+  realistic viewing periods based on hour-by-hour conditions
 - **Visibility Rating**: 1-4 star system combining GC altitude, moon
   interference, and darkness duration
 - **Timezone Conversion**: All times displayed in location's local timezone
@@ -237,6 +237,9 @@ ensure consistency and accuracy:
   comprehensive timezone conversion functions
 - **CSS Architecture Migration**: Migrated from Tailwind CSS to CSS Modules for
   better component encapsulation and maintainability
+- **Algorithm Migration Completion**: Removed legacy static algorithm and
+  simplified `getOptimalViewingWindow()` API to always use time-integrated
+  approach with required parameters for consistent behavior
 
 ### Light Pollution Map Coordinate System Fix
 
@@ -401,6 +404,42 @@ ensure consistency and accuracy:
   viewing, transit, and set times arranged chronologically, improved time filtering
   to show events from start of day for better "tonight" context
 
+### Time-Integrated Observation Windows
+
+**Problem Solved**: Previously, observation windows were calculated using simple 
+intersection logic (GC visibility ∩ astronomical darkness), which ignored when moon 
+interference actually occurs during the window, leading to misleading duration 
+estimates that disappointed users.
+
+**Solution Implemented**: Hour-by-hour quality analysis using the refined GC 
+observation scoring algorithm to provide realistic viewing windows that account for 
+actual viewing conditions throughout the night.
+
+- **New Architecture**: `src/utils/integratedOptimalViewing.ts` provides 
+  time-integrated window calculation with quality period detection
+- **Enhanced API**: `getOptimalViewingWindow()` with configurable quality thresholds 
+  and backward compatibility with existing `calculateOptimalViewingWindow()`
+- **Quality Periods**: Automatic detection of continuous viewing periods above 
+  user-defined quality thresholds (30%+ decent, 50%+ good, 70%+ very good, 90%+ perfect)
+- **TonightCard Integration**: Now displays realistic viewing windows with quality 
+  percentages (e.g., "1.0h (21% quality)") instead of misleading static durations
+- **Real-World Impact**: Example night with 62% moon interference:
+  - **Before**: "3.3 hours viewing" (static intersection, misleading)
+  - **After**: "1.0 hours quality viewing (21%)" (time-integrated, honest)
+  - **User Benefit**: Saves 2.2 hours of poor conditions, sets realistic expectations
+- **Progressive Enhancement**: Opt-in integrated analysis maintains full backward 
+  compatibility while providing superior accuracy for components that adopt it
+- **Performance**: Uses the same optimized variable-step integration as GC scoring 
+  with minimal computational overhead compared to static intersection
+- **Testing**: Validated with challenging real-world scenarios (high moon interference) 
+  and excellent conditions (new moon nights) to ensure accuracy across all conditions
+
+**Technical Implementation**: The system detects continuous quality periods within 
+the astronomical viewing window, filters out poor-quality time automatically, and 
+provides users with honest expectations about both duration and quality of their 
+Milky Way observation sessions. See `TIME_INTEGRATED_WINDOWS.md` for comprehensive 
+technical details and migration guide.
+
 ## Current Status
 
 ✅ **Phase 1**: Project Foundation - React/TypeScript setup with Vite and CSS
@@ -454,17 +493,30 @@ Core rise and set times to Tonight display, arranged chronologically (Rise →
 Optimal Window → Transit → Set), improved time filtering to show today's events
 for better "tonight" context
 
-**Current state**: Feature-complete astronomy calendar with consistent
-astronomical calculations, accurate timezone handling for international users,
-proper high-latitude handling, comprehensive dark sky site discovery with
-corrected coordinate mapping and optimal classification thresholds, educational
-FAQ system with modern navigation, full SEO optimization for search engine
-discoverability, robust test coverage (100+ tests) ensuring calculation accuracy
-and preventing critical regressions, modern CSS Modules architecture for
-scalable styling, centralized color theming with CSS variables, enhanced
-typography with raised colons for optimal time readability, and a polished
-night-sky aesthetic with professional visual design and complete astronomical
-event coverage.
+✅ **Phase 18**: Time-Integrated Observation Windows - Implemented hour-by-hour 
+quality analysis for realistic viewing windows that account for moon interference 
+timing, replacing static intersection logic with time-integrated scoring, 
+providing users with honest duration estimates and quality percentages for 
+better trip planning (see TIME_INTEGRATED_WINDOWS.md for full details)
+
+✅ **Phase 19**: Algorithm Migration Completion - Completed full migration to 
+integrated approach by removing the old static algorithm (118 lines), 
+simplifying the `getOptimalViewingWindow()` API to always use time-integrated 
+analysis with required parameters, updating all components and tests, and 
+cleaning up 8 obsolete comparison/analysis files for a cleaner codebase
+
+**Current state**: Feature-complete astronomy calendar with fully migrated
+time-integrated astronomical calculations, accurate timezone handling for
+international users, proper high-latitude handling, comprehensive dark sky site
+discovery with corrected coordinate mapping and optimal classification
+thresholds, educational FAQ system with modern navigation, full SEO optimization
+for search engine discoverability, robust test coverage (109 tests) ensuring
+calculation accuracy and preventing critical regressions, modern CSS Modules
+architecture for scalable styling, centralized color theming with CSS variables,
+enhanced typography with raised colons for optimal time readability, unified
+time-integrated observation windows providing honest quality expectations across
+all components, and a polished night-sky aesthetic with professional visual
+design and complete astronomical event coverage.
 
 ## Hosting
 

@@ -5,9 +5,9 @@ import { Icon } from "./Icon";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import { calculateVisibilityRating } from "../utils/visibilityRating";
+import { calculateVisibilityRating, getVisibilityRatingNumber } from "../utils/visibilityRating";
 import {
-  calculateOptimalViewingWindow,
+  getOptimalViewingWindow,
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
   OptimalViewingWindow,
@@ -23,6 +23,7 @@ interface DailyVisibilityTableProps {
 interface DayData {
   date: Date;
   visibility: number;
+  visibilityReason?: string;
   optimalWindow: OptimalViewingWindow;
   // Expanded view data
   sunRise?: Date;
@@ -106,18 +107,24 @@ export default function DailyVisibilityTable({
           const moonData = calculateMoonData(date, location);
           const twilightData = calculateTwilightTimes(date, location);
 
-          const optimalWindow = calculateOptimalViewingWindow(
+          const optimalWindow = getOptimalViewingWindow(
             gcData,
             moonData,
-            twilightData
+            twilightData,
+            location,
+            date,
+            0.3   // Decent viewing threshold
           );
-          const visibility = calculateVisibilityRating(
+          const visibilityResult = calculateVisibilityRating(
             gcData,
             moonData,
             twilightData,
             optimalWindow,
-            location
+            location,
+            date
           );
+          const visibility = getVisibilityRatingNumber(visibilityResult);
+          const visibilityReason = typeof visibilityResult === 'object' ? visibilityResult.reason : undefined;
 
           // Calculate sunrise and sunset
           const observer = new Astronomy.Observer(location.lat, location.lng, 0);
@@ -139,6 +146,7 @@ export default function DailyVisibilityTable({
           data.push({
             date,
             visibility,
+            visibilityReason,
             optimalWindow,
             sunRise: sunrise ? sunrise.date : undefined,
             sunSet: sunset ? sunset.date : undefined,
@@ -221,7 +229,7 @@ export default function DailyVisibilityTable({
                           {formatDate(day.date)}
                         </div>
                         <div>
-                          <StarRating rating={day.visibility} />
+                          <StarRating rating={day.visibility} reason={day.visibilityReason} />
                         </div>
                         <div className={`${styles.timeText} data-time`}>
                           <FormattedTime 
