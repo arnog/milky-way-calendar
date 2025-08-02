@@ -12,3 +12,11 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+.loadingContainer {
+  height: 16rem;
+}
+
+.loadingText {
+  color: rgba(255, 255, 255, 0.7);
+}

@@ -30,7 +30,6 @@ export default function StarRating({
         className={`${styles.star} ${sizeClass} ${
           isFilled ? styles.starFilled : styles.starEmpty
         }`}
-        style={{ fill: "white", color: "white" }}
       >
         <use
           href={`/icons.svg#${isFilled ? "star-black" : "star-white"}`}

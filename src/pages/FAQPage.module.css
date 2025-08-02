@@ -48,7 +48,7 @@
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #A3C4DC;
+  color: var(--primary);
 }
 
 @media (min-width: 768px) {

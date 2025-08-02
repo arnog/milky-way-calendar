@@ -200,9 +200,9 @@
 .locationButton {
   padding: 0.75rem 1.5rem;
   background-color: rgba(163, 196, 220, 0.1);
-  border: 2px solid #A3C4DC;
+  border: 2px solid var(--primary);
   border-radius: 0.5rem;
-  color: #A3C4DC;
+  color: var(--primary);
   font-family: var(--data-font-family);
   font-size: 0.9rem;
   cursor: pointer;
@@ -217,10 +217,10 @@
 
 .findButton {
   padding: 0.75rem 1.5rem;
-  background-color: #6EC6FF;
+  background-color: var(--accent);
   border: none;
   border-radius: 0.5rem;
-  color: #0B0E16;
+  color: var(--background);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -252,7 +252,7 @@
 
 .progressFill {
   height: 100%;
-  background-color: #6EC6FF;
+  background-color: var(--accent);
   transition: width 0.3s ease;
 }
 
@@ -273,7 +273,7 @@
   font-family: "Playfair Display", serif;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #6EC6FF;
+  color: var(--accent);
   margin-bottom: 1rem;
 }
 
@@ -302,10 +302,10 @@
 
 .viewLocationButton {
   padding: 0.75rem 1.5rem;
-  background-color: #6EC6FF;
+  background-color: var(--accent);
   border: none;
   border-radius: 0.5rem;
-  color: #0B0E16;
+  color: var(--background);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -321,9 +321,9 @@
 .directionsButton {
   padding: 0.75rem 1.5rem;
   background-color: rgba(163, 196, 220, 0.1);
-  border: 2px solid #A3C4DC;
+  border: 2px solid var(--primary);
   border-radius: 0.5rem;
-  color: #A3C4DC;
+  color: var(--primary);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -393,7 +393,7 @@
   font-family: "Playfair Display", serif;
   font-size: 1rem;
   font-weight: 600;
-  color: #A3C4DC;
+  color: var(--primary);
   margin: 0 0 0.5rem 0;
 }
 
@@ -413,9 +413,9 @@
 .knownSiteButton {
   padding: 0.5rem 1rem;
   background-color: rgba(163, 196, 220, 0.1);
-  border: 1px solid #A3C4DC;
+  border: 1px solid var(--primary);
   border-radius: 0.375rem;
-  color: #A3C4DC;
+  color: var(--primary);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -522,7 +522,7 @@
   font-family: var(--data-font-family);
   font-size: 0.85rem;
   font-weight: 600;
-  color: #6EC6FF;
+  color: var(--accent);
   background-color: rgba(110, 198, 255, 0.1);
   padding: 0.2rem 0.4rem;
   border-radius: 0.2rem;
@@ -588,7 +588,7 @@
   font-family: "Playfair Display", serif;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #6EC6FF;
+  color: var(--accent);
   margin-bottom: 0.5rem;
 }
 

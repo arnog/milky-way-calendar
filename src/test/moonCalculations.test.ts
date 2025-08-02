@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateMoonData, getMoonPhaseEmoji, getMoonInterference } from '../utils/moonCalculations'
+import { calculateMoonData, getMoonInterference } from '../utils/moonCalculations'
 import { Location } from '../types/astronomy'
 
 describe('moonCalculations', () => {
@@ -86,27 +86,6 @@ describe('moonCalculations', () => {
     })
   })
 
-  describe('getMoonPhaseEmoji', () => {
-    it('should return correct emojis for different phases', () => {
-      expect(getMoonPhaseEmoji(0)).toBe('🌑') // New Moon
-      expect(getMoonPhaseEmoji(0.5)).toBe('🌕') // Full Moon
-    })
-
-    it('should handle edge cases', () => {
-      expect(getMoonPhaseEmoji(-0.1)).toBe('🌑') // Should handle negative
-      expect(getMoonPhaseEmoji(1.1)).toBe('🌑') // Values >= 0.9375 return new moon
-    })
-
-    it('should return valid moon emojis for all phases', () => {
-      const phases = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]
-      const validEmojis = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘']
-
-      phases.forEach(phase => {
-        const emoji = getMoonPhaseEmoji(phase)
-        expect(validEmojis).toContain(emoji)
-      })
-    })
-  })
 
   describe('getMoonInterference', () => {
     it('should return 0 when moon is below horizon', () => {

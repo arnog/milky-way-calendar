@@ -72,31 +72,11 @@ performant.
 
 ### 🐞 Logic Errors and Bugs
 
-#### 1. Incorrect Moon Phase Emoji Mapping
+#### 1. Moon Phase Display Implementation (RESOLVED)
 
-- **File:** `src/utils/moonCalculations.ts`
-- **Issue:** The logic in `getMoonPhaseEmoji` does not correctly map the phase
-  value to the appropriate emoji. For instance, multiple different phases are
-  assigned the same `◑` symbol.
-- **Recommendation:** Revise the conditional logic to correctly represent the
-  eight moon phases based on the input value (0.0 = New, 0.25 = First Quarter,
-  0.5 = Full, 0.75 = Last Quarter).
-
-```typescript
-// src/utils/moonCalculations.ts
-
-export function getMoonPhaseEmoji(phase: number): string {
-  // Phase is 0-1, where 0.5 is full moon.
-  if (phase < 0.0625 || phase >= 0.9375) return "●"; // New Moon
-  if (phase < 0.1875) return "◐"; // Waxing Crescent
-  if (phase < 0.3125) return "◑"; // First Quarter
-  if (phase < 0.4375) return "◑"; // Waxing Gibbous
-  if (phase < 0.5625) return "○"; // Full Moon
-  if (phase < 0.6875) return "◒"; // Waning Gibbous
-  if (phase < 0.8125) return "◐"; // Last Quarter
-  return "◒"; // Waning Crescent
-}
-```
+- **File:** Components now use SVG icons for moon phases
+- **Previous Issue:** Moon phase emoji mapping had inconsistencies and didn't account for hemisphere differences.
+- **Solution:** Implemented SVG icon system with hemisphere-aware moon phase icons. Moon phases automatically flip waxing/waning appearance for southern hemisphere locations to match actual visual appearance in the sky. The `getMoonPhaseEmoji` function has been removed and replaced with `getMoonPhaseIcon` helper functions in components.
 
 #### 2. Naive Location Name Matching
 

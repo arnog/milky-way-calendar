@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Location } from "../types/astronomy";
 import LocationPopover from "./LocationPopover";
 import StarRating from "./StarRating";
+import { Icon } from "./Icon";
 import {
   Observer,
   Horizon,
@@ -23,6 +24,7 @@ import {
   formatOptimalViewingDuration,
   OptimalViewingWindow,
 } from "../utils/optimalViewing";
+import FormattedTime from "./FormattedTime";
 import styles from "./TonightCard.module.css";
 
 interface TonightCardProps {
@@ -52,11 +54,11 @@ const getMoonPhaseIcon = (phase: number, latitude: number): string => {
   // Phase is 0-1, where 0.5 is full moon
   // In southern hemisphere, phases appear flipped horizontally
   const isNorthernHemisphere = latitude >= 0;
-  
+
   // New Moon and Full Moon appear the same in both hemispheres
   if (phase < 0.0625 || phase >= 0.9375) return "moon-new"; // New Moon
   if (phase >= 0.4375 && phase < 0.5625) return "moon-full"; // Full Moon
-  
+
   // For crescent and quarter phases, flip the icons in southern hemisphere
   if (isNorthernHemisphere) {
     // Northern hemisphere - standard orientation
@@ -88,39 +90,6 @@ const getMoonPhaseName = (phase: number): string => {
   if (phase < 0.6875) return "Waning Gibbous";
   if (phase < 0.8125) return "Third Quarter";
   return "Waning Crescent";
-};
-
-// SVG Icon component with custom tooltip
-const Icon = ({
-  name,
-  title,
-  className = "",
-}: {
-  name: string;
-  title?: string;
-  className?: string;
-}) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-
-  return (
-    <div
-      className="global-icon-wrapper"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-      onTouchStart={() => setShowTooltip(true)}
-      onTouchEnd={() => setTimeout(() => setShowTooltip(false), 2000)}
-    >
-      <svg className={className}>
-        <use href={`/icons.svg#${name}`} />
-      </svg>
-      {showTooltip && title && (
-        <div className="global-tooltip">
-          {title}
-          <div className="global-tooltip-arrow"></div>
-        </div>
-      )}
-    </div>
-  );
 };
 
 export default function TonightCard({
@@ -205,29 +174,16 @@ export default function TonightCard({
         // Use existing calculateMoonData function instead of duplicating calculations
         const moonData = calculateMoonData(now, location);
 
-        // Calculate Galactic Core times
-        const gcRa = 17.759; // hours
-        const gcDec = -29.008; // degrees
-
-        // Find GC rise/set times
-        // Note: SearchRiseSet doesn't work with custom star coordinates, so we'll skip this
-
-        // Calculate GC transit and max altitude
-        let maxAltitude = 0;
-        let transitTime: Date | undefined;
-
-        // Sample GC altitude throughout the night
-        for (let h = 0; h < 24; h += 0.5) {
-          const checkTime = new Date(now.getTime() + h * 60 * 60 * 1000);
-          const horizon = Horizon(checkTime, observer, gcRa, gcDec, "normal");
-          if (horizon.altitude > maxAltitude) {
-            maxAltitude = horizon.altitude;
-            transitTime = checkTime;
-          }
-        }
+        // Calculate Galactic Core times using the existing utility
+        const gcData = calculateGalacticCenterPosition(now, location);
+        
+        // Use the calculated GC data which already includes rise/set times
+        const gcRise = gcData.riseTime;
+        const gcSet = gcData.setTime;
+        const gcTransit = gcData.transitTime;
+        const maxAltitude = gcData.altitude;
 
         // Calculate optimal viewing window using the same logic as Calendar
-        const gcData = calculateGalacticCenterPosition(now, location);
         const twilightData = calculateTwilightTimes(now, location);
         const optimalWindow = calculateOptimalViewingWindow(
           gcData,
@@ -253,6 +209,10 @@ export default function TonightCard({
           location
         );
 
+        // For "Tonight" viewing, show events from today onwards
+        const todayStart = new Date(now);
+        todayStart.setHours(0, 0, 0, 0); // Start of today
+
         setEvents({
           sunRise:
             sunrise && sunrise.date > now
@@ -268,9 +228,9 @@ export default function TonightCard({
             moonData.rise && moonData.rise > now ? moonData.rise : undefined,
           moonSet:
             moonData.set && moonData.set > now ? moonData.set : undefined,
-          gcRise: undefined,
-          gcTransit: transitTime,
-          gcSet: undefined,
+          gcRise: gcRise && gcRise >= todayStart ? gcRise : undefined,
+          gcTransit: gcTransit,
+          gcSet: gcSet && gcSet > now ? gcSet : undefined,
           maxGcAltitude: maxAltitude,
           moonPhase: moonData.phase,
           moonIllumination: moonData.illumination * 100,
@@ -288,9 +248,6 @@ export default function TonightCard({
     calculateTonight();
   }, [location]);
 
-  const formatTime = (date: Date | undefined) => {
-    return formatTimeInLocationTimezone(date, location);
-  };
 
   if (isLoading) {
     return (
@@ -309,11 +266,29 @@ export default function TonightCard({
     <div className={styles.container}>
       <div className={styles.centerColumn}>
         <h2 className={styles.title}>
-          Tonight{" "}
+          Tonight
           <div>
-            {events && <StarRating rating={events.visibility} size="lg" />}
+            {events && events.visibility > 0 && (
+              <StarRating rating={events.visibility} size="lg" />
+            )}
           </div>
         </h2>
+      </div>
+
+      <div className={styles.locationSection}>
+        <button
+          ref={locationButtonRef}
+          onClick={() => setShowLocationPopover(true)}
+          className={styles.locationLink}
+        >
+          <Icon
+            name="location"
+            title="Change location"
+            className="global-icon-small color-accent"
+            baselineOffset={4}
+          />{" "}
+          {locationDisplayName}
+        </button>
       </div>
 
       <div className={styles.eventGrid}>
@@ -326,22 +301,28 @@ export default function TonightCard({
                 <>
                   <Icon
                     name="sunset"
-                    title="Sunset (Civil Dawn)"
-                    className={`global-icon-medium global-icon-blue-300`}
+                    title="Sunset (Civil Twilight)"
+                    className={`global-icon-medium color-orange-400`}
                   />
-                  <span className="data-time">{formatTime(events.sunSet)}</span>
+                  <FormattedTime 
+                    date={events.sunSet}
+                    location={location}
+                    className="data-time"
+                  />
                 </>
               )}
               {events.astronomicalTwilightEnd && (
                 <>
                   <Icon
-                    name="set2"
-                    title="Astronomical Twilight End"
-                    className={`global-icon-medium global-icon-blue-400`}
+                    name="night-rise"
+                    title="Astronomical Night Start"
+                    className={`global-icon-medium`}
                   />
-                  <span className="data-time">
-                    {formatTime(events.astronomicalTwilightEnd)}
-                  </span>
+                  <FormattedTime 
+                    date={events.astronomicalTwilightEnd}
+                    location={location}
+                    className="data-time"
+                  />
                 </>
               )}
             </div>
@@ -351,25 +332,29 @@ export default function TonightCard({
               {events.astronomicalTwilightStart && (
                 <>
                   <Icon
-                    name="rise2"
-                    title="Astronomical Twilight Start"
-                    className={`global-icon-medium global-icon-orange-400`}
+                    name="night-set"
+                    title="Astronomical Night End"
+                    className={`global-icon-medium`}
                   />
-                  <span className="data-time">
-                    {formatTime(events.astronomicalTwilightStart)}
-                  </span>
+                  <FormattedTime 
+                    date={events.astronomicalTwilightStart}
+                    location={location}
+                    className="data-time"
+                  />
                 </>
               )}
               {events.sunRise && (
                 <>
                   <Icon
                     name="sunrise"
-                    title="Sunrise (Civil Twilight)"
-                    className={`global-icon-medium global-icon-yellow-200`}
+                    title="Sunrise (Civil Dawn)"
+                    className={`global-icon-medium color-yellow-200`}
                   />
-                  <span className="data-time">
-                    {formatTime(events.sunRise)}
-                  </span>
+                  <FormattedTime 
+                    date={events.sunRise}
+                    location={location}
+                    className="data-time"
+                  />
                 </>
               )}
             </div>
@@ -383,7 +368,8 @@ export default function TonightCard({
             <Icon
               name={getMoonPhaseIcon(events.moonPhase, location.lat)}
               title={getMoonPhaseName(events.moonPhase)}
-              className={`global-icon-medium global-icon-gray-300`}
+              className={`global-icon-small color-gray-300`}
+              baselineOffset={2}
             />{" "}
             <span className={styles.moonIllumination}>
               {events.moonIllumination.toFixed(0)}%
@@ -394,9 +380,14 @@ export default function TonightCard({
               <Icon
                 name="moonrise"
                 title="Moonrise"
-                className={`global-icon-medium global-icon-gray-300`}
+                className={`global-icon-medium color-gray-300`}
+                baselineOffset={-2}
               />
-              <span className="data-time">{formatTime(events.moonRise)}</span>
+              <FormattedTime 
+                date={events.moonRise}
+                location={location}
+                className="data-time"
+              />
             </div>
           )}
           {events.moonSet && (
@@ -404,27 +395,38 @@ export default function TonightCard({
               <Icon
                 name="moonset"
                 title="Moonset"
-                className={`global-icon-medium global-icon-gray-300`}
+                className={`global-icon-medium color-gray-300`}
+                baselineOffset={-2}
               />
-              <span className="data-time">{formatTime(events.moonSet)}</span>
+              <FormattedTime 
+                date={events.moonSet}
+                location={location}
+                className="data-time"
+              />
             </div>
           )}
         </div>
 
         {/* Galactic Core Events - only show if there's an optimal viewing window */}
         {(events.optimalWindow.startTime ||
+          events.gcRise ||
           events.gcTransit ||
+          events.gcSet ||
           events.maxGcAltitude > 0) && (
           <div className={styles.eventSection}>
             <h3 className={styles.sectionTitle}>Galactic Core</h3>
             {events.gcRise && (
               <div className={styles.eventRowWide}>
                 <Icon
-                  name="rise"
-                  title="Galactic Core Rise"
-                  className={`global-icon-medium global-icon-gray-300`}
+                  name="galaxy-rise"
+                  title="Galactic Core Rise (≥10°)"
+                  className={`global-icon-medium color-gray-300`}
                 />
-                <span className="data-time">{formatTime(events.gcRise)}</span>
+                <FormattedTime 
+                  date={events.gcRise}
+                  location={location}
+                  className="data-time"
+                />
               </div>
             )}
             {events.optimalWindow.startTime && (
@@ -432,11 +434,14 @@ export default function TonightCard({
                 <Icon
                   name="telescope"
                   title="Optimal Viewing Window"
-                  className={`global-icon-medium global-icon-gray-300`}
+                  className={`global-icon-medium color-gray-300`}
                 />
                 <span className="data-time">
-                  {formatOptimalViewingTime(events.optimalWindow, location)}
-                  <span className="sub-label"> for </span>
+                  <FormattedTime 
+                    timeString={formatOptimalViewingTime(events.optimalWindow, location)}
+                    className=""
+                  />
+                  <span className="small-caps"> for </span>
                   {formatOptimalViewingDuration(events.optimalWindow)}
                 </span>
               </div>
@@ -444,45 +449,39 @@ export default function TonightCard({
             {events.gcTransit && events.maxGcAltitude > 0 && (
               <div className={styles.eventRowWide}>
                 <Icon
-                  name="transit"
-                  title="Maximum Altitude"
-                  className={`global-icon-medium global-icon-gray-300`}
+                  name="apex"
+                  title="Galactic Core Transit"
+                  className={`global-icon-medium color-gray-300`}
                 />
                 <span className="data-time">
-                  {events.maxGcAltitude.toFixed(0)}°{" "}
-                  <span className="sub-label">at </span>
-                  {formatTime(events.gcTransit)}
+                  <FormattedTime 
+                    date={events.gcTransit}
+                    location={location}
+                    className="data-time"
+                  />
+                  <span className="small-caps"> at </span>
+                  {events.maxGcAltitude.toFixed(0)}°
                 </span>
               </div>
             )}
             {events.gcSet && (
               <div className={styles.eventRowWide}>
                 <Icon
-                  name="set"
-                  title="Galactic Core Set"
-                  className={`global-icon-medium global-icon-gray-300`}
+                  name="galaxy-set"
+                  title="Galactic Core Set (≤10°)"
+                  className={`global-icon-medium color-gray-300`}
                 />
-                <span className="data-time">{formatTime(events.gcSet)}</span>
+                <FormattedTime 
+                  date={events.gcSet}
+                  location={location}
+                  className="data-time"
+                />
               </div>
             )}
           </div>
         )}
       </div>
       <div className={styles.footerSection}>
-        <div className={styles.footerCenter}>
-          <button
-            ref={locationButtonRef}
-            onClick={() => setShowLocationPopover(true)}
-            className={styles.locationLink}
-          >
-            <Icon
-              name="location"
-              title="Change location"
-              className="global-icon-small global-icon-blue-300"
-            />{" "}
-            {locationDisplayName}
-          </button>
-        </div>
         {locationDescription && (
           <div
             className={styles.locationDescription}

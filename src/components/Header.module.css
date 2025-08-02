@@ -3,9 +3,9 @@
 .header {
   /* glass-morphism p-6 mb-8 */
   position: relative;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
   box-sizing: content-box;
   padding: 1.5rem;
@@ -20,11 +20,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('/milky-way-hero-3.jpg');
+  background-image: url("/milky-way-hero-3.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.8;
+  opacity: 1;
   z-index: -1;
 }
 
@@ -44,7 +44,7 @@
   /* text-4xl md:text-6xl lg:text-8xl font-bold mb-2 hover:text-blue-200 transition-colors */
   font-family: "Playfair Display", serif;
   font-size: 2.25rem;
-  line-height: 2.5rem;
+  line-height: 1;
   font-weight: 700;
   margin-bottom: 0.5rem;
   transition-property: color;
@@ -67,16 +67,17 @@
 }
 
 .title:hover {
-  color: #A3C4DC;
+  color: var(--primary);
 }
 
 .subtitle {
   /* text-lg md:text-2xl lg:text-3xl text-blue-200 */
   font-family: "Playfair Display", serif;
   font-style: italic;
+  text-align: center;
   font-size: 1.125rem;
   line-height: 1.75rem;
-  color: #A3C4DC;
+  opacity: 0.75;
 }
 
 @media (min-width: 768px) {
@@ -123,35 +124,41 @@
 .navLink {
   /* text-3xl md:text-4xl transition-colors hover:text-blue-200 */
   text-decoration: none;
+  text-align: center;
   color: inherit;
-  font-size: 1.875rem;
+  font-size: 1.25rem;
   line-height: 2.25rem;
   transition-property: color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 4px 16px;
+  width: 6rem;
 }
 
 @media (min-width: 768px) {
   .navLink {
-    font-size: 2.25rem;
+    font-size: 1.5rem;
     line-height: 2.5rem;
   }
 }
 
 .navLink:hover {
-  color: #6EC6FF;
-  text-shadow: 0 0 8px #B2E3FF;
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--glow);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .navLinkActive {
   /* text-white font-semibold */
-  color: #F5F5F5;
+  color: var(--highlight);
   font-weight: 600;
 }
 
 .navLinkInactive {
   /* text-blue-200 */
-  color: #A3C4DC;
+  color: var(--primary);
 }
 
 .darkModeButton {
@@ -163,8 +170,8 @@
   display: flex;
   align-items: center;
   padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
   transition-property: color, background-color, border-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
@@ -183,13 +190,15 @@
 
 .darkModeButtonNormal {
   /* bg-white/10 border-white/30 text-white hover:bg-white/20 */
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: transparent;
   border-color: rgba(255, 255, 255, 0.3);
   color: white;
 }
 
 .darkModeButtonNormal:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--glow);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .darkModeButtonActive {

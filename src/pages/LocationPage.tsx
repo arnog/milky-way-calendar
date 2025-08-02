@@ -64,8 +64,8 @@ function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
     return (
       <div className={styles.container}>
         <div className={styles.content}>
-          <div className="global-flex-center" style={{ height: '16rem' }}>
-            <div className="global-text-lg" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Loading location...</div>
+          <div className={`global-flex-center ${styles.loadingContainer}`}>
+            <div className={`global-text-lg ${styles.loadingText}`}>Loading location...</div>
           </div>
         </div>
       </div>

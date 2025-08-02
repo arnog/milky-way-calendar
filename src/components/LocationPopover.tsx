@@ -3,40 +3,8 @@ import { createPortal } from "react-dom";
 import { Location } from "../types/astronomy";
 import WorldMap from "./WorldMap";
 import { useLocationManager } from "../hooks/useLocationManager";
+import { Icon } from "./Icon";
 import styles from "./LocationPopover.module.css";
-
-// SVG Icon component with custom tooltip
-const Icon = ({
-  name,
-  title,
-  className = "",
-}: {
-  name: string;
-  title?: string;
-  className?: string;
-}) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-
-  return (
-    <div
-      className="global-icon-wrapper"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-      onTouchStart={() => setShowTooltip(true)}
-      onTouchEnd={() => setTimeout(() => setShowTooltip(false), 2000)}
-    >
-      <svg className={className}>
-        <use href={`/icons.svg#${name}`} />
-      </svg>
-      {showTooltip && title && (
-        <div className="global-tooltip">
-          {title}
-          <div className="global-tooltip-arrow"></div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 interface LocationPopoverProps {
   location: Location | null;
@@ -104,8 +72,8 @@ export default function LocationPopover({
       updatePosition();
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [triggerRef]);
 
   // Close on outside click, resize, or escape key (but NOT on scroll)
@@ -158,10 +126,7 @@ export default function LocationPopover({
     >
       <div className={styles.header}>
         <h3></h3>
-        <button
-          onClick={onClose}
-          className={styles.closeButton}
-        >
+        <button onClick={onClose} className={styles.closeButton}>
           <svg
             className={styles.closeIcon}
             fill="none"
@@ -231,7 +196,7 @@ export default function LocationPopover({
                 >
                   <Icon
                     name="location"
-                    className="global-icon-small global-icon-blue-300"
+                    className="global-icon-small color-accent"
                   />{" "}
                   {suggestion}
                   <span className={styles.suggestionCoords}>

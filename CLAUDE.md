@@ -33,6 +33,7 @@ npm run test:run     # Run tests once (non-watch mode)
 - **Real astronomical calculations** using astronomy-engine library for
   consistent, accurate results
 - **Timezone-aware time display** - all times shown in location's local timezone
+- **Enhanced typography** - time displays with raised colons for improved readability
 - **SVG icon system** with custom tooltips for better UX
 - **Glassmorphism UI** with starry sky background and responsive design
 - **Location parsing** supporting coordinates, city names, and special astronomy
@@ -97,6 +98,7 @@ ensure consistency and accuracy:
 ## UI Design System
 
 ### Color Palette
+
 - **Primary**: #A3C4DC - Main buttons, highlights, navigation
 - **Accent**: #6EC6FF - Links, time displays, hover effects
 - **Highlight**: #F5F5F5 - Body text, general content
@@ -105,14 +107,17 @@ ensure consistency and accuracy:
 - **Background**: #0B0E16 - Deep night blue base
 
 ### Typography System
+
 - **Headlines**: Playfair Display (serif) - All h1, h2, h3 elements
 - **Body Text**: Inter (sans-serif) - Paragraphs, lists, general content
 - **Data/Times**: Orbitron (sans-serif) - Time displays, astronomical data
 - **Special**: Playfair Display italic - Subtitle in header
 
 ### Visual Elements
-- **Glassmorphism**: `background: rgba(255, 255, 255, 0.05)`, `backdrop-filter: blur(8px)`, `border-radius: 12px`
-- **Background Images**: 
+
+- **Glassmorphism**: `background: rgba(255, 255, 255, 0.05)`,
+  `backdrop-filter: blur(8px)`, `border-radius: 24px`
+- **Background Images**:
   - Body: Repeating `sky-tile.jpg` for seamless starfield
   - Header: `milky-way-hero-3.jpg` featuring galactic core
 - **Button Styles**: Primary buttons with hover glow effect using #B2E3FF
@@ -240,36 +245,42 @@ ensure consistency and accuracy:
   identified as pristine dark sky sites (Bortle 1-1.5)
 - **Root Cause**: Light pollution map covers -65° to +75° latitude (140° span),
   not the assumed -90° to +90° (180° span)
-- **Before Fix**: 
+- **Before Fix**:
   - `y = ((90 - lat) / 180) * imageHeight` (incorrect 180° assumption)
   - Major cities reading dark pixels (R35 G35 B35) instead of bright pollution
-- **After Fix**: 
+- **After Fix**:
   - `y = ((75 - lat) / 140) * imageHeight` (correct 140° span)
-  - Cities now correctly read bright pixels (R255 G255 B255) showing severe light pollution
+  - Cities now correctly read bright pixels (R255 G255 B255) showing severe
+    light pollution
 - **Files Updated**:
   - `src/utils/lightPollutionMap.ts`: Core coordinate conversion functions
   - `src/pages/ExplorePage.tsx`: Dark site marker positioning
-  - `src/components/WorldMap.tsx`: Interactive map click handling and marker positioning
+  - `src/components/WorldMap.tsx`: Interactive map click handling and marker
+    positioning
 - **Functions Added**:
   - `coordToNormalized()`: Convert lat/lng to 0-1 coordinates for UI positioning
-  - `normalizedToCoord()`: Convert 0-1 coordinates back to lat/lng for click handling
-- **Verification**: Los Angeles now correctly shows "No dark sky sites found within 500km"
-  instead of being identified as a Bortle 1 dark site
-- **Global Impact**: All interactive map features, dark site searches, and coordinate-based
-  functionality now work accurately worldwide
+  - `normalizedToCoord()`: Convert 0-1 coordinates back to lat/lng for click
+    handling
+- **Verification**: Los Angeles now correctly shows "No dark sky sites found
+  within 500km" instead of being identified as a Bortle 1 dark site
+- **Global Impact**: All interactive map features, dark site searches, and
+  coordinate-based functionality now work accurately worldwide
 
 ### Dark Sky Classification Threshold Optimization
 
-- **Problem Identified**: After coordinate fix, legitimate dark sky locations like
-  Joshua Tree National Park were not being found due to overly restrictive threshold
+- **Problem Identified**: After coordinate fix, legitimate dark sky locations
+  like Joshua Tree National Park were not being found due to overly restrictive
+  threshold
 - **Root Cause Analysis**: `isDarkSky()` function only accepted Bortle ≤1.5, but
-  real-world excellent dark sky areas read as Bortle 2.5-3.5 on the light pollution map
-- **Debug Process**: Created visual debugging tools to analyze actual RGB values and
-  Bortle classifications for Joshua Tree area:
+  real-world excellent dark sky areas read as Bortle 2.5-3.5 on the light
+  pollution map
+- **Debug Process**: Created visual debugging tools to analyze actual RGB values
+  and Bortle classifications for Joshua Tree area:
   - Joshua Tree center: RGB(1, 37, 132) = Bortle 3.5
   - Surrounding pixels: RGB(35, 35, 35) = Bortle 2.5 (excellent for astronomy)
   - 82.3% of nearby pixels classified as good dark sky with new threshold
-- **Threshold Update**: Changed from Bortle ≤1.5 to ≤3.0 based on astronomical standards:
+- **Threshold Update**: Changed from Bortle ≤1.5 to ≤3.0 based on astronomical
+  standards:
   - Bortle 1-3 are considered excellent for Milky Way photography
   - Bortle 4+ represents suburban light pollution
 - **Validation Results**: Joshua Tree area now correctly finds:
@@ -298,9 +309,9 @@ ensure consistency and accuracy:
 
 ### Dark Sky Site Discovery Optimization
 
-- **Bortle Scale Classification**: Uses the International Dark-Sky Association Bortle 
-  scale (1-9) to classify light pollution levels based on RGB values from the light 
-  pollution map
+- **Bortle Scale Classification**: Uses the International Dark-Sky Association
+  Bortle scale (1-9) to classify light pollution levels based on RGB values from
+  the light pollution map
 - **Optimized Threshold**: Dark sky threshold set to Bortle ≤3.0 to include:
   - Bortle 1: Pristine dark sky (best possible conditions)
   - Bortle 2: Excellent dark sky (minimal light pollution)
@@ -309,25 +320,28 @@ ensure consistency and accuracy:
   - Joshua Tree National Park: Bortle 2.5-3.5 (now correctly identified)
   - Death Valley National Park: Bortle 2.5 (excellent dark sky)
   - Major cities: Bortle 4+ (correctly excluded)
-- **Search Algorithm**: Modified Dijkstra's algorithm finds nearest dark sites within
-  500km radius, returning primary site plus 5 alternatives in different directions
-- **Geographic Diversity**: Alternative sites selected using bearing calculations to
-  provide options in multiple directions from user location
-- **Known Site Integration**: Found dark sites are matched with nearest known 
+- **Search Algorithm**: Modified Dijkstra's algorithm finds nearest dark sites
+  within 500km radius, returning primary site plus 5 alternatives in different
+  directions
+- **Geographic Diversity**: Alternative sites selected using bearing
+  calculations to provide options in multiple directions from user location
+- **Known Site Integration**: Found dark sites are matched with nearest known
   locations from curated DARK_SITES list for better accessibility information
 
 ### Testing & Quality Assurance
 
 - **Comprehensive Test Suite**: 100+ unit tests across 7 test files covering all
-  critical astronomy calculations, coordinate mapping, and dark site search accuracy
-- **Test Framework**: Vitest with React Testing Library for fast, reliable testing
+  critical astronomy calculations, coordinate mapping, and dark site search
+  accuracy
+- **Test Framework**: Vitest with React Testing Library for fast, reliable
+  testing
 - **Coverage Areas**:
-  - **Galactic Core calculations** (`galacticCenter.test.ts`) - Position, rise/set
-    times, seasonal altitude thresholds, high latitude edge cases
+  - **Galactic Core calculations** (`galacticCenter.test.ts`) - Position,
+    rise/set times, seasonal altitude thresholds, high latitude edge cases
   - **Moon calculations** (`moonCalculations.test.ts`) - Phase, illumination,
     interference factors, rise/set times
-  - **Twilight calculations** (`twilightCalculations.test.ts`) - Civil/astronomical
-    twilight, dark duration, day boundary handling
+  - **Twilight calculations** (`twilightCalculations.test.ts`) -
+    Civil/astronomical twilight, dark duration, day boundary handling
   - **Optimal viewing windows** (`optimalViewing.test.ts`) - Integration of GC
     visibility, darkness, and moon interference
   - **Visibility ratings** (`visibilityRating.test.ts`) - 1-4 star system based
@@ -335,17 +349,19 @@ ensure consistency and accuracy:
   - **Coordinate mapping** (`coordinateMapping.test.ts`) - Light pollution map
     coordinate conversion, UI positioning, boundary handling, anti-regression
   - **Dark site search accuracy** (`darkSiteSearchAccuracy.test.ts`) - RGB to
-    Bortle scale conversion, city classification, major city regression prevention,
-    Joshua Tree area validation, dark sky threshold optimization
-- **Critical Bug Prevention**: Comprehensive tests prevent regression of the major
-  coordinate mapping bug that incorrectly classified cities as dark sky sites and
-  ensure dark sky classification thresholds work correctly for real-world locations
+    Bortle scale conversion, city classification, major city regression
+    prevention, Joshua Tree area validation, dark sky threshold optimization
+- **Critical Bug Prevention**: Comprehensive tests prevent regression of the
+  major coordinate mapping bug that incorrectly classified cities as dark sky
+  sites and ensure dark sky classification thresholds work correctly for
+  real-world locations
 - **Edge Case Testing**: High latitudes, extreme dates, timezone boundaries,
   calculation failures, map boundaries, coordinate system validation
-- **Real Data Testing**: Uses actual astronomy-engine calculations with realistic
-  locations and dates, tests major world cities
+- **Real Data Testing**: Uses actual astronomy-engine calculations with
+  realistic locations and dates, tests major world cities
 - **Continuous Integration**: All tests must pass before deployment
-- **Performance**: Fast test execution (< 1 second) for rapid development feedback
+- **Performance**: Fast test execution (< 1 second) for rapid development
+  feedback
 
 ### SEO & Search Engine Optimization
 
@@ -362,6 +378,29 @@ ensure consistency and accuracy:
 - **Priority & Frequency**: Optimized sitemap attributes for different page
   types (static pages: priority 1.0, dark sites: 0.7, cities: 0.6)
 
+### Typography Enhancement & CSS Variable System
+
+- **Enhanced Time Typography**: Implemented typographically improved time displays
+  with raised colons for better visual hierarchy and readability
+- **FormattedTime Component**: Created reusable component handling both Date
+  objects and time strings with consistent formatting
+- **Precise Vertical Alignment**: Uses CSS `verticalAlign: '0.2em'` for subtle
+  colon elevation (not disruptive `<sup>` tag)
+- **Universal Implementation**: Applied to all time displays across Calendar,
+  DailyVisibilityTable, TonightCard, and optimal viewing times
+- **CSS Variable Color System**: Centralized color palette management:
+  - `--primary` (#A3C4DC): Main buttons, highlights, navigation
+  - `--accent` (#6EC6FF): Links, time displays, hover effects  
+  - `--highlight` (#F5F5F5): Body text, general content
+  - `--secondary` (#273B4A): Background panels, popovers
+  - `--glow` (#B2E3FF): Hover/focus glow effects
+  - `--background` (#0B0E16): Deep night blue base
+- **Maintainability Benefits**: All hardcoded hex colors replaced with CSS
+  variables for consistent theming and easy color scheme modifications
+- **Enhanced TonightCard**: Complete Galactic Core event display with rise, optimal
+  viewing, transit, and set times arranged chronologically, improved time filtering
+  to show events from start of day for better "tonight" context
+
 ## Current Status
 
 ✅ **Phase 1**: Project Foundation - React/TypeScript setup with Vite and CSS
@@ -377,19 +416,18 @@ eliminated code duplication, improved high-latitude handling
 ✅ **Phase 7**: Navigation & FAQ System - Comprehensive navigation with centered
 layout, FAQ page with educational content, global dark/field mode  
 ✅ **Phase 8**: Timezone Accuracy Implementation - Replaced longitude
-approximation with proper IANA timezone lookup using `tz-lookup` library
-✅ **Phase 9**: SEO Implementation - Comprehensive XML sitemap generation with
+approximation with proper IANA timezone lookup using `tz-lookup` library ✅
+**Phase 9**: SEO Implementation - Comprehensive XML sitemap generation with
 dynamic location parsing, robots.txt configuration, and search engine
-optimization
-✅ **Phase 10**: Testing & Quality Assurance - Comprehensive unit test suite with
-98 tests covering all astronomy calculations, coordinate mapping, dark site search
-accuracy, edge cases, and integration scenarios
-✅ **Phase 11**: CSS Architecture Migration - Migrated from Tailwind CSS to CSS
-Modules for better component encapsulation, maintainability, and reduced dependencies
-✅ **Phase 12**: UI Refresh Implementation - Complete visual redesign following
-UI_REFRESH.md guidelines with new color palette, typography system (Playfair
-Display for headings, Orbitron for data/times, Inter for body), enhanced
-glassmorphism effects, and custom background imagery
+optimization ✅ **Phase 10**: Testing & Quality Assurance - Comprehensive unit
+test suite with 98 tests covering all astronomy calculations, coordinate
+mapping, dark site search accuracy, edge cases, and integration scenarios ✅
+**Phase 11**: CSS Architecture Migration - Migrated from Tailwind CSS to CSS
+Modules for better component encapsulation, maintainability, and reduced
+dependencies ✅ **Phase 12**: UI Refresh Implementation - Complete visual
+redesign following UI_REFRESH.md guidelines with new color palette, typography
+system (Playfair Display for headings, Orbitron for data/times, Inter for body),
+enhanced glassmorphism effects, and custom background imagery
 
 ✅ **Phase 13**: Critical Coordinate System Fix - Resolved fundamental light
 pollution map coordinate mapping bug that incorrectly identified major cities as
@@ -397,10 +435,24 @@ pristine dark sky sites, implemented comprehensive test coverage to prevent
 regression
 
 ✅ **Phase 14**: Dark Sky Classification Optimization - Fixed overly restrictive
-dark sky threshold that prevented legitimate locations like Joshua Tree and Death
-Valley from being found, expanded threshold from Bortle ≤1.5 to ≤3.0 to include
-excellent dark sky areas suitable for Milky Way photography while still excluding
-light-polluted urban areas
+dark sky threshold that prevented legitimate locations like Joshua Tree and
+Death Valley from being found, expanded threshold from Bortle ≤1.5 to ≤3.0 to
+include excellent dark sky areas suitable for Milky Way photography while still
+excluding light-polluted urban areas
+
+✅ **Phase 15**: Typography Enhancement - Implemented enhanced time displays with
+raised colons using precise CSS vertical alignment (0.2em) for improved
+readability across all astronomical time data, created reusable FormattedTime
+component supporting both Date objects and time strings
+
+✅ **Phase 16**: CSS Variable Color System - Centralized color palette using CSS
+variables (--primary, --accent, --highlight, --secondary, --glow, --background)
+replacing all hardcoded hex values for consistent theming and maintainability
+
+✅ **Phase 17**: TonightCard Galactic Core Enhancement - Added complete Galactic
+Core rise and set times to Tonight display, arranged chronologically (Rise →
+Optimal Window → Transit → Set), improved time filtering to show today's events
+for better "tonight" context
 
 **Current state**: Feature-complete astronomy calendar with consistent
 astronomical calculations, accurate timezone handling for international users,
@@ -408,9 +460,11 @@ proper high-latitude handling, comprehensive dark sky site discovery with
 corrected coordinate mapping and optimal classification thresholds, educational
 FAQ system with modern navigation, full SEO optimization for search engine
 discoverability, robust test coverage (100+ tests) ensuring calculation accuracy
-and preventing critical regressions, modern CSS Modules architecture for scalable
-styling, and a polished night-sky aesthetic with professional typography and
-visual design.
+and preventing critical regressions, modern CSS Modules architecture for
+scalable styling, centralized color theming with CSS variables, enhanced
+typography with raised colons for optimal time readability, and a polished
+night-sky aesthetic with professional visual design and complete astronomical
+event coverage.
 
 ## Hosting
 

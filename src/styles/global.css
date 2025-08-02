@@ -19,11 +19,6 @@
   color: var(--primary);
 }
 
-.global-mono-time {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
-    "Liberation Mono", Menlo, monospace;
-}
-
 /* Tooltip styles - can be used by any component */
 .global-tooltip {
   position: absolute;
@@ -86,43 +81,21 @@
 }
 
 /* Common icon colors */
-.global-icon-blue-200 {
-  color: var(--primary);
-}
 
-.global-icon-blue-300 {
+.color-accent {
   color: var(--accent);
 }
 
-.global-icon-blue-400 {
-  color: var(--accent);
-}
-
-.global-icon-gray-300 {
+.color-gray-300 {
   color: rgb(209 213 219);
 }
 
-.global-icon-gray-400 {
-  color: rgb(156 163 175);
-}
-
-.global-icon-orange-400 {
+.color-orange-400 {
   color: rgb(251 146 60);
 }
 
-.global-icon-yellow-200 {
+.color-yellow-200 {
   color: rgb(254 240 138);
-}
-
-/* Glass morphism effect - shared by multiple components */
-.global-glass-morphism {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
-  box-sizing: content-box;
-  padding: 1.5rem;
 }
 
 /* Common flex layouts */
@@ -200,29 +173,6 @@
   align-items: center;
   justify-content: center;
   min-height: 200px;
-}
-
-/* Button base styles */
-.global-button-base {
-  background: none;
-  border: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.global-button-link {
-  color: var(--accent);
-  text-decoration-line: underline;
-  text-decoration-style: dotted;
-  transition-property: color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-.global-button-link:hover {
-  color: var(--glow);
 }
 
 /* Typography scales */
@@ -312,6 +262,7 @@
 }
 
 /* New button styles from UI refresh */
+
 .button-primary {
   background-color: var(--primary);
   color: var(--secondary);
@@ -329,27 +280,7 @@
   box-shadow: 0 0 8px var(--glow);
 }
 
-/* Typography helpers */
-.font-playfair {
-  font-family: "Playfair Display", serif;
-}
-
-.font-data {
-  font-family: var(--data-font-family);
-  letter-spacing: 0.03em;
-}
-
 /* Data presentation styles */
-.data-block {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-}
-
-.data-label {
-  font-family: "Inter", sans-serif;
-  color: var(--highlight);
-}
 
 .data-time {
   font-family: var(--data-font-family);
@@ -358,6 +289,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.sub-label {
+.small-caps {
   font-variant: small-caps;
 }

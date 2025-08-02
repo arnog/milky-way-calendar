@@ -12,6 +12,8 @@
 .star {
   /* inline-block */
   display: inline-block;
+  fill: white;
+  color: white;
 }
 
 .starSmall {

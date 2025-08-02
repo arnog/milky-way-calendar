@@ -2,12 +2,18 @@
 
 .container {
   /* backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 mb-8 */
-  backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(3px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  border-radius: 24px;
   padding: 1.5rem;
   margin-bottom: 2rem;
+}
+
+.container h2 {
+  margin: 0;
+  margin-bottom: 1rem;
 }
 
 .loadingContainer {
@@ -15,7 +21,7 @@
   backdrop-filter: blur(8px);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  border-radius: 24px;
   padding: 2rem;
   margin-bottom: 2rem;
 }
@@ -35,7 +41,7 @@
   line-height: 2rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
-  color: #F5F5F5;
+  color: var(--highlight);
 }
 
 .tableContainer {
@@ -55,10 +61,11 @@
 
 .tableHeader {
   /* text-left py-3 px-4 text-white font-medium */
-  text-align: left;
+  text-align: center;
   padding: 0.75rem 1rem;
   color: white;
   font-weight: 500;
+  background: blue;
 }
 
 .tableCell {
@@ -87,7 +94,7 @@
 .rowGrid {
   /* grid grid-cols-4 gap-4 flex-1 */
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   flex: 1;
 }
@@ -96,10 +103,12 @@
   /* text-white font-medium */
   color: white;
   font-weight: 500;
+  font-family: var(--data-font-family);
 }
 
 .timeText {
   /* text-white */
+  text-align: center;
   color: white;
 }
 
@@ -112,13 +121,12 @@
 .expandedContent {
   /* px-4 pb-4 border-b border-white/10 */
   padding: 0 1rem 1rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .expandedPanel {
   /* bg-white/5 rounded-lg p-4 mt-2 */
   background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 0.5rem;
+  border-radius: 0 0 18px 18px;
   padding: 1rem;
   margin-top: 0.5rem;
 }
@@ -142,9 +150,10 @@
   /* text-white font-medium mb-3 text-base */
   color: white;
   font-weight: 500;
-  margin-bottom: 0.75rem;
   font-size: 1rem;
   line-height: 1.5rem;
+  margin: 0;
+  margin-bottom: 0.75rem;
 }
 
 .eventList {
@@ -155,6 +164,7 @@
 }
 
 .eventRow {
+  font-family: var(--data-font-family);
   /* flex items-center gap-2 text-white/80 */
   display: flex;
   align-items: center;

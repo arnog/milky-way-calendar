@@ -12,6 +12,7 @@ import {
   formatOptimalViewingDuration,
 } from "../utils/optimalViewing";
 import { generateEventStructuredData } from "../utils/structuredData";
+import FormattedTime from "./FormattedTime";
 import styles from "./Calendar.module.css";
 
 interface CalendarProps {
@@ -102,7 +103,6 @@ export default function Calendar({ location }: CalendarProps) {
     [location]
   );
 
-
   // Initial load
   useEffect(() => {
     const loadInitial = async () => {
@@ -144,19 +144,22 @@ export default function Calendar({ location }: CalendarProps) {
 
   // Dynamic background based on visibility
   const getRowBackground = (visibility: number) => {
-    const opacity = visibility * 0.1;
+    const opacity = visibility * 0.15;
     return {
       background: `linear-gradient(to right, 
         rgba(42, 56, 144, ${opacity}), 
-        rgba(56, 88, 176, ${opacity * 0.8}), 
-        rgba(42, 56, 144, ${opacity * 0.6}))`,
+        rgba(56, 88, 176, ${opacity * 0.4}), 
+        rgba(42, 56, 144, ${opacity * 0.3}))`,
       backgroundSize: "200% 100%",
-      animation: visibility >= 3 ? "shimmer 8s ease-in-out infinite" : "none",
+      animation: visibility >= 3 ? "shimmer 6s ease-in-out infinite" : "none",
     };
   };
 
   // Filter out weeks with no visibility
-  const visibleWeeks = useMemo(() => weekData.filter((week) => week.visibility > 0), [weekData]);
+  const visibleWeeks = useMemo(
+    () => weekData.filter((week) => week.visibility > 0),
+    [weekData]
+  );
 
   if (isLoading) {
     return (
@@ -166,21 +169,17 @@ export default function Calendar({ location }: CalendarProps) {
         </h2>
         <div className={styles.loadingContainer}>
           <div className={styles.loadingContent}>
-            <div
-              className={styles.spinner}
-              style={{
-                border: "2px solid transparent",
-                borderBottom: "2px solid #a8b5ff",
-              }}
-            ></div>
-            <p className={styles.loadingText}>Calculating astronomical data...</p>
+            <div className={styles.spinner}></div>
+            <p className={styles.loadingText}>
+              Calculating astronomical data...
+            </p>
             <p className={styles.loadingSubtext}>This may take a moment</p>
           </div>
         </div>
       </div>
     );
   }
-  
+
   // Don't render anything if there are no visible weeks
   if (visibleWeeks.length === 0 && !isLoadingMore) {
     return null;
@@ -188,68 +187,55 @@ export default function Calendar({ location }: CalendarProps) {
 
   return (
     <div className={styles.container}>
-      <style>
-        {`
-          @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-          }
-        `}
-      </style>
-
+      <h2 className={styles.title}>Milky Way Visibility Weekly Calendar</h2>
       <div className={styles.tableContainer}>
         <table className={styles.table}>
-          <thead>
-            <tr className={styles.tableHeaderRow}>
-              <th className={styles.tableHeader}>Date</th>
-              <th className={styles.tableHeader}>Visibility</th>
-              <th className={styles.tableHeader}>
-                Galactic Core Rise
-              </th>
-              <th className={styles.tableHeader}>Duration</th>
-            </tr>
-          </thead>
           <tbody>
             {visibleWeeks.map((week) => {
-                const structuredData = generateEventStructuredData(week, location);
-                
-                return (
-                  <tr
-                    key={`${week.startDate.getFullYear()}-${week.weekNumber}`}
-                    className={styles.tableRow}
-                    style={getRowBackground(week.visibility)}
-                    title={getVisibilityDescription(week.visibility)}
-                  >
-                    {structuredData && (
-                      <script
-                        type="application/ld+json"
-                        dangerouslySetInnerHTML={{
-                          __html: JSON.stringify(structuredData, null, 2)
-                        }}
-                      />
-                    )}
-                    <td className={styles.dateCell}>
-                      {week.startDate.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year:
-                          week.startDate.getFullYear() !== currentYear
-                            ? "numeric"
-                            : undefined,
-                      })}
-                    </td>
-                    <td className={styles.visibilityCell}>
-                      <StarRating rating={week.visibility} size="lg" />
-                    </td>
-                    <td className={styles.timeCell}>
-                      {formatOptimalViewingTime(week.optimalWindow, location)}
-                    </td>
-                    <td className={styles.timeCell}>
-                      {formatOptimalViewingDuration(week.optimalWindow)}
-                    </td>
-                  </tr>
-                );
-              })}
+              const structuredData = generateEventStructuredData(
+                week,
+                location
+              );
+
+              return (
+                <tr
+                  key={`${week.startDate.getFullYear()}-${week.weekNumber}`}
+                  className={styles.tableRow}
+                  style={getRowBackground(week.visibility)}
+                  title={getVisibilityDescription(week.visibility)}
+                >
+                  {structuredData && (
+                    <script
+                      type="application/ld+json"
+                      dangerouslySetInnerHTML={{
+                        __html: JSON.stringify(structuredData, null, 2),
+                      }}
+                    />
+                  )}
+                  <td className={styles.dateCell}>
+                    {week.startDate.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year:
+                        week.startDate.getFullYear() !== currentYear
+                          ? "numeric"
+                          : undefined,
+                    })}
+                  </td>
+                  <td className={styles.visibilityCell}>
+                    <StarRating rating={week.visibility} size="md" />
+                  </td>
+                  <td className={styles.timeCell}>
+                    <FormattedTime 
+                      timeString={formatOptimalViewingTime(week.optimalWindow, location)}
+                      className=""
+                    />
+                    <span className="small-caps"> for </span>
+                    {formatOptimalViewingDuration(week.optimalWindow)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -258,13 +244,7 @@ export default function Calendar({ location }: CalendarProps) {
         <div ref={loadMoreRef} className={styles.loadMoreSection}>
           {isLoadingMore && (
             <div className={styles.loadingMoreContainer}>
-              <div
-                className={styles.smallSpinner}
-                style={{
-                  border: "2px solid transparent",
-                  borderBottom: "2px solid #a8b5ff",
-                }}
-              ></div>
+              <div className={styles.smallSpinner}></div>
               Loading more weeks...
             </div>
           )}
