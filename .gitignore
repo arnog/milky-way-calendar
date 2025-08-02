@@ -16,6 +16,11 @@ examples/basic/index.debug.html
 # To store secret credentials
 *.secret.js
 
+# Environment variables
+.env
+.env.local
+.env.production
+
 # OS generated files #
 ######################
 **/.DS_Store

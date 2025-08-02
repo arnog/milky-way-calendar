@@ -5,6 +5,39 @@ import WorldMap from "./WorldMap";
 import { useLocationManager } from "../hooks/useLocationManager";
 import styles from "./LocationPopover.module.css";
 
+// SVG Icon component with custom tooltip
+const Icon = ({
+  name,
+  title,
+  className = "",
+}: {
+  name: string;
+  title?: string;
+  className?: string;
+}) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <div
+      className="global-icon-wrapper"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+      onTouchStart={() => setShowTooltip(true)}
+      onTouchEnd={() => setTimeout(() => setShowTooltip(false), 2000)}
+    >
+      <svg className={className}>
+        <use href={`/icons.svg#${name}`} />
+      </svg>
+      {showTooltip && title && (
+        <div className="global-tooltip">
+          {title}
+          <div className="global-tooltip-arrow"></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface LocationPopoverProps {
   location: Location | null;
   onLocationChange: (location: Location, shouldClose?: boolean) => void;
@@ -182,25 +215,11 @@ export default function LocationPopover({
                 className={styles.clearButton}
                 title="Use current location"
               >
-                <svg
+                <Icon
+                  name="current-location"
+                  title="Use current location"
                   className={styles.clearIcon}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
+                />
               </button>
             </div>
 
@@ -210,7 +229,11 @@ export default function LocationPopover({
                   onClick={acceptSuggestion}
                   className={styles.suggestionButton}
                 >
-                  📍 {suggestion}
+                  <Icon
+                    name="location"
+                    className="global-icon-small global-icon-blue-300"
+                  />{" "}
+                  {suggestion}
                   <span className={styles.suggestionCoords}>
                     (Press Tab or click to select)
                   </span>

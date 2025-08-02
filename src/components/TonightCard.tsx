@@ -9,7 +9,6 @@ import {
   Body,
   SearchAltitude,
 } from "astronomy-engine";
-import { getMoonPhaseEmoji } from "../utils/moonCalculations";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
@@ -47,6 +46,49 @@ interface TonightEvents {
   visibility: number;
   optimalWindow: OptimalViewingWindow;
 }
+
+// Helper function to get moon phase icon name
+const getMoonPhaseIcon = (phase: number, latitude: number): string => {
+  // Phase is 0-1, where 0.5 is full moon
+  // In southern hemisphere, phases appear flipped horizontally
+  const isNorthernHemisphere = latitude >= 0;
+  
+  // New Moon and Full Moon appear the same in both hemispheres
+  if (phase < 0.0625 || phase >= 0.9375) return "moon-new"; // New Moon
+  if (phase >= 0.4375 && phase < 0.5625) return "moon-full"; // Full Moon
+  
+  // For crescent and quarter phases, flip the icons in southern hemisphere
+  if (isNorthernHemisphere) {
+    // Northern hemisphere - standard orientation
+    if (phase < 0.1875) return "moon-waxing-crescent"; // Waxing Crescent
+    if (phase < 0.3125) return "moon-first-quarter"; // First Quarter
+    if (phase < 0.4375) return "moon-waxing-gibbous"; // Waxing Gibbous
+    if (phase < 0.6875) return "moon-waning-gibbous"; // Waning Gibbous
+    if (phase < 0.8125) return "moon-third-quarter"; // Third Quarter
+    return "moon-waning-crescent"; // Waning Crescent
+  } else {
+    // Southern hemisphere - flip waxing/waning phases
+    if (phase < 0.1875) return "moon-waning-crescent"; // Waxing Crescent (appears as waning crescent)
+    if (phase < 0.3125) return "moon-third-quarter"; // First Quarter (appears as third quarter)
+    if (phase < 0.4375) return "moon-waning-gibbous"; // Waxing Gibbous (appears as waning gibbous)
+    if (phase < 0.6875) return "moon-waxing-gibbous"; // Waning Gibbous (appears as waxing gibbous)
+    if (phase < 0.8125) return "moon-first-quarter"; // Third Quarter (appears as first quarter)
+    return "moon-waxing-crescent"; // Waning Crescent (appears as waxing crescent)
+  }
+};
+
+// Helper function to get moon phase name
+const getMoonPhaseName = (phase: number): string => {
+  // Phase is 0-1, where 0.5 is full moon
+  if (phase < 0.0625 || phase >= 0.9375) return "New Moon";
+  if (phase < 0.1875) return "Waxing Crescent";
+  if (phase < 0.3125) return "First Quarter";
+  if (phase < 0.4375) return "Waxing Gibbous";
+  if (phase < 0.5625) return "Full Moon";
+  if (phase < 0.6875) return "Waning Gibbous";
+  if (phase < 0.8125) return "Third Quarter";
+  return "Waning Crescent";
+};
 
 // SVG Icon component with custom tooltip
 const Icon = ({
@@ -254,7 +296,9 @@ export default function TonightCard({
     return (
       <div className={styles.container}>
         <h2 className={styles.title}>Tonight</h2>
-        <p className="global-loading-text">Calculating astronomical events...</p>
+        <p className="global-loading-text">
+          Calculating astronomical events...
+        </p>
       </div>
     );
   }
@@ -281,7 +325,7 @@ export default function TonightCard({
               {events.sunSet && (
                 <>
                   <Icon
-                    name="set"
+                    name="sunset"
                     title="Sunset (Civil Dawn)"
                     className={`global-icon-medium global-icon-blue-300`}
                   />
@@ -319,7 +363,7 @@ export default function TonightCard({
               {events.sunRise && (
                 <>
                   <Icon
-                    name="rise"
+                    name="sunrise"
                     title="Sunrise (Civil Twilight)"
                     className={`global-icon-medium global-icon-yellow-200`}
                   />
@@ -336,9 +380,11 @@ export default function TonightCard({
         <div className={styles.eventSection}>
           <h3 className={styles.sectionTitle}>
             Moon{" "}
-            <span style={{ fontFamily: "Times" }}>
-              {getMoonPhaseEmoji(events.moonPhase)}
-            </span>{" "}
+            <Icon
+              name={getMoonPhaseIcon(events.moonPhase, location.lat)}
+              title={getMoonPhaseName(events.moonPhase)}
+              className={`global-icon-medium global-icon-gray-300`}
+            />{" "}
             <span className={styles.moonIllumination}>
               {events.moonIllumination.toFixed(0)}%
             </span>
@@ -346,7 +392,7 @@ export default function TonightCard({
           {events.moonRise && (
             <div className={styles.eventRowWide}>
               <Icon
-                name="rise"
+                name="moonrise"
                 title="Moonrise"
                 className={`global-icon-medium global-icon-gray-300`}
               />
@@ -356,7 +402,7 @@ export default function TonightCard({
           {events.moonSet && (
             <div className={styles.eventRowWide}>
               <Icon
-                name="set"
+                name="moonset"
                 title="Moonset"
                 className={`global-icon-medium global-icon-gray-300`}
               />
@@ -370,9 +416,7 @@ export default function TonightCard({
           events.gcTransit ||
           events.maxGcAltitude > 0) && (
           <div className={styles.eventSection}>
-            <h3 className={styles.sectionTitle}>
-              Galactic Core
-            </h3>
+            <h3 className={styles.sectionTitle}>Galactic Core</h3>
             {events.gcRise && (
               <div className={styles.eventRowWide}>
                 <Icon
@@ -386,12 +430,13 @@ export default function TonightCard({
             {events.optimalWindow.startTime && (
               <div className={styles.eventRowWide}>
                 <Icon
-                  name="rise2"
-                  title="Galactic Core Rise (Optimal)"
+                  name="telescope"
+                  title="Optimal Viewing Window"
                   className={`global-icon-medium global-icon-gray-300`}
                 />
                 <span className="data-time">
-                  {formatOptimalViewingTime(events.optimalWindow, location)} for{" "}
+                  {formatOptimalViewingTime(events.optimalWindow, location)}
+                  <span className="sub-label"> for </span>
                   {formatOptimalViewingDuration(events.optimalWindow)}
                 </span>
               </div>
@@ -404,7 +449,8 @@ export default function TonightCard({
                   className={`global-icon-medium global-icon-gray-300`}
                 />
                 <span className="data-time">
-                  {events.maxGcAltitude.toFixed(0)}° at{" "}
+                  {events.maxGcAltitude.toFixed(0)}°{" "}
+                  <span className="sub-label">at </span>
                   {formatTime(events.gcTransit)}
                 </span>
               </div>
@@ -429,7 +475,12 @@ export default function TonightCard({
             onClick={() => setShowLocationPopover(true)}
             className={styles.locationLink}
           >
-            📍 {locationDisplayName}
+            <Icon
+              name="location"
+              title="Change location"
+              className="global-icon-small global-icon-blue-300"
+            />{" "}
+            {locationDisplayName}
           </button>
         </div>
         {locationDescription && (

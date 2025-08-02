@@ -239,6 +239,106 @@ The website should include a FAQ section:
 </section>
 ```
 
+### Explore Page
+
+1. The Explore page includes a map of the world with markers for the predefined
+   dark sites (not the large cities). The user can click on a marker to navigate
+   top the `/location` page for that location.
+
+2. Below the maps is a section to find the nearest dark site to the user's
+   current location.
+
+- The user location is indicated by a Location button, similar to the one on the
+  home page, which brings up a Location Picker.
+- To find the nearest dark site:
+
+  2.1 Load in memory the file @public/world2024B-lg.png, the world light
+  pollution map. Then, let's approach this as a nearest-neighbor search problem
+  on a geospatial raster. Given the light pollution map, here’s a step-by-step
+  method:
+
+  2.2. Preprocess the Map
+
+  - Georeference the image so each pixel maps to a latitude/longitude.
+  - If your image is an equirectangular projection (likely), then:
+    - lon = (x / width) \* 360 - 180
+    - lat = 90 - (y / height) \* 180
+  - Load it as a 2D array where each pixel’s value corresponds to brightness
+    (you can extract this from the RGB).
+
+  Note that the file @public/colorbar.png defines the color mapping for the
+  light pollution map, with the darkest pixels corresponding to Bortle scale 1
+  and the brightest pixels corresponding to Bortle scale 9.
+
+  Note the conversion from mag/arcsec² to Bortle scale is as follows:
+
+  | Bortle Scale | Magnitude/arcsec² |
+  | ------------ | ----------------- |
+  | 1            | 21.76             |
+  | 2            | 21.6              |
+  | 3            | 21.3              |
+  | 4            | 20.8              |
+  | 4.5          | 20.3              |
+  | 5            | 19.25             |
+  | 6            | 18.5              |
+  | 7            | 18.00             |
+  | 8            | <18.00            |
+
+  2.3. Define “Darkness”
+
+  - Convert RGB to brightness (e.g., grayscale luminance or custom mapping of
+    colors to Bortle scale values).
+
+  - You want to minimize this darkness score.
+
+    2.4. Search Algorithm
+
+        Given a target lat/long:
+
+        1. Find the corresponding pixel (px, py) in your raster.
+
+        2. Breadth-First Search (BFS) or Dijkstra:
+
+        - Treat each pixel as a node.
+        - Edge weight = distance to neighbor (and possibly weighted by darkness
+          score if you want “prefer much darker even if slightly farther”).
+        - BFS works if distance cost per pixel is uniform; Dijkstra if weights vary.
+
+        3. Stop when you reach the first pixel below a darkness threshold (e.g.,
+            Bortle ≤ 2).
+
+    2.5. Geodesic Distance Convert pixel distances to great-circle distances
+    using the haversine formula:
+
+    $$
+    d = 2R \arcsin \left( \sqrt{
+    \sin^2\frac{\Delta\phi}{2} + \cos(\phi_1) \cos(\phi_2)
+    \sin^2\frac{\Delta\lambda}{2} } \right)
+    $$
+
+    where R is Earth radius.
+
+    2.6 Once a dark site is found, display it on the map with a red market and a
+    label such as "Nearest Dark Site : <name of the dark site>" as a link to the
+    `/location` page for that location.
+
+3. Below the map is a list of the predefined dark sites, group by geographical
+   area:
+
+- Eastern America (includes the eastern US and Canada)
+- Central USA
+- California
+- Utah
+- Colorado
+- New Mexico
+- Western USA (other than the states above)
+- Africa and the Middle East
+- Europe
+- Asia and Oceania
+
+Clicking on one of the locations in the list navigates to the `/location` page
+for that location.
+
 ### General UI Requirements
 
 The app should have a clean and modern UI, with a focus on usability.

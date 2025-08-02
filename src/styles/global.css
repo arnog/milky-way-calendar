@@ -1,13 +1,17 @@
 /* Global shared styles for components */
 
+/* Import Mapbox GL CSS */
+@import "mapbox-gl/dist/mapbox-gl.css";
+
 /* Color palette variables */
 :root {
-  --primary: #A3C4DC;
-  --accent: #6EC6FF;
-  --highlight: #F5F5F5;
-  --secondary: #273B4A;
-  --glow: #B2E3FF;
-  --background: #0B0E16;
+  --primary: #a3c4dc;
+  --accent: #6ec6ff;
+  --highlight: #f5f5f5;
+  --secondary: #273b4a;
+  --glow: #b2e3ff;
+  --background: #0b0e16;
+  --data-font-family: "Rubik", sans-serif;
 }
 
 /* Common text styles */
@@ -16,7 +20,8 @@
 }
 
 .global-mono-time {
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+    "Liberation Mono", Menlo, monospace;
 }
 
 /* Tooltip styles - can be used by any component */
@@ -32,7 +37,8 @@
   color: white;
   background-color: rgb(17 24 39);
   border-radius: 0.25rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   white-space: nowrap;
   z-index: 50;
 }
@@ -328,8 +334,8 @@
   font-family: "Playfair Display", serif;
 }
 
-.font-orbitron {
-  font-family: "Orbitron", sans-serif;
+.font-data {
+  font-family: var(--data-font-family);
   letter-spacing: 0.03em;
 }
 
@@ -346,7 +352,12 @@
 }
 
 .data-time {
-  font-family: "Orbitron", sans-serif;
+  font-family: var(--data-font-family);
   color: var(--accent);
   letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sub-label {
+  font-variant: small-caps;
 }

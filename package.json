@@ -16,10 +16,12 @@
   "dependencies": {
     "@types/react-helmet": "^6.1.11",
     "astronomy-engine": "^2.1.19",
+    "mapbox-gl": "^3.14.0",
     "postcss": "^8.5.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet": "^6.1.0",
+    "react-map-gl": "^7.1.7",
     "react-router-dom": "^7.7.1",
     "tz-lookup": "^6.1.25"
   },
@@ -28,6 +30,7 @@
     "@playwright/test": "^1.54.1",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
+    "@types/mapbox-gl": "^3.4.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/tz-lookup": "^6.1.2",

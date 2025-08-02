@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Location } from "../types/astronomy";
+import { coordToNormalized, normalizedToCoord } from "../utils/lightPollutionMap";
 import styles from "./WorldMap.module.css";
 
 interface WorldMapProps {
@@ -45,19 +46,12 @@ export default function WorldMap({
     }
   };
 
-  // Equirectangular projection inverse transform (for the light pollution map)
+  // Use the corrected coordinate mapping that matches the light pollution map coverage (-65° to +75°)
   const equirectangularUnproject = (
     x: number,
     y: number
   ): { lat: number; lng: number } => {
-    // The map uses equirectangular projection
-    // x: 0 to 1 maps to -180 to 180 longitude
-    // y: 0 to 1 maps to 90 to -90 latitude (top to bottom)
-
-    const lng = (x - 0.5) * 360;
-    const lat = (0.5 - y) * 180;
-
-    return { lat, lng };
+    return normalizedToCoord(x, y);
   };
 
   const getLocationFromEvent = (
@@ -124,16 +118,12 @@ export default function WorldMap({
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  // Equirectangular projection forward transform for marker positioning
+  // Use the corrected coordinate mapping that matches the light pollution map coverage (-65° to +75°)
   const equirectangularProject = (
     lat: number,
     lng: number
   ): { x: number; y: number } => {
-    // Convert lat/lng to x/y coordinates for equirectangular projection
-    const x = (lng + 180) / 360;
-    const y = (90 - lat) / 180;
-
-    return { x, y };
+    return coordToNormalized(lat, lng);
   };
 
   const markerPosition = location
