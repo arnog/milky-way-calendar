@@ -1,9 +1,11 @@
 /**
  * Light Pollution Map Processing Utilities
- * 
+ *
  * This module handles processing of the world light pollution map to find
  * the nearest dark sky location for a given coordinate.
  */
+
+import { type SpecialLocation } from "./locations";
 
 export interface Coordinate {
   lat: number;
@@ -53,21 +55,25 @@ const EARTH_RADIUS_KM = 6371;
  * Convert latitude/longitude to pixel coordinates in equirectangular projection
  * The light pollution map covers -65° to +75° latitude (140° total span)
  */
-export function coordToPixel(coord: Coordinate, imageWidth: number, imageHeight: number): PixelCoordinate {
+export function coordToPixel(
+  coord: Coordinate,
+  imageWidth: number,
+  imageHeight: number
+): PixelCoordinate {
   // Map coverage: -65° to +75° latitude, -180° to +180° longitude
   const MAP_LAT_MIN = -65;
   const MAP_LAT_MAX = 75;
   const MAP_LAT_SPAN = MAP_LAT_MAX - MAP_LAT_MIN; // 140°
-  
+
   const x = ((coord.lng + 180) / 360) * imageWidth;
   const y = ((MAP_LAT_MAX - coord.lat) / MAP_LAT_SPAN) * imageHeight;
-  
+
   const pixelX = Math.round(Math.max(0, Math.min(imageWidth - 1, x)));
   const pixelY = Math.round(Math.max(0, Math.min(imageHeight - 1, y)));
-  
+
   return {
     x: pixelX,
-    y: pixelY
+    y: pixelY,
   };
 }
 
@@ -75,15 +81,19 @@ export function coordToPixel(coord: Coordinate, imageWidth: number, imageHeight:
  * Convert pixel coordinates back to latitude/longitude
  * The light pollution map covers -65° to +75° latitude (140° total span)
  */
-export function pixelToCoord(pixel: PixelCoordinate, imageWidth: number, imageHeight: number): Coordinate {
+export function pixelToCoord(
+  pixel: PixelCoordinate,
+  imageWidth: number,
+  imageHeight: number
+): Coordinate {
   // Map coverage: -65° to +75° latitude, -180° to +180° longitude
   const MAP_LAT_MIN = -65;
   const MAP_LAT_MAX = 75;
   const MAP_LAT_SPAN = MAP_LAT_MAX - MAP_LAT_MIN; // 140°
-  
+
   const lng = (pixel.x / imageWidth) * 360 - 180;
   const lat = MAP_LAT_MAX - (pixel.y / imageHeight) * MAP_LAT_SPAN;
-  
+
   return { lat, lng };
 }
 
@@ -91,15 +101,18 @@ export function pixelToCoord(pixel: PixelCoordinate, imageWidth: number, imageHe
  * Convert latitude/longitude to normalized coordinates (0-1) for display positioning
  * This is used for positioning markers on the map UI (not for pixel-level operations)
  */
-export function coordToNormalized(lat: number, lng: number): { x: number; y: number } {
+export function coordToNormalized(
+  lat: number,
+  lng: number
+): { x: number; y: number } {
   // Map coverage: -65° to +75° latitude, -180° to +180° longitude
   const MAP_LAT_MIN = -65;
   const MAP_LAT_MAX = 75;
   const MAP_LAT_SPAN = MAP_LAT_MAX - MAP_LAT_MIN; // 140°
-  
+
   const x = (lng + 180) / 360; // 0 to 1
   const y = (MAP_LAT_MAX - lat) / MAP_LAT_SPAN; // 0 to 1
-  
+
   return { x, y };
 }
 
@@ -107,22 +120,28 @@ export function coordToNormalized(lat: number, lng: number): { x: number; y: num
  * Convert normalized coordinates (0-1) back to latitude/longitude
  * This is used for interpreting click positions on the map UI
  */
-export function normalizedToCoord(x: number, y: number): { lat: number; lng: number } {
+export function normalizedToCoord(
+  x: number,
+  y: number
+): { lat: number; lng: number } {
   // Map coverage: -65° to +75° latitude, -180° to +180° longitude
   const MAP_LAT_MIN = -65;
   const MAP_LAT_MAX = 75;
   const MAP_LAT_SPAN = MAP_LAT_MAX - MAP_LAT_MIN; // 140°
-  
-  const lng = (x * 360) - 180;
-  const lat = MAP_LAT_MAX - (y * MAP_LAT_SPAN);
-  
+
+  const lng = x * 360 - 180;
+  const lat = MAP_LAT_MAX - y * MAP_LAT_SPAN;
+
   return { lat, lng };
 }
 
 /**
  * Calculate geodesic distance between two coordinates using Haversine formula
  */
-export function haversineDistance(coord1: Coordinate, coord2: Coordinate): number {
+export function haversineDistance(
+  coord1: Coordinate,
+  coord2: Coordinate
+): number {
   const lat1Rad = (coord1.lat * Math.PI) / 180;
   const lat2Rad = (coord2.lat * Math.PI) / 180;
   const deltaLatRad = ((coord2.lat - coord1.lat) * Math.PI) / 180;
@@ -130,11 +149,13 @@ export function haversineDistance(coord1: Coordinate, coord2: Coordinate): numbe
 
   const a =
     Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
-    Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-    Math.sin(deltaLngRad / 2) * Math.sin(deltaLngRad / 2);
-  
+    Math.cos(lat1Rad) *
+      Math.cos(lat2Rad) *
+      Math.sin(deltaLngRad / 2) *
+      Math.sin(deltaLngRad / 2);
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  
+
   return EARTH_RADIUS_KM * c;
 }
 
@@ -155,22 +176,22 @@ const LIGHT_POLLUTION_COLORMAP = [
   // From darkest (non-black) to brightest (red/white) - based on colorbar.png
   // Note: Pure black (0,0,0) is treated as no-data/water and excluded from dark sky search
   // Made more restrictive: only very darkest grays are truly pristine dark sky
-  [8, 8, 8, 22.00, 21.99, 1],           // Almost black - pristine dark sky (very restrictive)
-  [16, 16, 16, 21.99, 21.95, 1.5],      // Very dark gray
-  [24, 24, 24, 21.95, 21.91, 2],        // Dark gray
-  [32, 32, 32, 21.91, 21.87, 2.5],      // Medium dark gray (where LA RGB 35,35,35 falls)
-  [48, 48, 48, 21.87, 21.81, 3],        // Light dark gray
-  [0, 0, 128, 21.81, 21.69, 3.5],       // Dark blue
-  [0, 0, 255, 21.69, 21.51, 4],         // Blue
-  [0, 128, 0, 21.51, 21.25, 4.5],       // Dark green  
-  [0, 255, 0, 21.25, 20.91, 5],         // Green
-  [128, 128, 0, 20.91, 20.49, 5.5],     // Olive/dark yellow
-  [255, 255, 0, 20.49, 20.02, 6],       // Yellow
-  [255, 128, 0, 20.02, 19.50, 6.5],     // Orange
-  [255, 64, 0, 19.50, 18.95, 7],        // Red-orange
-  [255, 0, 0, 18.95, 18.38, 7.5],       // Red
-  [255, 255, 255, 18.38, 17.80, 8],     // White - extreme light pollution
-  [192, 192, 192, 17.80, 0, 9],         // Light gray - beyond scale
+  [8, 8, 8, 22.0, 21.99, 1], // Almost black - pristine dark sky (very restrictive)
+  [16, 16, 16, 21.99, 21.95, 1.5], // Very dark gray
+  [24, 24, 24, 21.95, 21.91, 2], // Dark gray
+  [32, 32, 32, 21.91, 21.87, 2.5], // Medium dark gray (where LA RGB 35,35,35 falls)
+  [48, 48, 48, 21.87, 21.81, 3], // Light dark gray
+  [0, 0, 128, 21.81, 21.69, 3.5], // Dark blue
+  [0, 0, 255, 21.69, 21.51, 4], // Blue
+  [0, 128, 0, 21.51, 21.25, 4.5], // Dark green
+  [0, 255, 0, 21.25, 20.91, 5], // Green
+  [128, 128, 0, 20.91, 20.49, 5.5], // Olive/dark yellow
+  [255, 255, 0, 20.49, 20.02, 6], // Yellow
+  [255, 128, 0, 20.02, 19.5, 6.5], // Orange
+  [255, 64, 0, 19.5, 18.95, 7], // Red-orange
+  [255, 0, 0, 18.95, 18.38, 7.5], // Red
+  [255, 255, 255, 18.38, 17.8, 8], // White - extreme light pollution
+  [192, 192, 192, 17.8, 0, 9], // Light gray - beyond scale
 ];
 
 /**
@@ -182,24 +203,24 @@ export function rgbToBortleScale(r: number, g: number, b: number): number {
   if (r === 0 && g === 0 && b === 0) {
     return 9; // Worse than any real Bortle scale value
   }
-  
+
   // Find the closest color match in the colormap
   let minDistance = Infinity;
   let bestMatch = LIGHT_POLLUTION_COLORMAP[LIGHT_POLLUTION_COLORMAP.length - 1]; // Default to worst case
-  
+
   for (const colorEntry of LIGHT_POLLUTION_COLORMAP) {
     const [mapR, mapG, mapB] = colorEntry;
     // Calculate Euclidean distance in RGB space
     const distance = Math.sqrt(
       (r - mapR) ** 2 + (g - mapG) ** 2 + (b - mapB) ** 2
     );
-    
+
     if (distance < minDistance) {
       minDistance = distance;
       bestMatch = colorEntry;
     }
   }
-  
+
   return bestMatch[5] as number; // Return Bortle scale
 }
 
@@ -209,11 +230,13 @@ export function rgbToBortleScale(r: number, g: number, b: number): number {
  */
 export function brightnessToBortleScale(brightness: number): number {
   // This is now deprecated - we should use the RGB-based mapping instead
-  console.warn('brightnessToBortleScale is deprecated, use rgbToBortleScale instead');
-  
+  console.warn(
+    "brightnessToBortleScale is deprecated, use rgbToBortleScale instead"
+  );
+
   // Fallback to simple brightness mapping
   const normalizedBrightness = Math.max(0, Math.min(255, brightness));
-  
+
   if (normalizedBrightness < 20) return 1;
   if (normalizedBrightness < 40) return 2;
   if (normalizedBrightness < 60) return 3;
@@ -244,7 +267,7 @@ export function isTooCloseToCity(
   for (const city of cities) {
     const cityCoord = { lat: city[2] as number, lng: city[3] as number };
     const distance = haversineDistance(coordinate, cityCoord);
-    
+
     if (distance < minDistanceKm) {
       return true;
     }
@@ -264,12 +287,12 @@ export function isValidDarkSite(
   if (!isDarkSky(bortleScale)) {
     return false;
   }
-  
+
   // Must not be too close to major cities
   if (cities && isTooCloseToCity(coordinate, cities)) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -283,36 +306,36 @@ export async function loadLightPollutionMap(): Promise<{
 }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
-    
+    img.crossOrigin = "anonymous";
+
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
       if (!ctx) {
-        reject(new Error('Failed to get canvas context'));
+        reject(new Error("Failed to get canvas context"));
         return;
       }
-      
+
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
-      
+
       const imageData = ctx.getImageData(0, 0, img.width, img.height);
-      
+
       resolve({
         imageData,
         width: img.width,
-        height: img.height
+        height: img.height,
       });
     };
-    
+
     img.onerror = () => {
-      reject(new Error('Failed to load light pollution map'));
+      reject(new Error("Failed to load light pollution map"));
     };
-    
+
     // Use the large version for maximum accuracy
-    img.src = '/world2024B-lg.png';
+    img.src = "/world2024B-lg.png";
   });
 }
 
@@ -324,12 +347,12 @@ export function getPixelData(
   pixel: PixelCoordinate
 ): { r: number; g: number; b: number; a: number } {
   const index = (pixel.y * imageData.width + pixel.x) * 4;
-  
+
   return {
     r: imageData.data[index],
     g: imageData.data[index + 1],
     b: imageData.data[index + 2],
-    a: imageData.data[index + 3]
+    a: imageData.data[index + 3],
   };
 }
 
@@ -338,16 +361,16 @@ export function getPixelData(
  */
 class PriorityQueue<T> {
   private items: Array<{ item: T; priority: number }> = [];
-  
+
   enqueue(item: T, priority: number): void {
     this.items.push({ item, priority });
     this.items.sort((a, b) => a.priority - b.priority);
   }
-  
+
   dequeue(): T | undefined {
     return this.items.shift()?.item;
   }
-  
+
   isEmpty(): boolean {
     return this.items.length === 0;
   }
@@ -358,22 +381,27 @@ class PriorityQueue<T> {
  */
 export function findNearestKnownSite(
   targetCoord: Coordinate,
-  knownSites: Array<(string | number)[]> // DARK_SITES format: [fullName, shortName, lat, lng, optional slug]
-): { name: string; fullName: string; coordinate: Coordinate; distance: number } | null {
+  knownSites: ReadonlyArray<SpecialLocation> // DARK_SITES format: [fullName, shortName, lat, lng, optional slug]
+): {
+  name: string;
+  fullName: string;
+  coordinate: Coordinate;
+  distance: number;
+} | null {
   let nearest = null;
   let minDistance = Infinity;
 
   for (const site of knownSites) {
     const siteCoord = { lat: site[2] as number, lng: site[3] as number };
     const distance = haversineDistance(targetCoord, siteCoord);
-    
+
     if (distance < minDistance) {
       minDistance = distance;
       nearest = {
         name: site[1] as string, // short name
         fullName: site[0] as string, // full name
         coordinate: siteCoord,
-        distance
+        distance,
       };
     }
   }
@@ -390,7 +418,9 @@ export function calculateBearing(from: Coordinate, to: Coordinate): number {
   const deltaLngRad = ((to.lng - from.lng) * Math.PI) / 180;
 
   const y = Math.sin(deltaLngRad) * Math.cos(lat2Rad);
-  const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(deltaLngRad);
+  const x =
+    Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(deltaLngRad);
 
   const bearingRad = Math.atan2(y, x);
   const bearingDeg = (bearingRad * 180) / Math.PI;
@@ -405,42 +435,52 @@ export async function findNearestDarkSky(
   startCoord: Coordinate,
   maxDistance: number = 500, // Maximum search distance in km
   onProgress?: (progress: number) => void,
-  knownSites?: Array<(string | number)[]> // Optional known sites for secondary location
+  knownSites?: ReadonlyArray<SpecialLocation> // Optional known sites for secondary location
 ): Promise<DarkSiteResult | null> {
   try {
     const { imageData, width, height } = await loadLightPollutionMap();
-    
+
     const startPixel = coordToPixel(startCoord, width, height);
     const visited = new Set<string>();
-    const queue = new PriorityQueue<{ pixel: PixelCoordinate; distance: number }>();
-    
+    const queue = new PriorityQueue<{
+      pixel: PixelCoordinate;
+      distance: number;
+    }>();
+
     // Start with the initial pixel
     queue.enqueue({ pixel: startPixel, distance: 0 }, 0);
-    
-    const maxPixelDistance = Math.round((maxDistance / EARTH_RADIUS_KM) * Math.max(width, height) / (2 * Math.PI));
+
+    const maxPixelDistance = Math.round(
+      ((maxDistance / EARTH_RADIUS_KM) * Math.max(width, height)) /
+        (2 * Math.PI)
+    );
     let processedPixels = 0;
     const totalEstimatedPixels = Math.PI * maxPixelDistance * maxPixelDistance;
-    
+
     while (!queue.isEmpty()) {
       const current = queue.dequeue();
       if (!current) break;
-      
+
       const { pixel } = current;
       const key = `${pixel.x},${pixel.y}`;
-      
+
       if (visited.has(key)) continue;
       visited.add(key);
-      
+
       processedPixels++;
       if (onProgress && processedPixels % 1000 === 0) {
         onProgress(Math.min(processedPixels / totalEstimatedPixels, 0.95));
       }
-      
+
       // Check if current pixel represents dark sky
       const pixelData = getPixelData(imageData, pixel);
-      const bortleScale = rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
+      const bortleScale = rgbToBortleScale(
+        pixelData.r,
+        pixelData.g,
+        pixelData.b
+      );
       const coord = pixelToCoord(pixel, width, height);
-      
+
       // Optional debug logging (can be enabled for troubleshooting)
       // if (Math.abs(startCoord.lat - 34.0522) < 0.01 && Math.abs(startCoord.lng - (-118.2437)) < 0.01) {
       //   const distance = haversineDistance(startCoord, coord);
@@ -454,15 +494,15 @@ export async function findNearestDarkSky(
       //     });
       //   }
       // }
-      
+
       // Skip pure black pixels (water/no-data areas)
       if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
         continue; // Skip this pixel
       }
-      
+
       if (isDarkSky(bortleScale)) {
         const actualDistance = haversineDistance(startCoord, coord);
-        
+
         // Optional debug logging for dark sky findings
         // console.log(`DEBUG: Found dark sky at (${coord.lat.toFixed(4)}, ${coord.lng.toFixed(4)}):`, {
         //   distance: actualDistance.toFixed(1) + 'km',
@@ -470,13 +510,13 @@ export async function findNearestDarkSky(
         //   rgb: `R${pixelData.r} G${pixelData.g} B${pixelData.b}`,
         //   startCoord: `(${startCoord.lat.toFixed(4)}, ${startCoord.lng.toFixed(4)})`
         // });
-        
+
         if (onProgress) onProgress(1);
-        
+
         const result: DarkSiteResult = {
           coordinate: coord,
           distance: actualDistance,
-          bortleScale
+          bortleScale,
         };
 
         // Find nearest known site if provided
@@ -489,7 +529,7 @@ export async function findNearestDarkSky(
 
         return result;
       }
-      
+
       // Add neighboring pixels to queue
       const neighbors = [
         { x: pixel.x - 1, y: pixel.y },
@@ -502,17 +542,22 @@ export async function findNearestDarkSky(
         { x: pixel.x - 1, y: pixel.y + 1 },
         { x: pixel.x + 1, y: pixel.y + 1 },
       ];
-      
+
       for (const neighbor of neighbors) {
         if (
-          neighbor.x >= 0 && neighbor.x < width &&
-          neighbor.y >= 0 && neighbor.y < height
+          neighbor.x >= 0 &&
+          neighbor.x < width &&
+          neighbor.y >= 0 &&
+          neighbor.y < height
         ) {
           const neighborKey = `${neighbor.x},${neighbor.y}`;
           if (!visited.has(neighborKey)) {
             const neighborCoord = pixelToCoord(neighbor, width, height);
-            const neighborDistance = haversineDistance(startCoord, neighborCoord);
-            
+            const neighborDistance = haversineDistance(
+              startCoord,
+              neighborCoord
+            );
+
             if (neighborDistance <= maxDistance) {
               // Priority is distance - closer pixels are processed first
               queue.enqueue(
@@ -524,12 +569,11 @@ export async function findNearestDarkSky(
         }
       }
     }
-    
+
     if (onProgress) onProgress(1);
     return null; // No dark sky found within range
-    
   } catch (error) {
-    console.error('Error finding nearest dark sky:', error);
+    console.error("Error finding nearest dark sky:", error);
     throw error;
   }
 }
@@ -541,38 +585,40 @@ export async function findMultipleDarkSites(
   startCoord: Coordinate,
   maxDistance: number = 500,
   onProgress?: (progress: number) => void,
-  knownSites?: Array<(string | number)[]>
+  knownSites?: ReadonlyArray<SpecialLocation> // Optional known sites for secondary location>
 ): Promise<MultipleDarkSitesResult | null> {
   try {
     // First, find the nearest dark site
-    const primary = await findNearestDarkSky(startCoord, maxDistance, 
+    const primary = await findNearestDarkSky(
+      startCoord,
+      maxDistance,
       (progress) => onProgress?.(progress * 0.4), // 40% for primary search
       knownSites
     );
-    
+
     if (!primary) return null;
 
     // Calculate the bearing to the primary dark site
     const primaryBearing = calculateBearing(startCoord, primary.coordinate);
-    
+
     // Define search directions: spread around compass for maximum geographic diversity
     // Start with opposite direction, then fill in the gaps
     const searchBearings = [
-      (primaryBearing + 180) % 360,  // Opposite direction
-      (primaryBearing + 90) % 360,   // 90° clockwise (perpendicular)
-      (primaryBearing + 270) % 360,  // 270° clockwise (perpendicular opposite)
-      (primaryBearing + 45) % 360,   // 45° clockwise
-      (primaryBearing + 225) % 360   // 225° clockwise (opposite + 45°)
+      (primaryBearing + 180) % 360, // Opposite direction
+      (primaryBearing + 90) % 360, // 90° clockwise (perpendicular)
+      (primaryBearing + 270) % 360, // 270° clockwise (perpendicular opposite)
+      (primaryBearing + 45) % 360, // 45° clockwise
+      (primaryBearing + 225) % 360, // 225° clockwise (opposite + 45°)
     ];
 
     const alternatives: DarkSiteResult[] = [];
     const { imageData, width, height } = await loadLightPollutionMap();
-    
+
     // Search in each direction
     for (let i = 0; i < searchBearings.length; i++) {
       const bearing = searchBearings[i];
-      const progressBase = 0.4 + (i * 0.12); // 40% + 12% per alternative (5 × 12% = 60%)
-      
+      const progressBase = 0.4 + i * 0.12; // 40% + 12% per alternative (5 × 12% = 60%)
+
       try {
         const result = await findDarkSiteInDirection(
           startCoord,
@@ -581,16 +627,19 @@ export async function findMultipleDarkSites(
           imageData,
           width,
           height,
-          [primary.coordinate, ...alternatives.map(alt => alt.coordinate)], // Exclude primary and previous alternatives
+          [primary.coordinate, ...alternatives.map((alt) => alt.coordinate)], // Exclude primary and previous alternatives
           (progress) => onProgress?.(progressBase + progress * 0.12),
           knownSites
         );
-        
+
         if (result) {
           alternatives.push(result);
         }
       } catch (error) {
-        console.warn(`Failed to find dark site in direction ${bearing}°:`, error);
+        console.warn(
+          `Failed to find dark site in direction ${bearing}°:`,
+          error
+        );
       }
     }
 
@@ -598,11 +647,10 @@ export async function findMultipleDarkSites(
 
     return {
       primary,
-      alternatives
+      alternatives,
     };
-
   } catch (error) {
-    console.error('Error finding multiple dark sites:', error);
+    console.error("Error finding multiple dark sites:", error);
     throw error;
   }
 }
@@ -619,59 +667,66 @@ async function findDarkSiteInDirection(
   height: number,
   excludeCoords: Coordinate[], // coordinates to exclude from results
   onProgress?: (progress: number) => void,
-  knownSites?: Array<(string | number)[]>
+  knownSites?: ReadonlyArray<SpecialLocation>
 ): Promise<DarkSiteResult | null> {
   const visited = new Set<string>();
-  const queue = new PriorityQueue<{ pixel: PixelCoordinate; distance: number }>();
-  
+  const queue = new PriorityQueue<{
+    pixel: PixelCoordinate;
+    distance: number;
+  }>();
+
   // Convert bearing to radians
   const bearingRad = (bearing * Math.PI) / 180;
-  
+
   // Start search from points along the bearing direction
   const searchSteps = 20; // Number of initial search points along the bearing
-  
+
   for (let step = 1; step <= searchSteps; step++) {
     const searchDistance = (maxDistance / searchSteps) * step;
-    
+
     // Calculate coordinate at this distance along the bearing
     const R = 6371; // Earth radius in km
     const lat1Rad = (startCoord.lat * Math.PI) / 180;
     const lng1Rad = (startCoord.lng * Math.PI) / 180;
-    
+
     const lat2Rad = Math.asin(
       Math.sin(lat1Rad) * Math.cos(searchDistance / R) +
-      Math.cos(lat1Rad) * Math.sin(searchDistance / R) * Math.cos(bearingRad)
+        Math.cos(lat1Rad) * Math.sin(searchDistance / R) * Math.cos(bearingRad)
     );
-    
-    const lng2Rad = lng1Rad + Math.atan2(
-      Math.sin(bearingRad) * Math.sin(searchDistance / R) * Math.cos(lat1Rad),
-      Math.cos(searchDistance / R) - Math.sin(lat1Rad) * Math.sin(lat2Rad)
-    );
-    
+
+    const lng2Rad =
+      lng1Rad +
+      Math.atan2(
+        Math.sin(bearingRad) * Math.sin(searchDistance / R) * Math.cos(lat1Rad),
+        Math.cos(searchDistance / R) - Math.sin(lat1Rad) * Math.sin(lat2Rad)
+      );
+
     const searchCoord = {
       lat: (lat2Rad * 180) / Math.PI,
-      lng: (lng2Rad * 180) / Math.PI
+      lng: (lng2Rad * 180) / Math.PI,
     };
-    
+
     const pixel = coordToPixel(searchCoord, width, height);
     const actualDistance = haversineDistance(startCoord, searchCoord);
-    
+
     if (actualDistance <= maxDistance) {
       queue.enqueue({ pixel, distance: actualDistance }, actualDistance);
     }
   }
 
-  const maxPixelDistance = Math.round((maxDistance / 6371) * Math.max(width, height) / (2 * Math.PI));
+  const maxPixelDistance = Math.round(
+    ((maxDistance / 6371) * Math.max(width, height)) / (2 * Math.PI)
+  );
   let processedPixels = 0;
   const totalEstimatedPixels = Math.PI * maxPixelDistance * maxPixelDistance;
-  
+
   while (!queue.isEmpty()) {
     const current = queue.dequeue();
     if (!current) break;
-    
+
     const { pixel } = current;
     const key = `${pixel.x},${pixel.y}`;
-    
+
     if (visited.has(key)) continue;
     visited.add(key);
 
@@ -681,27 +736,27 @@ async function findDarkSiteInDirection(
     }
 
     const coord = pixelToCoord(pixel, width, height);
-    
+
     // Check if this coordinate is too close to excluded coordinates
-    const tooClose = excludeCoords.some(excludeCoord => 
-      haversineDistance(coord, excludeCoord) < 2 // 2km minimum separation
+    const tooClose = excludeCoords.some(
+      (excludeCoord) => haversineDistance(coord, excludeCoord) < 2 // 2km minimum separation
     );
-    
+
     if (tooClose) continue;
 
     // Check if current pixel represents dark sky
     const pixelData = getPixelData(imageData, pixel);
-    
+
     // Skip pure black pixels (water/no-data areas)
     if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
       continue;
     }
-    
+
     const bortleScale = rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
-    
+
     if (isDarkSky(bortleScale)) {
       const actualDistance = haversineDistance(startCoord, coord);
-      
+
       // Optional debug logging for directional search findings
       // console.log(`DEBUG: Found directional dark sky at (${coord.lat.toFixed(4)}, ${coord.lng.toFixed(4)}):`, {
       //   distance: actualDistance.toFixed(1) + 'km',
@@ -709,11 +764,11 @@ async function findDarkSiteInDirection(
       //   rgb: `R${pixelData.r} G${pixelData.g} B${pixelData.b}`,
       //   bearing: bearing.toFixed(0) + '°'
       // });
-      
+
       const result: DarkSiteResult = {
         coordinate: coord,
         distance: actualDistance,
-        bortleScale
+        bortleScale,
       };
 
       // Find nearest known site if provided
@@ -733,19 +788,21 @@ async function findDarkSiteInDirection(
       { x: pixel.x - 1, y: pixel.y },
       { x: pixel.x + 1, y: pixel.y },
       { x: pixel.x, y: pixel.y - 1 },
-      { x: pixel.x, y: pixel.y + 1 }
+      { x: pixel.x, y: pixel.y + 1 },
     ];
-    
+
     for (const neighbor of neighbors) {
       if (
-        neighbor.x >= 0 && neighbor.x < width &&
-        neighbor.y >= 0 && neighbor.y < height
+        neighbor.x >= 0 &&
+        neighbor.x < width &&
+        neighbor.y >= 0 &&
+        neighbor.y < height
       ) {
         const neighborKey = `${neighbor.x},${neighbor.y}`;
         if (!visited.has(neighborKey)) {
           const neighborCoord = pixelToCoord(neighbor, width, height);
           const neighborDistance = haversineDistance(startCoord, neighborCoord);
-          
+
           if (neighborDistance <= maxDistance) {
             queue.enqueue(
               { pixel: neighbor, distance: neighborDistance },

@@ -47,7 +47,9 @@ export default function LocationPopover({
       if (triggerRef.current) {
         const triggerRect = triggerRef.current.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
-        const desiredWidth = Math.min(Math.max(viewportWidth * 0.5, 500), 800);
+        const desiredWidth = viewportWidth < 480 
+          ? Math.min(viewportWidth - 32, 350) // Small screens: viewport width minus 32px padding, max 350px
+          : Math.min(Math.max(viewportWidth * 0.5, 500), 800);
 
         // Center the popover horizontally on the page
         const left = (viewportWidth - desiredWidth) / 2;
