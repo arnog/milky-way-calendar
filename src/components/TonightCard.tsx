@@ -5,7 +5,6 @@ import StarRating from "./StarRating";
 import { Icon } from "./Icon";
 import {
   Observer,
-  Horizon,
   SearchRiseSet,
   Body,
   SearchAltitude,
@@ -13,10 +12,7 @@ import {
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import {
-  formatTimeInLocationTimezone,
-  calculateVisibilityRating,
-} from "../utils/visibilityRating";
+import { calculateVisibilityRating } from "../utils/visibilityRating";
 import { getSpecialLocationDescription } from "../utils/locationParser";
 import {
   calculateOptimalViewingWindow,
@@ -229,7 +225,7 @@ export default function TonightCard({
           moonSet:
             moonData.set && moonData.set > now ? moonData.set : undefined,
           gcRise: gcRise && gcRise >= todayStart ? gcRise : undefined,
-          gcTransit: gcTransit,
+          gcTransit: gcTransit || undefined,
           gcSet: gcSet && gcSet > now ? gcSet : undefined,
           maxGcAltitude: maxAltitude,
           moonPhase: moonData.phase,

@@ -12,7 +12,6 @@ import {
   formatOptimalViewingDuration,
   OptimalViewingWindow,
 } from "../utils/optimalViewing";
-import { formatTimeInLocationTimezone } from "../utils/timezoneUtils";
 import * as Astronomy from "astronomy-engine";
 import FormattedTime from "./FormattedTime";
 import styles from "./DailyVisibilityTable.module.css";
