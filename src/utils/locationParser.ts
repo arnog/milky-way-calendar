@@ -214,7 +214,8 @@ export function findNearestSpecialLocation(
 
 // Get special location description by finding matching location identifier
 export function getSpecialLocationDescription(
-  location: Location
+  location: Location,
+  matchedLocationName?: string | null
 ): string | null {
   // Check for high latitude locations first (>60°N)
   if (location.lat > 60) {
@@ -232,15 +233,33 @@ export function getSpecialLocationDescription(
     }
   }
 
+  // If we have a matched location name, use a more generous distance threshold
+  const distanceThreshold = matchedLocationName ? 100 : 1; // 100km if matched name, 1km if exact coordinates
+
   // Look for the special location entry that matches this location
   for (const loc of SPECIAL_LOCATIONS) {
     const specialLoc = { lat: loc[2], lng: loc[3] };
     const distance = calculateDistance(location, specialLoc);
 
-    // If it's a very close match (within 1km) and has an identifier (5th element)
-    if (distance < 1 && loc[4]) {
-      const identifier = loc[4];
-      return SPECIAL_LOCATION_DESCRIPTIONS[identifier] || null;
+    // If it's a close match and has an identifier (5th element)
+    if (distance < distanceThreshold && loc[4]) {
+      // If we have a matched name, verify it matches this location's slug/name
+      if (matchedLocationName) {
+        const locationSlug = loc[1] as string; // Short name/slug
+        const locationFullName = loc[0] as string; // Full name
+        
+        // Check if the matched name corresponds to this location
+        if (matchedLocationName === locationSlug || 
+            matchedLocationName.toLowerCase().includes(locationFullName.toLowerCase()) ||
+            locationFullName.toLowerCase().includes(matchedLocationName.toLowerCase())) {
+          const identifier = loc[4];
+          return SPECIAL_LOCATION_DESCRIPTIONS[identifier] || null;
+        }
+      } else {
+        // For exact coordinates (no matched name), use the original strict distance check
+        const identifier = loc[4];
+        return SPECIAL_LOCATION_DESCRIPTIONS[identifier] || null;
+      }
     }
   }
 

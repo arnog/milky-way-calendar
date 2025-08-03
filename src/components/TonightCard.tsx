@@ -138,7 +138,17 @@ export default function TonightCard({
     }
 
     // Get special location description if available
-    const description = getSpecialLocationDescription(location);
+    // Pass the matched name from localStorage to help find descriptions for nearby locations
+    let matchedName = null;
+    if (savedLocation) {
+      try {
+        const parsed = JSON.parse(savedLocation);
+        matchedName = parsed.matchedName;
+      } catch {
+        // No valid saved location data
+      }
+    }
+    const description = getSpecialLocationDescription(location, matchedName);
     setLocationDescription(description);
     
     // Find nearest known location for coordinates display
