@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getOptimalViewingWindow, formatOptimalViewingTime, formatOptimalViewingDuration } from '../utils/optimalViewing'
+import { getOptimalViewingWindow, formatOptimalViewingTime, formatOptimalViewingDuration } from '../utils/integratedOptimalViewing'
 import { GalacticCenterData, MoonData, TwilightData, Location } from '../types/astronomy'
 
 describe('optimalViewing', () => {
@@ -119,7 +119,7 @@ describe('optimalViewing', () => {
       expect(result.startTime).toBeNull()
       expect(result.endTime).toBeNull()
       expect(result.duration).toBe(0)
-      expect(result.description).toContain('No overlap')
+      expect(result.description).toContain('No viable observation time')
     })
 
     it('should handle moon interference correctly', () => {

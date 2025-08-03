@@ -3,8 +3,7 @@
  * Centralizes all clock-related interfaces and types for better maintainability
  */
 
-import { OptimalViewingWindow } from '../utils/optimalViewing';
-import { Location } from './astronomy';
+import { OptimalViewingWindow } from '../utils/integratedOptimalViewing';
 
 /**
  * Complete set of astronomical events for a given date and location
@@ -158,8 +157,6 @@ export interface ClockDimensions {
 export interface AstronomicalClockProps {
   /** Astronomical events to display */
   events: AstronomicalEvents;
-  /** Geographic location for calculations */
-  location: Location;
   /** Current date/time (defaults to now) */
   currentDate?: Date;
   /** Clock diameter in pixels */

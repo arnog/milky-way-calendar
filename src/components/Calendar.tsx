@@ -11,7 +11,7 @@ import {
   getOptimalViewingWindow,
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
-} from "../utils/optimalViewing";
+} from "../utils/integratedOptimalViewing";
 import { generateEventStructuredData } from "../utils/structuredData";
 import FormattedTime from "./FormattedTime";
 import styles from "./Calendar.module.css";

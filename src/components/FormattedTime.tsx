@@ -1,25 +1,25 @@
 import { formatTimeInLocationTimezone } from "../utils/timezoneUtils";
-import { Location } from "../types/astronomy";
+import { useLocation } from "../hooks/useLocation";
 
 interface FormattedTimeProps {
   date?: Date | undefined;
   timeString?: string;
-  location?: Location;
   className?: string;
 }
 
 export default function FormattedTime({
   date,
   timeString,
-  location,
-  className = "",
+  className = "data-time",
 }: FormattedTimeProps) {
+  const { location } = useLocation();
+
   let finalTimeString: string;
 
   if (timeString !== undefined) {
     // Use provided time string directly
     finalTimeString = timeString;
-  } else if (date && location) {
+  } else if (date) {
     // Format the date using the timezone utils
     finalTimeString = formatTimeInLocationTimezone(date, location);
   } else {

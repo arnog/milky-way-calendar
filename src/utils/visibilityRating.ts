@@ -6,7 +6,7 @@ import {
 } from "../types/astronomy";
 import { getMoonInterference } from "./moonCalculations";
 import { calculateDarkDuration } from "./twilightCalculations";
-import { OptimalViewingWindow } from "./optimalViewing";
+import { OptimalViewingWindow } from "./integratedOptimalViewing";
 import { getLocationTimezone } from "./timezoneUtils";
 import { 
   computeGCObservationScore, 

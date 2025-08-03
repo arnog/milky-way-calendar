@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useState, useRef } from 'react';
+import { useLocation } from '../hooks/useLocation';
 import { Icon } from './Icon';
 import { getMoonPhaseIcon } from '../utils/moonPhase';
 import ClockTooltip from './ClockTooltip';
@@ -29,10 +30,11 @@ import styles from './AstronomicalClock.module.css';
 
 export default function AstronomicalClock({ 
   events, 
-  location, 
   currentDate,
   size = CLOCK_CONFIG.DEFAULT_SIZE 
 }: AstronomicalClockProps) {
+  const { location } = useLocation();
+  
   const [refreshTick, setRefreshTick] = useState(0);
   const [currentPanel, setCurrentPanel] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -42,6 +44,7 @@ export default function AstronomicalClock({
   const [hoveredArcType, setHoveredArcType] = useState<'sun' | 'moon' | 'gc' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const now = useMemo(() => currentDate || new Date(), [currentDate, refreshTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  
   const currentTimeAngle = getCurrentTimeAngle(location, now);
   
   // Check if current time is within the display window (6pm to 6am)
@@ -429,8 +432,6 @@ export default function AstronomicalClock({
                       )}
                       <FormattedTime 
                         date={event.time} 
-                        location={location}
-                        className="data-time"
                         aria-hidden="true"
                       />
                     </div>
@@ -476,8 +477,6 @@ export default function AstronomicalClock({
                     <div className={styles.listEventDetails}>
                       <FormattedTime 
                         date={event.time} 
-                        location={location}
-                        className="data-time"
                       />
                       {isMoonrise && (
                         <div className={styles.listEventExtra}>

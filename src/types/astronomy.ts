@@ -1,4 +1,4 @@
-import { OptimalViewingWindow } from "../utils/optimalViewing";
+import { OptimalViewingWindow } from "../utils/integratedOptimalViewing";
 
 export interface Location {
   lat: number;

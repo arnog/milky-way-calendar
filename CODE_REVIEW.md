@@ -5,8 +5,8 @@ state and offloading heavy computation will be crucial for scalability and
 maintainability.
 
 **Status Summary:**
-- ✅ **1 High-Priority Item Completed** - Shared state management with React Context
-- 🔄 **3 Items Remaining** - Performance optimizations and code organization improvements
+- ✅ **3 High-Priority Items Completed** - Shared state management, data abstraction layer, and optimal viewing consolidation
+- 🔄 **1 Item Remaining** - Performance optimization with Web Worker
 
 **Prioritized Task List:**
 
@@ -30,7 +30,40 @@ maintainability.
       `src/pages/LocationPage.tsx`, `src/components/TonightCard.tsx`, 
       `src/components/DailyVisibilityTable.tsx`, `src/components/Calendar.tsx`
 
-2.  **Offload Heavy Computations to a Web Worker**
+2.  **✅ COMPLETED - Create a Data Abstraction Layer with Custom Hooks (High Priority)**
+
+    - **Observation:** Components like `TonightCard` and `DailyVisibilityTable`
+      contained significant data-calculating logic within their `useEffect` hooks,
+      making them complex and difficult to test.
+    - **Implementation:** Created dedicated custom hooks:
+      - `useTonightEvents(location, date)` - Extracts all astronomical calculations for tonight's events
+      - `useWeeklyVisibility(location, startDate)` - Handles 7-day visibility calculations
+    - **Results & Impact:**
+      - **Maintainability:** ✅ Components are now focused purely on rendering, data logic is separated
+      - **Testability:** ✅ Custom hooks can be tested independently from UI components
+      - **Reusability:** ✅ Complex astronomical calculations can be easily reused across components
+      - **Error Handling:** ✅ Centralized error handling and loading states
+    - **Files Modified:** `src/hooks/useTonightEvents.ts` (new), `src/hooks/useWeeklyVisibility.ts` (new),
+      `src/components/TonightCard.tsx`, `src/components/DailyVisibilityTable.tsx`
+
+3.  **✅ COMPLETED - Consolidate Optimal Viewing Logic (High Priority)**
+
+    - **Observation:** The codebase contained both a simpler `optimalViewing.ts`
+      and a more advanced `integratedOptimalViewing.ts` which uses
+      `gcObservationScoring.ts`. This created confusion and potential bugs from using two
+      different calculation methods.
+    - **Implementation:** Formally deprecated the older calculation by:
+      - Moving all types and utility functions to `integratedOptimalViewing.ts`
+      - Updating all imports across the codebase to use the integrated approach
+      - Removing the wrapper `optimalViewing.ts` file entirely
+    - **Results & Impact:**
+      - **Consistency:** ✅ Single, reliable source of truth for optimal viewing calculations
+      - **Quality:** ✅ All components now use the superior time-integrated quality analysis
+      - **Maintainability:** ✅ Eliminated code duplication and potential inconsistencies
+    - **Files Modified:** `src/utils/integratedOptimalViewing.ts`, removed `src/utils/optimalViewing.ts`,
+      updated imports in components, types, and test files
+
+4.  **Offload Heavy Computations to a Web Worker**
 
     - **Suggestion:** The `findNearestDarkSky` function in
       `lightPollutionMap.ts` loads a large map image and performs intensive
@@ -44,33 +77,6 @@ maintainability.
       user's device.
     - **Impact:** High. This is the single most significant performance and
       architectural improvement you can make.
-
-3.  **Create a Data Abstraction Layer with Custom Hooks**
-
-    - **Suggestion:** Components like `TonightCard` and `DailyVisibilityTable`
-      contain significant data-calculating logic within their `useEffect` hooks.
-      Abstract this logic into dedicated custom hooks, for example:
-      `useTonightEvents(location, date)` or
-      `useWeeklyVisibility(location, startDate)`.
-    - **Benefit:** Decouples data calculation from the view layer, making
-      components simpler and more focused on rendering. It also improves
-      testability and allows the same complex logic to be reused easily across
-      the application.
-    - **Impact:** Medium. Improves code organization and maintainability
-      significantly.
-
-4.  **Consolidate Optimal Viewing Logic**
-    - **Suggestion:** The codebase contains both a simpler `optimalViewing.ts`
-      and a more advanced `integratedOptimalViewing.ts` which uses
-      `gcObservationScoring.ts`. The integrated approach is superior as it
-      provides a quality score over time. The project should formally deprecate
-      the older, simpler calculation and exclusively use the integrated method
-      via `getOptimalViewingWindow` to ensure consistency.
-    - **Benefit:** Creates a single, reliable source of truth for a key
-      application feature, reducing confusion and potential bugs from using two
-      different calculation methods.
-    - **Impact:** Medium. Improves the correctness and consistency of the data
-      presented to the user.
 
 ---
 

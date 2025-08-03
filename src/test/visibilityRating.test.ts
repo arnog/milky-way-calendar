@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { calculateVisibilityRating, getVisibilityDescription, getVisibilityRatingNumber } from '../utils/visibilityRating'
 import { GalacticCenterData, MoonData, TwilightData, Location } from '../types/astronomy'
-import { OptimalViewingWindow } from '../utils/optimalViewing'
+import { OptimalViewingWindow } from '../utils/integratedOptimalViewing'
 
 describe('visibilityRating', () => {
   describe('calculateVisibilityRating', () => {

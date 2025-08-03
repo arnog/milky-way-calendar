@@ -9,7 +9,7 @@ import LocationPage from "./pages/LocationPage";
 import ExplorePage from "./pages/ExplorePage";
 import FAQPage from "./pages/FAQPage";
 import { LocationProvider } from "./contexts/LocationContext";
-import { useLocation } from "./hooks/useLocation";
+import LocationErrorBoundary from "./components/LocationErrorBoundary";
 import { useDateFromQuery } from "./hooks/useDateFromQuery";
 import styles from "./App.module.css";
 
@@ -19,7 +19,6 @@ interface HomePageProps {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
-  const { location } = useLocation();
   const [currentDate, setCurrentDate] = useDateFromQuery();
 
   return (
@@ -52,18 +51,14 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
 
       <div className={styles.container}>
         <div className={styles.content}>
-          {location && (
-            <>
-              <TonightCard
-                currentDate={currentDate}
-              />
-              <DailyVisibilityTable currentDate={currentDate} />
-              <Calendar 
-                currentDate={currentDate}
-                onDateClick={setCurrentDate}
-              />
-            </>
-          )}
+          <TonightCard
+            currentDate={currentDate}
+          />
+          <DailyVisibilityTable currentDate={currentDate} />
+          <Calendar 
+            currentDate={currentDate}
+            onDateClick={setCurrentDate}
+          />
         </div>
       </div>
     </>
@@ -84,7 +79,9 @@ function App() {
           path="/"
           element={
             <LocationProvider>
-              <HomePage isDarkroomMode={isDarkroomMode} />
+              <LocationErrorBoundary>
+                <HomePage isDarkroomMode={isDarkroomMode} />
+              </LocationErrorBoundary>
             </LocationProvider>
           }
         />

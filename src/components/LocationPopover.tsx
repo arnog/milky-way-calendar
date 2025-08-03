@@ -1,24 +1,24 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Location } from "../types/astronomy";
+import { useLocation } from "../hooks/useLocation";
 import WorldMap from "./WorldMap";
 import { useLocationManager } from "../hooks/useLocationManager";
 import { Icon } from "./Icon";
 import styles from "./LocationPopover.module.css";
 
 interface LocationPopoverProps {
-  location: Location | null;
   onLocationChange: (location: Location, shouldClose?: boolean) => void;
   onClose: () => void;
   triggerRef: React.RefObject<HTMLElement>;
 }
 
 export default function LocationPopover({
-  location,
   onLocationChange,
   onClose,
   triggerRef,
 }: LocationPopoverProps) {
+  const { location } = useLocation();
   const {
     inputValue,
     suggestion,

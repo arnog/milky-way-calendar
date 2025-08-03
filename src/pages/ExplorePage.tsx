@@ -748,7 +748,6 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
       {/* Location Popover */}
       {showLocationPopover && (
         <LocationPopover
-          location={userLocation}
           onLocationChange={handleUserLocationChangeWrapper}
           onClose={() => setShowLocationPopover(false)}
           triggerRef={locationButtonRef}

@@ -1,18 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "../hooks/useLocation";
+import { useWeeklyVisibility } from "../hooks/useWeeklyVisibility";
 import StarRating from "./StarRating";
 import { Icon } from "./Icon";
-import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
-import { calculateMoonData } from "../utils/moonCalculations";
-import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import { calculateVisibilityRating, getVisibilityRatingNumber } from "../utils/visibilityRating";
 import {
-  getOptimalViewingWindow,
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
-  OptimalViewingWindow,
-} from "../utils/optimalViewing";
-import * as Astronomy from "astronomy-engine";
+} from "../utils/integratedOptimalViewing";
 import FormattedTime from "./FormattedTime";
 import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
 import styles from "./DailyVisibilityTable.module.css";
@@ -21,126 +15,13 @@ interface DailyVisibilityTableProps {
   currentDate?: Date;
 }
 
-interface DayData {
-  date: Date;
-  visibility: number;
-  visibilityReason?: string;
-  optimalWindow: OptimalViewingWindow;
-  // Expanded view data
-  sunRise?: Date;
-  sunSet?: Date;
-  astronomicalTwilightEnd?: Date;
-  astronomicalTwilightStart?: Date;
-  moonRise?: Date;
-  moonSet?: Date;
-  gcRise?: Date;
-  gcTransit?: Date;
-  gcSet?: Date;
-  maxGcAltitude: number;
-  moonPhase: number;
-  moonIllumination: number;
-}
-
-
 export default function DailyVisibilityTable({
   currentDate,
 }: DailyVisibilityTableProps) {
   const { location } = useLocation();
-  const [dailyData, setDailyData] = useState<DayData[]>([]);
+  const { dailyData, isLoading, error } = useWeeklyVisibility(location, currentDate);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Don't calculate if location is not available
-    if (!location) {
-      return;
-    }
-    const calculateDailyData = async () => {
-      setIsLoading(true);
-
-      try {
-        const today = currentDate || new Date();
-        const data: DayData[] = [];
-
-        // Calculate data for the next 7 days
-        for (let i = 0; i < 7; i++) {
-          const date = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
-
-          // Calculate astronomical data for this day
-          const gcData = calculateGalacticCenterPosition(date, location);
-          const moonData = calculateMoonData(date, location);
-          const twilightData = calculateTwilightTimes(date, location);
-
-          const optimalWindow = getOptimalViewingWindow(
-            gcData,
-            moonData,
-            twilightData,
-            location,
-            date,
-            0.3   // Decent viewing threshold
-          );
-          const visibilityResult = calculateVisibilityRating(
-            gcData,
-            moonData,
-            twilightData,
-            optimalWindow,
-            location,
-            date
-          );
-          const visibility = getVisibilityRatingNumber(visibilityResult);
-          const visibilityReason = typeof visibilityResult === 'object' ? visibilityResult.reason : undefined;
-
-          // Calculate sunrise and sunset
-          const observer = new Astronomy.Observer(location.lat, location.lng, 0);
-          const sunrise = Astronomy.SearchRiseSet(
-            Astronomy.Body.Sun,
-            observer,
-            +1, // Direction: +1 = Rise
-            date,
-            1
-          );
-          const sunset = Astronomy.SearchRiseSet(
-            Astronomy.Body.Sun,
-            observer,
-            -1, // Direction: -1 = Set
-            date,
-            1
-          );
-
-          data.push({
-            date,
-            visibility,
-            visibilityReason,
-            optimalWindow,
-            sunRise: sunrise ? sunrise.date : undefined,
-            sunSet: sunset ? sunset.date : undefined,
-            astronomicalTwilightEnd: twilightData.night
-              ? new Date(twilightData.night)
-              : undefined,
-            astronomicalTwilightStart: twilightData.dayEnd
-              ? new Date(twilightData.dayEnd)
-              : undefined,
-            moonRise: moonData.rise || undefined,
-            moonSet: moonData.set || undefined,
-            gcRise: gcData.riseTime || undefined,
-            gcTransit: gcData.transitTime || undefined,
-            gcSet: gcData.setTime || undefined,
-            maxGcAltitude: gcData.altitude,
-            moonPhase: moonData.phase,
-            moonIllumination: moonData.illumination,
-          });
-        }
-
-        setDailyData(data);
-      } catch (error) {
-        console.error("Error calculating daily visibility data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    calculateDailyData();
-  }, [location, currentDate]);
 
   const formatDate = (date: Date) => {
     const today = currentDate || new Date();
@@ -163,12 +44,23 @@ export default function DailyVisibilityTable({
     setExpandedRow(expandedRow === index ? null : index);
   };
 
-  // Show loading if location is not available yet or if loading data
-  if (!location || isLoading) {
+  // Show loading if loading data
+  if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingText}>
-          {!location ? "Loading location..." : "Loading daily visibility data..."}
+          Loading daily visibility data...
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if something went wrong
+  if (error) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingText}>
+          {error}
         </div>
       </div>
     );
@@ -237,8 +129,6 @@ export default function DailyVisibilityTable({
                                   <span>
                                     <FormattedTime 
                                       date={day.sunSet}
-                                      location={location}
-                                      className="data-time"
                                     />
                                   </span>
                                 </div>
@@ -253,8 +143,6 @@ export default function DailyVisibilityTable({
                                   <span>
                                     <FormattedTime 
                                       date={day.astronomicalTwilightEnd}
-                                      location={location}
-                                      className="data-time"
                                     />
                                   </span>
                                 </div>
@@ -269,8 +157,6 @@ export default function DailyVisibilityTable({
                                   <span>
                                     <FormattedTime 
                                       date={day.astronomicalTwilightStart}
-                                      location={location}
-                                      className="data-time"
                                     />
                                   </span>
                                 </div>
@@ -285,8 +171,6 @@ export default function DailyVisibilityTable({
                                   <span>
                                     <FormattedTime 
                                       date={day.sunRise}
-                                      location={location}
-                                      className="data-time"
                                     />
                                   </span>
                                 </div>
@@ -323,8 +207,6 @@ export default function DailyVisibilityTable({
                                   <span>
                                     <FormattedTime 
                                       date={day.moonRise}
-                                      location={location}
-                                      className="data-time"
                                     />
                                   </span>
                                 </div>
@@ -339,8 +221,6 @@ export default function DailyVisibilityTable({
                                   <span>
                                     <FormattedTime 
                                       date={day.moonSet}
-                                      location={location}
-                                      className="data-time"
                                     />
                                   </span>
                                 </div>
@@ -364,8 +244,6 @@ export default function DailyVisibilityTable({
                                   <span>
                                     <FormattedTime 
                                       date={day.gcRise}
-                                      location={location}
-                                      className="data-time"
                                     />
                                   </span>
                                 </div>
@@ -383,7 +261,6 @@ export default function DailyVisibilityTable({
                                         day.optimalWindow,
                                         location
                                       )}
-                                      className="data-time"
                                     />
                                     <span className="small-caps">
                                       {" for "}
@@ -402,8 +279,6 @@ export default function DailyVisibilityTable({
                                   <span>
                                     <FormattedTime 
                                       date={day.gcTransit}
-                                      location={location}
-                                      className="data-time"
                                     />
                                     <span className="small-caps">
                                       {" at "}
@@ -422,8 +297,6 @@ export default function DailyVisibilityTable({
                                   <span>
                                     <FormattedTime 
                                       date={day.gcSet}
-                                      location={location}
-                                      className="data-time"
                                     />
                                   </span>
                                 </div>

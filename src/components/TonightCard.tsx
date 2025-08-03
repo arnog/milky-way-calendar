@@ -1,64 +1,33 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Location } from "../types/astronomy";
 import { useLocation } from "../hooks/useLocation";
+import { useTonightEvents } from "../hooks/useTonightEvents";
 import { locationToSlug } from "../utils/urlHelpers";
 import LocationPopover from "./LocationPopover";
 import StarRating from "./StarRating";
 import { Icon } from "./Icon";
 import {
-  Observer,
-  SearchRiseSet,
-  Body,
-  SearchAltitude,
-} from "astronomy-engine";
-import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
-import { calculateMoonData } from "../utils/moonCalculations";
-import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import {
-  calculateVisibilityRating,
-  getVisibilityRatingNumber,
-} from "../utils/visibilityRating";
-import { getSpecialLocationDescription } from "../utils/locationParser";
-import {
-  getOptimalViewingWindow,
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
-} from "../utils/optimalViewing";
-import { getBortleRatingForLocation, findNearestDarkSky, DarkSiteResult } from "../utils/lightPollutionMap";
-import { findNearestSpecialLocation, calculateDistance } from "../utils/locationParser";
-import { storageService } from "../services/storageService";
+} from "../utils/integratedOptimalViewing";
 import FormattedTime from "./FormattedTime";
 import AstronomicalClock from "./AstronomicalClock";
 import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
-import { type AstronomicalEvents } from "../types/astronomicalClock";
 import styles from "./TonightCard.module.css";
 
 interface TonightCardProps {
   currentDate?: Date;
 }
 
-interface TonightEvents extends AstronomicalEvents {
-  visibility: number;
-  visibilityReason?: string;
-}
-
-
-export default function TonightCard({
-  currentDate,
-}: TonightCardProps) {
+export default function TonightCard({ currentDate }: TonightCardProps) {
   const { location, updateLocation } = useLocation();
   const navigate = useNavigate();
-  const [events, setEvents] = useState<TonightEvents | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showLocationPopover, setShowLocationPopover] = useState(false);
-  const [locationDisplayName, setLocationDisplayName] = useState<string>("");
-  const [locationDescription, setLocationDescription] = useState<string | null>(
-    null
+  const { events, locationData, isLoading, error } = useTonightEvents(
+    location,
+    currentDate
   );
-  const [bortleRating, setBortleRating] = useState<number | null>(null);
-  const [nearestDarkSite, setNearestDarkSite] = useState<DarkSiteResult | null>(null);
-  const [nearestKnownLocation, setNearestKnownLocation] = useState<{name: string, distance: number} | null>(null);
+  const [showLocationPopover, setShowLocationPopover] = useState(false);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
 
   // Handle location changes with navigation
@@ -68,206 +37,24 @@ export default function TonightCard({
     navigate(`/location/${slug}`, { replace: true });
   };
 
-  // Update location display name and description when location changes
-  useEffect(() => {
-    // Don't update if location is not available
-    if (!location) {
-      return;
-    }
-    const savedLocationData = storageService.getLocationData();
-    if (savedLocationData?.matchedName) {
-      setLocationDisplayName(savedLocationData.matchedName);
-    } else {
-      setLocationDisplayName(
-        `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
-      );
-    }
-
-    // Get special location description if available
-    // Pass the matched name from storage to help find descriptions for nearby locations
-    const matchedName = savedLocationData?.matchedName;
-    const description = getSpecialLocationDescription(location, matchedName);
-    setLocationDescription(description);
-    
-    // Find nearest known location for coordinates display
-    const nearestSpecial = findNearestSpecialLocation(location);
-    // Check if this is a coordinate location (no matched name in storage)
-    const hasMatchedName = !!savedLocationData?.matchedName;
-    
-    if (nearestSpecial && !hasMatchedName) {
-      const distance = calculateDistance(location, nearestSpecial.location);
-      setNearestKnownLocation({
-        name: nearestSpecial.matchedName || 'Nearby location',
-        distance: distance
-      });
-    } else {
-      setNearestKnownLocation(null);
-    }
-    
-    // Fetch Bortle rating for the location
-    getBortleRatingForLocation({ lat: location.lat, lng: location.lng })
-      .then(rating => {
-        setBortleRating(rating);
-        
-        // If Bortle rating is 4 or higher (poor), find nearest dark site
-        if (rating !== null && rating >= 4) {
-          findNearestDarkSky(
-            { lat: location.lat, lng: location.lng },
-            500 // 500km search radius
-          )
-            .then(darkSite => setNearestDarkSite(darkSite))
-            .catch(error => {
-              console.error("Error finding nearest dark site:", error);
-              setNearestDarkSite(null);
-            });
-        } else {
-          setNearestDarkSite(null);
-        }
-      })
-      .catch(error => {
-        console.error("Error fetching Bortle rating:", error);
-        setBortleRating(null);
-        setNearestDarkSite(null);
-      });
-  }, [location]);
-
-  useEffect(() => {
-    // Don't calculate if location is not available
-    if (!location) {
-      return;
-    }
-
-    const calculateTonight = async () => {
-      setIsLoading(true);
-
-      try {
-        const now = currentDate || new Date();
-        const observer = new Observer(location.lat, location.lng, 0);
-
-        // Calculate sun times using astronomy-engine
-        const sunset = SearchRiseSet(Body.Sun, observer, -1, now, 1);
-        const sunrise = SearchRiseSet(Body.Sun, observer, +1, now, 1);
-        const tomorrowSunrise = SearchRiseSet(
-          Body.Sun,
-          observer,
-          +1,
-          new Date(now.getTime() + 24 * 60 * 60 * 1000),
-          1
-        );
-
-        // Calculate astronomical twilight times
-        const astronomicalDusk = SearchAltitude(
-          Body.Sun,
-          observer,
-          -1,
-          now,
-          1,
-          -18
-        );
-        const astronomicalDawn = SearchAltitude(
-          Body.Sun,
-          observer,
-          +1,
-          new Date(now.getTime() + 24 * 60 * 60 * 1000),
-          1,
-          -18
-        );
-
-        // Use existing calculateMoonData function instead of duplicating calculations
-        const moonData = calculateMoonData(now, location);
-
-        // Calculate Galactic Core times using the existing utility
-        const gcData = calculateGalacticCenterPosition(now, location);
-
-        // Use the calculated GC data which already includes rise/set times
-        const gcRise = gcData.riseTime;
-        const gcSet = gcData.setTime;
-        const gcTransit = gcData.transitTime;
-        const maxAltitude = gcData.altitude;
-
-        // Calculate optimal viewing window using integrated time-based analysis
-        const twilightData = calculateTwilightTimes(now, location);
-        const optimalWindow = getOptimalViewingWindow(
-          gcData,
-          moonData,
-          twilightData,
-          location,
-          now,
-          0.3 // Decent viewing threshold
-        );
-
-        // Calculate visibility rating for tonight using the consistent method
-        // Recalculate GC data at the optimal viewing time for accurate visibility rating
-        let gcDataForRating = gcData;
-        if (optimalWindow.startTime) {
-          gcDataForRating = calculateGalacticCenterPosition(
-            optimalWindow.startTime,
-            location
-          );
-        }
-
-        const visibilityResult = calculateVisibilityRating(
-          gcDataForRating,
-          moonData,
-          twilightData,
-          optimalWindow,
-          location,
-          now
-        );
-        const visibility = getVisibilityRatingNumber(visibilityResult);
-        const visibilityReason =
-          typeof visibilityResult === "object"
-            ? visibilityResult.reason
-            : undefined;
-
-        // For "Tonight" viewing, show events from today onwards
-        const todayStart = new Date(now);
-        todayStart.setHours(0, 0, 0, 0); // Start of today
-
-        setEvents({
-          sunRise:
-            sunrise && sunrise.date > now
-              ? sunrise.date
-              : tomorrowSunrise?.date,
-          sunSet: sunset && sunset.date > now ? sunset.date : undefined,
-          astronomicalTwilightEnd:
-            astronomicalDusk && astronomicalDusk.date > now
-              ? astronomicalDusk.date
-              : undefined,
-          astronomicalTwilightStart: astronomicalDawn?.date,
-          moonRise:
-            moonData.rise && moonData.rise > now ? moonData.rise : undefined,
-          moonSet:
-            moonData.set && moonData.set > now ? moonData.set : undefined,
-          gcRise: gcRise && gcRise >= todayStart ? gcRise : undefined,
-          gcTransit: gcTransit || undefined,
-          gcSet: gcSet && gcSet > now ? gcSet : undefined,
-          maxGcAltitude: maxAltitude,
-          moonPhase: moonData.phase,
-          moonIllumination: moonData.illumination * 100,
-          visibility,
-          visibilityReason,
-          optimalWindow,
-        });
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error("TonightCard: Error during calculation:", error);
-        setIsLoading(false);
-      }
-    };
-
-    calculateTonight();
-  }, [location, currentDate]);
-
-  // Show loading if location is not available yet or if loading data
-  if (!location || isLoading) {
+  // Show loading if loading data
+  if (isLoading) {
     return (
       <div className={styles.container}>
         <h2 className={styles.title}>Tonight</h2>
         <p className="global-loading-text">
-          {!location ? "Loading location..." : "Calculating astronomical events..."}
+          Calculating astronomical events...
         </p>
+      </div>
+    );
+  }
+
+  // Show error if something went wrong
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <h2 className={styles.title}>Tonight</h2>
+        <p className="global-error-text">{error}</p>
       </div>
     );
   }
@@ -303,52 +90,62 @@ export default function TonightCard({
             className="global-icon-small color-accent"
             baselineOffset={4}
           />{" "}
-          {locationDisplayName}
+          {locationData?.displayName || "Loading location..."}
         </button>
-        {bortleRating !== null && (
+        {locationData?.bortleRating !== null && (
           <Link to="/faq#bortle-scale" className={styles.bortleRating}>
-            Bortle {bortleRating.toFixed(1)}
+            Bortle {locationData?.bortleRating?.toFixed(1)}
           </Link>
         )}
-        
+
         {/* Nearest Known Location for coordinate inputs */}
-        {nearestKnownLocation && (
+        {locationData?.nearestKnownLocation && (
           <div className={styles.nearestLocationSuggestion}>
             <p className={styles.nearestLocationText}>
-              Near <strong>{nearestKnownLocation.name}</strong> ({nearestKnownLocation.distance.toFixed(0)}km away)
+              Near <strong>{locationData.nearestKnownLocation.name}</strong> (
+              {locationData.nearestKnownLocation.distance.toFixed(0)}km away)
             </p>
             <Link to="/explore" className={styles.exploreLink}>
               Explore more locations →
             </Link>
           </div>
         )}
-        
+
         {/* Dark Site Suggestion for poor Bortle ratings */}
-        {bortleRating !== null && bortleRating >= 4 && nearestDarkSite && (
-          <div className={styles.darkSiteSuggestion}>
-            <p className={styles.suggestionText}>
-              Consider visiting a darker location for better Milky Way visibility:
-            </p>
-            <div className={styles.suggestionSite}>
-              <strong>{nearestDarkSite.nearestKnownSite?.name || `Dark site ${nearestDarkSite.distance.toFixed(0)}km away`}</strong>
-              {nearestDarkSite.nearestKnownSite && (
-                <span className={styles.siteDistance}>
-                  {nearestDarkSite.distance.toFixed(0)}km away
+        {locationData?.bortleRating !== null &&
+          locationData?.bortleRating !== undefined &&
+          locationData.bortleRating >= 4 &&
+          locationData?.nearestDarkSite && (
+            <div className={styles.darkSiteSuggestion}>
+              <p className={styles.suggestionText}>
+                Consider visiting a darker location for better Milky Way
+                visibility:
+              </p>
+              <div className={styles.suggestionSite}>
+                <strong>
+                  {locationData.nearestDarkSite.nearestKnownSite?.name ||
+                    `Dark site ${locationData.nearestDarkSite.distance.toFixed(
+                      0
+                    )}km away`}
+                </strong>
+                {locationData.nearestDarkSite.nearestKnownSite && (
+                  <span className={styles.siteDistance}>
+                    {locationData.nearestDarkSite.distance.toFixed(0)}km away
+                  </span>
+                )}
+                <span className={styles.siteBortle}>
+                  Bortle {locationData.nearestDarkSite.bortleScale.toFixed(1)}
                 </span>
-              )}
-              <span className={styles.siteBortle}>
-                Bortle {nearestDarkSite.bortleScale.toFixed(1)}
-              </span>
+              </div>
+              <Link to="/explore" className={styles.exploreLink}>
+                Explore more dark sites →
+              </Link>
             </div>
-            <Link to="/explore" className={styles.exploreLink}>
-              Explore more dark sites →
-            </Link>
-          </div>
-        )}
+          )}
       </div>
 
       {/* Astronomical Clock Visualization */}
-      <AstronomicalClock 
+      <AstronomicalClock
         events={{
           sunRise: events.sunRise,
           sunSet: events.sunSet,
@@ -362,9 +159,8 @@ export default function TonightCard({
           gcSet: events.gcSet,
           gcTransit: events.gcTransit,
           maxGcAltitude: events.maxGcAltitude,
-          optimalWindow: events.optimalWindow
+          optimalWindow: events.optimalWindow,
         }}
-        location={location}
         currentDate={currentDate}
         size={600}
       />
@@ -382,11 +178,7 @@ export default function TonightCard({
                     title="Sunset (Civil Twilight)"
                     className={`global-icon-medium color-orange-400`}
                   />
-                  <FormattedTime
-                    date={events.sunSet}
-                    location={location}
-                    className="data-time"
-                  />
+                  <FormattedTime date={events.sunSet} />
                 </>
               )}
               {events.astronomicalTwilightEnd && (
@@ -398,8 +190,6 @@ export default function TonightCard({
                   />
                   <FormattedTime
                     date={events.astronomicalTwilightEnd}
-                    location={location}
-                    className="data-time"
                   />
                 </>
               )}
@@ -416,8 +206,6 @@ export default function TonightCard({
                   />
                   <FormattedTime
                     date={events.astronomicalTwilightStart}
-                    location={location}
-                    className="data-time"
                   />
                 </>
               )}
@@ -428,11 +216,7 @@ export default function TonightCard({
                     title="Sunrise (Civil Dawn)"
                     className={`global-icon-medium color-yellow-200`}
                   />
-                  <FormattedTime
-                    date={events.sunRise}
-                    location={location}
-                    className="data-time"
-                  />
+                  <FormattedTime date={events.sunRise} />
                 </>
               )}
             </div>
@@ -461,11 +245,7 @@ export default function TonightCard({
                 className={`global-icon-medium color-gray-300`}
                 baselineOffset={-2}
               />
-              <FormattedTime
-                date={events.moonRise}
-                location={location}
-                className="data-time"
-              />
+              <FormattedTime date={events.moonRise} />
             </div>
           )}
           {events.moonSet && (
@@ -476,11 +256,7 @@ export default function TonightCard({
                 className={`global-icon-medium color-gray-300`}
                 baselineOffset={-2}
               />
-              <FormattedTime
-                date={events.moonSet}
-                location={location}
-                className="data-time"
-              />
+              <FormattedTime date={events.moonSet} />
             </div>
           )}
         </div>
@@ -500,22 +276,14 @@ export default function TonightCard({
                   title="Galactic Core Rise (≥10°)"
                   className={`global-icon-medium color-gray-300`}
                 />
-                <FormattedTime
-                  date={events.gcRise}
-                  location={location}
-                  className="data-time"
-                />
+                <FormattedTime date={events.gcRise} />
               </div>
             )}
             {events.optimalWindow.startTime && (
               <div className={styles.eventRowWide}>
                 <Icon
                   name="telescope"
-                  title={
-                    events.optimalWindow.isIntegrated
-                      ? "Quality-Based Viewing Window"
-                      : "Optimal Viewing Window"
-                  }
+                  title="Optimal Viewing Window"
                   className={`global-icon-medium color-gray-300`}
                 />
                 <span className="data-time">
@@ -528,14 +296,13 @@ export default function TonightCard({
                   />
                   <span className="small-caps"> for </span>
                   {formatOptimalViewingDuration(events.optimalWindow)}
-                  {events.optimalWindow.isIntegrated &&
-                    events.optimalWindow.averageScore && (
-                      <span className="small-caps">
-                        {" "}
-                        ({Math.round(events.optimalWindow.averageScore * 100)}%
-                        quality)
-                      </span>
-                    )}
+                  {events.optimalWindow.averageScore && (
+                    <span className="small-caps">
+                      {" "}
+                      ({Math.round(events.optimalWindow.averageScore * 100)}%
+                      quality)
+                    </span>
+                  )}
                 </span>
               </div>
             )}
@@ -549,8 +316,6 @@ export default function TonightCard({
                 <span className="data-time">
                   <FormattedTime
                     date={events.gcTransit}
-                    location={location}
-                    className="data-time"
                   />
                   <span className="small-caps"> at </span>
                   {events.maxGcAltitude.toFixed(0)}°
@@ -564,28 +329,23 @@ export default function TonightCard({
                   title="Galactic Core Set (≤10°)"
                   className={`global-icon-medium color-gray-300`}
                 />
-                <FormattedTime
-                  date={events.gcSet}
-                  location={location}
-                  className="data-time"
-                />
+                <FormattedTime date={events.gcSet} />
               </div>
             )}
           </div>
         )}
       </div>
       <div className={styles.footerSection}>
-        {locationDescription && (
+        {locationData?.description && (
           <div
             className={styles.locationDescription}
-            dangerouslySetInnerHTML={{ __html: locationDescription }}
+            dangerouslySetInnerHTML={{ __html: locationData.description }}
           />
         )}
       </div>
 
       {showLocationPopover && (
         <LocationPopover
-          location={location}
           triggerRef={locationButtonRef}
           onClose={() => setShowLocationPopover(false)}
           onLocationChange={handleLocationChange}
