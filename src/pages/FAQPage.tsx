@@ -1,8 +1,27 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import styles from "../App.module.css";
 import faqStyles from "./FAQPage.module.css";
 
 export default function FAQPage() {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if there's a hash in the URL
+    if (location.hash) {
+      // Remove the # from the hash
+      const id = location.hash.substring(1);
+      // Find the element with that ID
+      const element = document.getElementById(id);
+      if (element) {
+        // Scroll to the element with a small delay to ensure the page is fully loaded
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
+  }, [location]);
   return (
     <>
       <Helmet>
@@ -136,6 +155,25 @@ export default function FAQPage() {
                   If using a smartphone, just use the long exposure mode,
                   usually 30s, and your smartphone will do the rest. Make sure
                   to use a tripod, though!
+                </p>
+              </article>
+
+              <article id="bortle-scale">
+                <h3>What is the Bortle Scale?</h3>
+                <p>
+                  The <strong>Bortle scale</strong> is a nine-level scale that
+                  measures the brightness of the night sky, ranging from{" "}
+                  <em>Class 1</em> (excellent dark-sky site) to <em>Class 9</em>{" "}
+                  (inner-city sky). It describes how much light pollution is
+                  present and what celestial features can be seen with the naked
+                  eye.
+                </p>
+                <p>
+                  For example, in a Class 1 sky you can see the Milky Way
+                  casting shadows and thousands of stars, while in a Class 9 sky
+                  only the Moon, planets, and a few bright stars are visible.
+                  Knowing your Bortle class helps you estimate how clearly
+                  you'll see the Milky Way and other faint objects.
                 </p>
               </article>
 

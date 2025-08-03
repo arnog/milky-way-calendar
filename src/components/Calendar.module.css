@@ -98,6 +98,7 @@
   /* border-b border-white/10 hover:bg-white/5 transition-all duration-300 */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 300ms;
+  cursor: pointer;
 }
 
 .tableRow:hover {

@@ -11,6 +11,7 @@ import FAQPage from "./pages/FAQPage";
 import { Location } from "./types/astronomy";
 import { findNearestSpecialLocation } from "./utils/locationParser";
 import { locationToSlug } from "./utils/urlHelpers";
+import { useDateFromQuery } from "./hooks/useDateFromQuery";
 import styles from "./App.module.css";
 
 interface HomePageProps {
@@ -21,6 +22,7 @@ interface HomePageProps {
 function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
   const [location, setLocation] = useState<Location | null>(null);
   const navigate = useNavigate();
+  const [currentDate, setCurrentDate] = useDateFromQuery();
 
   // Initialize location from localStorage or geolocation
   useEffect(() => {
@@ -140,9 +142,14 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
               <TonightCard
                 location={location}
                 onLocationChange={handleLocationChange}
+                currentDate={currentDate}
               />
-              <DailyVisibilityTable location={location} />
-              <Calendar location={location} />
+              <DailyVisibilityTable location={location} currentDate={currentDate} />
+              <Calendar 
+                location={location} 
+                currentDate={currentDate}
+                onDateClick={setCurrentDate}
+              />
             </>
           )}
         </div>

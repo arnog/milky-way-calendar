@@ -17,9 +17,11 @@ import styles from "./Calendar.module.css";
 
 interface CalendarProps {
   location: Location;
+  currentDate?: Date;
+  onDateClick?: (date: Date) => void;
 }
 
-export default function Calendar({ location }: CalendarProps) {
+export default function Calendar({ location, currentDate, onDateClick }: CalendarProps) {
   const [weekData, setWeekData] = useState<WeekData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -31,7 +33,7 @@ export default function Calendar({ location }: CalendarProps) {
   const loadWeeks = useCallback(
     async (startWeek: number, numWeeks: number) => {
       const weeks: WeekData[] = [];
-      const today = new Date();
+      const today = currentDate || new Date();
       const currentWeekNumber =
         Math.floor(
           (today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) /
@@ -107,7 +109,7 @@ export default function Calendar({ location }: CalendarProps) {
 
       return weeks;
     },
-    [location]
+    [location, currentDate]
   );
 
   // Initial load
@@ -120,7 +122,7 @@ export default function Calendar({ location }: CalendarProps) {
       setIsLoading(false);
     };
     loadInitial();
-  }, [location, loadWeeks]);
+  }, [location, loadWeeks, currentDate]);
 
   // Infinite scroll setup
   useEffect(() => {
@@ -210,6 +212,7 @@ export default function Calendar({ location }: CalendarProps) {
                   className={styles.tableRow}
                   style={getRowBackground(week.visibility)}
                   title={getVisibilityDescription(week.visibility)}
+                  onClick={() => onDateClick && onDateClick(week.startDate)}
                 >
                   {structuredData && (
                     <script

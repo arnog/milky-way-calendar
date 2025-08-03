@@ -46,22 +46,8 @@ export function useLocationManager({
       try {
         const parsed = JSON.parse(savedLocation);
 
-        // Check if we should look for nearby special locations if no matched name is saved
-        if (!parsed.matchedName) {
-          const nearbyLocation = findNearestSpecialLocation(parsed.location);
-          if (nearbyLocation) {
-            onLocationChange(nearbyLocation.location);
-            setInputValue(
-              nearbyLocation.matchedName ||
-              `${nearbyLocation.location.lat.toFixed(1)}, ${nearbyLocation.location.lng.toFixed(1)}`
-            );
-            setSuggestion(null); // Clear suggestions since we have a confirmed location
-            setIsNearbyMatch(true);
-            // Update localStorage with the matched name
-            saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
-            return;
-          }
-        }
+        // Always use the exact saved coordinates, even if there's no matched name
+        // The matched name is used for description purposes only
 
         onLocationChange(parsed.location);
         if (parsed.matchedName) {
@@ -134,26 +120,22 @@ export function useLocationManager({
             lng: position.coords.longitude,
           };
 
-          // Check if near a special location
+          // Always use the exact user location, but find nearby location for description
           const nearbyLocation = findNearestSpecialLocation(newLocation);
-          if (nearbyLocation) {
-            onLocationChange(nearbyLocation.location, true);
-            setInputValue(
-              nearbyLocation.matchedName ||
-              `${nearbyLocation.location.lat.toFixed(1)}, ${nearbyLocation.location.lng.toFixed(1)}`
-            );
-            setSuggestion(null); // Clear suggestions since we have a confirmed location
-            setIsNearbyMatch(true);
-            saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
+          onLocationChange(newLocation, true);
+          
+          // Show nearby location name if found, otherwise show coordinates
+          if (nearbyLocation?.matchedName) {
+            setInputValue(nearbyLocation.matchedName);
           } else {
-            onLocationChange(newLocation, true);
             setInputValue(
               `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
             );
-            setSuggestion(null);
-            setIsNearbyMatch(false);
-            saveLocation(newLocation, null);
           }
+          setSuggestion(null);
+          setIsNearbyMatch(false);
+          // Save with nearby location name for description purposes, but keep exact coordinates
+          saveLocation(newLocation, nearbyLocation?.matchedName || null);
           setIsLoading(false);
         },
         () => {
@@ -217,23 +199,21 @@ export function useLocationManager({
   }, []);
 
   const updateLocationState = useCallback((newLocation: Location) => {
-    // Check if near a special location
+    // Always use the exact location, but find nearby location for description
     const nearbyLocation = findNearestSpecialLocation(newLocation);
-    if (nearbyLocation) {
-      setInputValue(
-        `${nearbyLocation.location.lat.toFixed(1)}, ${nearbyLocation.location.lng.toFixed(1)}`
-      );
-      setSuggestion(null); // Clear suggestions since we have a confirmed location
-      setIsNearbyMatch(true);
-      saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
+    
+    // Show nearby location name if found, otherwise show coordinates
+    if (nearbyLocation?.matchedName) {
+      setInputValue(nearbyLocation.matchedName);
     } else {
       setInputValue(
         `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
       );
-      setSuggestion(null);
-      setIsNearbyMatch(false);
-      saveLocation(newLocation, null);
     }
+    setSuggestion(null);
+    setIsNearbyMatch(false);
+    // Save with nearby location name for description purposes, but keep exact coordinates
+    saveLocation(newLocation, nearbyLocation?.matchedName || null);
   }, [saveLocation]);
 
   const handleMapClick = useCallback((
@@ -291,24 +271,30 @@ export function useLocationManager({
         clearTimeout(debounceTimer.current);
       }
 
-      // If no matched name from parsing, check for nearby special locations
+      // For coordinates without a matched name, preserve the exact coordinates
       if (!parsed.matchedName) {
         const nearbyLocation = findNearestSpecialLocation(parsed.location);
-        if (nearbyLocation) {
-          onLocationChange(nearbyLocation.location, true);
-          setInputValue(nearbyLocation.matchedName || `${nearbyLocation.location.lat.toFixed(1)}, ${nearbyLocation.location.lng.toFixed(1)}`);
-          setSuggestion(null);
-          setIsNearbyMatch(true);
-          saveLocation(nearbyLocation.location, nearbyLocation.matchedName || null);
-          return;
+        onLocationChange(parsed.location, true);
+        
+        // Show nearby location name if found, otherwise show coordinates
+        if (nearbyLocation?.matchedName) {
+          setInputValue(nearbyLocation.matchedName);
+        } else {
+          setInputValue(`${parsed.location.lat.toFixed(1)}, ${parsed.location.lng.toFixed(1)}`);
         }
+        setSuggestion(null);
+        setIsNearbyMatch(false);
+        // Save with nearby location name for description purposes, but keep exact coordinates
+        saveLocation(parsed.location, nearbyLocation?.matchedName || null);
+        return;
       }
 
+      // For named locations, use the matched location
       onLocationChange(parsed.location, true);
-      setInputValue(parsed.matchedName || `${parsed.location.lat.toFixed(1)}, ${parsed.location.lng.toFixed(1)}`);
+      setInputValue(parsed.matchedName);
       setSuggestion(null);
       setIsNearbyMatch(false);
-      saveLocation(parsed.location, parsed.matchedName || null);
+      saveLocation(parsed.location, parsed.matchedName);
     }
   }, [inputValue, onLocationChange, saveLocation]);
 

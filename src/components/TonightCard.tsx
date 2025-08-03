@@ -24,7 +24,8 @@ import {
   formatOptimalViewingDuration,
   OptimalViewingWindow,
 } from "../utils/optimalViewing";
-import { getBortleRatingForLocation } from "../utils/lightPollutionMap";
+import { getBortleRatingForLocation, findNearestDarkSky, DarkSiteResult } from "../utils/lightPollutionMap";
+import { findNearestSpecialLocation, calculateDistance } from "../utils/locationParser";
 import FormattedTime from "./FormattedTime";
 import styles from "./TonightCard.module.css";
 
@@ -108,6 +109,8 @@ export default function TonightCard({
     null
   );
   const [bortleRating, setBortleRating] = useState<number | null>(null);
+  const [nearestDarkSite, setNearestDarkSite] = useState<DarkSiteResult | null>(null);
+  const [nearestKnownLocation, setNearestKnownLocation] = useState<{name: string, distance: number} | null>(null);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
 
   // Update location display name and description when location changes
@@ -138,12 +141,53 @@ export default function TonightCard({
     const description = getSpecialLocationDescription(location);
     setLocationDescription(description);
     
+    // Find nearest known location for coordinates display
+    const nearestSpecial = findNearestSpecialLocation(location);
+    // Check if this is a coordinate location (no matched name in localStorage)
+    let hasMatchedName = false;
+    if (savedLocation) {
+      try {
+        const parsed = JSON.parse(savedLocation);
+        hasMatchedName = !!parsed.matchedName;
+      } catch {
+        // No valid saved location data
+      }
+    }
+    
+    if (nearestSpecial && !hasMatchedName) {
+      const distance = calculateDistance(location, nearestSpecial.location);
+      setNearestKnownLocation({
+        name: nearestSpecial.matchedName || 'Nearby location',
+        distance: distance
+      });
+    } else {
+      setNearestKnownLocation(null);
+    }
+    
     // Fetch Bortle rating for the location
     getBortleRatingForLocation({ lat: location.lat, lng: location.lng })
-      .then(rating => setBortleRating(rating))
+      .then(rating => {
+        setBortleRating(rating);
+        
+        // If Bortle rating is 4 or higher (poor), find nearest dark site
+        if (rating !== null && rating >= 4) {
+          findNearestDarkSky(
+            { lat: location.lat, lng: location.lng },
+            500 // 500km search radius
+          )
+            .then(darkSite => setNearestDarkSite(darkSite))
+            .catch(error => {
+              console.error("Error finding nearest dark site:", error);
+              setNearestDarkSite(null);
+            });
+        } else {
+          setNearestDarkSite(null);
+        }
+      })
       .catch(error => {
         console.error("Error fetching Bortle rating:", error);
         setBortleRating(null);
+        setNearestDarkSite(null);
       });
   }, [location]);
 
@@ -269,7 +313,7 @@ export default function TonightCard({
     };
 
     calculateTonight();
-  }, [location]);
+  }, [location, currentDate]);
 
   if (isLoading) {
     return (
@@ -319,6 +363,41 @@ export default function TonightCard({
           <Link to="/faq#bortle-scale" className={styles.bortleRating}>
             Bortle {bortleRating.toFixed(1)}
           </Link>
+        )}
+        
+        {/* Nearest Known Location for coordinate inputs */}
+        {nearestKnownLocation && (
+          <div className={styles.nearestLocationSuggestion}>
+            <p className={styles.nearestLocationText}>
+              Near <strong>{nearestKnownLocation.name}</strong> ({nearestKnownLocation.distance.toFixed(0)}km away)
+            </p>
+            <Link to="/explore" className={styles.exploreLink}>
+              Explore more locations →
+            </Link>
+          </div>
+        )}
+        
+        {/* Dark Site Suggestion for poor Bortle ratings */}
+        {bortleRating !== null && bortleRating >= 4 && nearestDarkSite && (
+          <div className={styles.darkSiteSuggestion}>
+            <p className={styles.suggestionText}>
+              Consider visiting a darker location for better Milky Way visibility:
+            </p>
+            <div className={styles.suggestionSite}>
+              <strong>{nearestDarkSite.nearestKnownSite?.name || `Dark site ${nearestDarkSite.distance.toFixed(0)}km away`}</strong>
+              {nearestDarkSite.nearestKnownSite && (
+                <span className={styles.siteDistance}>
+                  {nearestDarkSite.distance.toFixed(0)}km away
+                </span>
+              )}
+              <span className={styles.siteBortle}>
+                Bortle {nearestDarkSite.bortleScale.toFixed(1)}
+              </span>
+            </div>
+            <Link to="/explore" className={styles.exploreLink}>
+              Explore more dark sites →
+            </Link>
+          </div>
         )}
       </div>
 

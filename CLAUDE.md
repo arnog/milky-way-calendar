@@ -28,6 +28,14 @@ npm run test:run     # Run tests once (non-watch mode)
 
 - **Weekly calendar table** showing Milky Way visibility ratings (1-4 stars)
 - **Tonight card** with detailed astronomical events for current night
+- **Date navigation** via URL query parameters (`?date=YYYY-MM-DD`) allowing
+  users to view astronomical data for any date
+- **Clickable calendar rows** that navigate to specific dates for detailed
+  viewing
+- **Dark site suggestions** for locations with poor Bortle ratings (4+),
+  automatically finding and suggesting nearby dark sky locations within 500km
+- **Coordinate preservation system** that maintains exact user-entered coordinates
+  while providing helpful location context through nearest known location suggestions
 - **Interactive location selection** via clickable popover with world map
   integration
 - **Real astronomical calculations** using astronomy-engine library for
@@ -54,6 +62,8 @@ npm run test:run     # Run tests once (non-watch mode)
 - `src/components/` - React components (Calendar, TonightCard, LocationPopover,
   WorldMap, StarRating) with corresponding `.module.css` files
 - `src/pages/` - Page components (HomePage, LocationPage, ExplorePage, FAQPage)
+- `src/hooks/` - Custom React hooks (`useDateFromQuery` for URL date state
+  management)
 - `src/utils/` - Utility functions for astronomical calculations and location
   parsing
 - `src/types/` - TypeScript type definitions
@@ -546,20 +556,44 @@ Tonight card showing light pollution level (1-9 scale) for current location,
 implemented as clickable link to FAQ explanation, with hover effects and proper
 styling
 
+✅ **Phase 22**: Date Navigation Implementation - Added comprehensive URL query
+parameter support (`?date=YYYY-MM-DD`) for viewing astronomical data on any date,
+implemented custom `useDateFromQuery` hook for centralized date state management,
+made calendar rows clickable to navigate to specific dates, and updated all
+components to respect the selected date instead of always using "today"
+
+✅ **Phase 23**: Dark Site Suggestions - Implemented automatic dark site
+suggestions for locations with poor Bortle ratings (4+), integrated with existing
+dark sky search functionality to find nearest suitable locations within 500km,
+added visually distinct suggestion panels in TonightCard with site details and
+links to the explore page for better user guidance to optimal viewing locations
+
+✅ **Phase 24**: Coordinate Preservation System - Implemented coordinate preservation
+that maintains exact user-entered coordinates instead of automatically switching to
+nearest special locations, added nearest known location suggestions for coordinate
+inputs showing nearby landmarks within 100km with distance calculation, enhanced
+location manager to separate coordinate preservation from location description
+lookup, providing users with precise control over their observation location while
+still offering helpful location context
+
 **Current state**: Feature-complete astronomy calendar with fully migrated
-time-integrated astronomical calculations, accurate timezone handling for
-international users, proper high-latitude handling, comprehensive dark sky site
-discovery with corrected coordinate mapping and optimal classification
-thresholds, educational FAQ system with modern navigation and anchor linking,
-full SEO optimization for search engine discoverability, robust test coverage
-(109 tests) ensuring calculation accuracy and preventing critical regressions,
-modern CSS Modules architecture for scalable styling, centralized color theming
-with CSS variables, enhanced typography with raised colons for optimal time
-readability, unified time-integrated observation windows providing honest quality
-expectations across all components, polished night-sky aesthetic with
-professional visual design and complete astronomical event coverage, corrected
-moon phase display with accurate waxing/waning determination, and integrated
-Bortle rating display with educational FAQ linking.
+time-integrated astronomical calculations, comprehensive date navigation via URL
+parameters allowing users to explore any date, coordinate preservation system that
+maintains exact user locations while providing helpful context, automatic dark site
+suggestions for light-polluted locations, accurate timezone handling for international users,
+proper high-latitude handling, comprehensive dark sky site discovery with
+corrected coordinate mapping and optimal classification thresholds, educational
+FAQ system with modern navigation and anchor linking, full SEO optimization for
+search engine discoverability, robust test coverage (109 tests) ensuring
+calculation accuracy and preventing critical regressions, modern CSS Modules
+architecture for scalable styling, centralized color theming with CSS variables,
+enhanced typography with raised colons for optimal time readability, unified
+time-integrated observation windows providing honest quality expectations across
+all components, polished night-sky aesthetic with professional visual design and
+complete astronomical event coverage, corrected moon phase display with accurate
+waxing/waning determination, integrated Bortle rating display with educational
+FAQ linking, and intelligent location guidance for optimal Milky Way
+photography.
 
 ## Hosting
 

@@ -6,6 +6,7 @@ import DailyVisibilityTable from '../components/DailyVisibilityTable'
 import Calendar from '../components/Calendar'
 import { Location } from '../types/astronomy'
 import { slugToLocation, generateLocationTitle, generateLocationDescription, locationToSlug } from '../utils/urlHelpers'
+import { useDateFromQuery } from '../hooks/useDateFromQuery'
 import styles from '../App.module.css'
 import { findNearestSpecialLocation } from '../utils/locationParser'
 
@@ -19,6 +20,7 @@ function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
   const navigate = useNavigate()
   const [location, setLocation] = useState<Location | null>(null)
   const [isInvalidLocation, setIsInvalidLocation] = useState(false)
+  const [currentDate, setCurrentDate] = useDateFromQuery()
 
   useEffect(() => {
     if (!locationSlug) {
@@ -111,9 +113,9 @@ function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
       
       <div className={styles.container}>
         <div className={styles.content}>
-          <TonightCard location={location} onLocationChange={handleLocationChange} />
-          <DailyVisibilityTable location={location} />
-          <Calendar location={location} />
+          <TonightCard location={location} onLocationChange={handleLocationChange} currentDate={currentDate} />
+          <DailyVisibilityTable location={location} currentDate={currentDate} />
+          <Calendar location={location} currentDate={currentDate} onDateClick={setCurrentDate} />
         </div>
       </div>
     </>

@@ -1,27 +1,22 @@
-- The icons for the moon phases are reversed (except full and new moon). They
-  should be flipped horizontally, or renamed to match the actual phase.
+✅ COMPLETED: The improved observation window is now used in both
+DailyVisibilityTable and Calendar components.
 
-- The Tonight cards should display the Bortle rating for the location.
+✅ COMPLETED: URL query parameter support (`?date=YYYY-MM-DD`) has been
+implemented with a custom `useDateFromQuery` hook for centralized date state
+management.
 
-- The improved observation window is not used in the DailyVisibilityTable
-  component or the Calendar component.
+✅ COMPLETED: Calendar rows are now clickable and navigate to the corresponding
+date via URL parameters.
 
-- A query in the URL should be read to override the default date (i.e. today).
-  Something like `?date=2023-10-01` should set the date to October 1, 2023.
+✅ COMPLETED: Dark site suggestions have been implemented for locations with
+poor Bortle ratings (4+), showing the nearest dark site within 500km with
+details and a link to `/explore`.
 
-- Clicking a row in the calendar should navigate to the corresponding date in
-  the calendar, i.e. `?date=2023-10-01`.
-
-- If the location has a poor bortle rating, a message in the Tonight card should
-  suggest to explore nearby dark sites, maybe provide one or two suggestions,
-  then a link to `/explore` to find more dark sites.
-
-- When reading the user location, or when the user selects a location as
-  lat/long, we should keep the location as entered. We should calculate a known
-  location based on that value (closest within 100km) and use it to select a
-  location description. In that case, as in the case of a poor bortle rating, we
-  should show a message in the Tonight card to suggest exploring nearby dark
-  sites.
+✅ COMPLETED: Coordinate preservation system has been implemented. When users
+enter coordinates or use geolocation, the exact coordinates are preserved while
+finding the nearest known location within 100km for descriptive context. The
+Tonight card shows suggestions for nearby landmarks with distance information
+and links to the explore page.
 
 - In the LocationPopover, we should not automatically switch to a known
   location, that is when the user clicks the "find my location" button, we
