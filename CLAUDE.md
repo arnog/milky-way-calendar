@@ -576,24 +576,39 @@ location manager to separate coordinate preservation from location description
 lookup, providing users with precise control over their observation location while
 still offering helpful location context
 
+✅ **Phase 25**: LocationPopover Geolocation Enhancement - Fixed geolocation behavior
+to display nearby location names in the input field while preserving exact user
+coordinates for calculations, enhanced getSpecialLocationDescription function to
+use a more generous 100km distance threshold when a matched location name exists,
+ensuring users near special locations like Yellowstone receive proper location
+descriptions and context
+
+✅ **Phase 26**: Custom Tooltip System Implementation - Replaced browser tooltips
+with custom tooltips for star ratings using React state management and consistent
+styling matching the app's design system, implemented hover/touch event handling
+for better mobile support, and fixed tooltip clipping issues in table views by
+adding appropriate padding to table containers in both Daily and Calendar views
+
 **Current state**: Feature-complete astronomy calendar with fully migrated
 time-integrated astronomical calculations, comprehensive date navigation via URL
-parameters allowing users to explore any date, coordinate preservation system that
-maintains exact user locations while providing helpful context, automatic dark site
-suggestions for light-polluted locations, accurate timezone handling for international users,
-proper high-latitude handling, comprehensive dark sky site discovery with
-corrected coordinate mapping and optimal classification thresholds, educational
-FAQ system with modern navigation and anchor linking, full SEO optimization for
-search engine discoverability, robust test coverage (109 tests) ensuring
-calculation accuracy and preventing critical regressions, modern CSS Modules
-architecture for scalable styling, centralized color theming with CSS variables,
-enhanced typography with raised colons for optimal time readability, unified
-time-integrated observation windows providing honest quality expectations across
-all components, polished night-sky aesthetic with professional visual design and
-complete astronomical event coverage, corrected moon phase display with accurate
-waxing/waning determination, integrated Bortle rating display with educational
-FAQ linking, and intelligent location guidance for optimal Milky Way
-photography.
+parameters allowing users to explore any date, sophisticated coordinate preservation
+system that maintains exact user locations while providing helpful context, automatic
+dark site suggestions for light-polluted locations, enhanced geolocation behavior
+that shows friendly location names while preserving precise coordinates, accurate
+timezone handling for international users, proper high-latitude handling,
+comprehensive dark sky site discovery with corrected coordinate mapping and optimal
+classification thresholds, educational FAQ system with modern navigation and anchor
+linking, full SEO optimization for search engine discoverability, robust test
+coverage (109 tests) ensuring calculation accuracy and preventing critical
+regressions, modern CSS Modules architecture for scalable styling, centralized
+color theming with CSS variables, enhanced typography with raised colons for
+optimal time readability, unified time-integrated observation windows providing
+honest quality expectations across all components, polished night-sky aesthetic
+with professional visual design and complete astronomical event coverage, corrected
+moon phase display with accurate waxing/waning determination, integrated Bortle
+rating display with educational FAQ linking, custom tooltip system providing
+consistent styling and better mobile support across all components, and intelligent
+location guidance for optimal Milky Way photography.
 
 ## Hosting
 

@@ -18,12 +18,16 @@ finding the nearest known location within 100km for descriptive context. The
 Tonight card shows suggestions for nearby landmarks with distance information
 and links to the explore page.
 
-- In the LocationPopover, we should not automatically switch to a known
-  location, that is when the user clicks the "find my location" button, we
-  should use the location as returned by the browser.
+✅ COMPLETED: LocationPopover geolocation behavior has been fixed. When users
+click "find my location", the system now displays the nearby location name in
+the input field while preserving exact coordinates for calculations. Location
+descriptions now properly appear for users near special locations by using a
+more generous 100km threshold when a matched location name exists.
 
-- The tooltips displayed above the star rating should be our custom tooltips,
-  like the ones displayed above icons, not the browser based ones.
+✅ COMPLETED: Custom tooltips have replaced browser tooltips for star ratings.
+The StarRating component now uses the same custom tooltip system as icons,
+with proper hover/touch event handling, consistent styling, and fixed clipping
+issues in table views by adding appropriate padding to table containers.
 
 - We should use a graphic in the Tonight card to represent the various events.
   This could be a 12hour clock face, with the events about the sun displayed as

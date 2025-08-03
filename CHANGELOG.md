@@ -18,11 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ID anchors for FAQ articles to support direct linking to specific questions
 - Nearest known location suggestions for coordinate-based locations showing nearby landmarks within 100km
 - Coordinate preservation system that maintains exact user-entered coordinates while providing helpful location context
+- Custom tooltips for star ratings replacing browser tooltips with consistent styling and better mobile support
 
 ### Fixed
 - Moon phase icons were reversed (waxing/waning phases were swapped) - fixed by correcting the moon phase calculation algorithm instead of swapping SVG paths
 - Moon phase calculation now properly determines waxing vs waning based on illumination change
 - 93% illuminated moon now correctly displays as nearly full instead of as a crescent
+- LocationPopover geolocation now shows nearby location names in input field while preserving exact coordinates
+- Location descriptions now appear correctly for users near special locations using improved distance thresholds
+- Star rating tooltip clipping issues in table views by adding proper padding to table containers
 
 ### Changed
 - All components (TonightCard, DailyVisibilityTable, Calendar) now support date-based navigation
@@ -32,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FAQ page now includes smooth scrolling behavior when navigating to specific sections
 - Location input behavior now preserves exact user coordinates instead of automatically switching to nearest special locations
 - Geolocation and map interactions maintain precise user coordinates while finding nearby locations for descriptive context
+- Star rating tooltips now use custom implementation matching the app's design system instead of browser tooltips
 
 ### Technical Improvements
 - Created `useDateFromQuery` custom hook for centralized date state management
@@ -40,6 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All components now properly update when date parameters change
 - Improved location manager to separate coordinate preservation from location description lookup
 - Added coordinate-based location suggestion system with distance calculation and visual styling
+- Enhanced getSpecialLocationDescription function to support matched location names with generous distance thresholds
+- Implemented custom tooltip system for StarRating component with React state management and event handling
+- Fixed table container overflow issues preventing tooltip clipping in Daily and Calendar views
 
 ## [1.0.0] - Previous Release
 
