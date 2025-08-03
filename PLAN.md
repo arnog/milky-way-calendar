@@ -1,58 +1,32 @@
-✅ COMPLETED: The improved observation window is now used in both
-DailyVisibilityTable and Calendar components.
+✅ **COMPLETED**: 12-hour astronomical clock visualization in TonightCard
 
-✅ COMPLETED: URL query parameter support (`?date=YYYY-MM-DD`) has been
-implemented with a custom `useDateFromQuery` hook for centralized date state
-management.
-
-✅ COMPLETED: Calendar rows are now clickable and navigate to the corresponding
-date via URL parameters.
-
-✅ COMPLETED: Dark site suggestions have been implemented for locations with
-poor Bortle ratings (4+), showing the nearest dark site within 500km with
-details and a link to `/explore`.
-
-✅ COMPLETED: Coordinate preservation system has been implemented. When users
-enter coordinates or use geolocation, the exact coordinates are preserved while
-finding the nearest known location within 100km for descriptive context. The
-Tonight card shows suggestions for nearby landmarks with distance information
-and links to the explore page.
-
-✅ COMPLETED: LocationPopover geolocation behavior has been fixed. When users
-click "find my location", the system now displays the nearby location name in
-the input field while preserving exact coordinates for calculations. Location
-descriptions now properly appear for users near special locations by using a
-more generous 100km threshold when a matched location name exists.
-
-✅ COMPLETED: Custom tooltips have replaced browser tooltips for star ratings.
-The StarRating component now uses the same custom tooltip system as icons,
-with proper hover/touch event handling, consistent styling, and fixed clipping
-issues in table views by adding appropriate padding to table containers.
-
-- We should use a graphic in the Tonight card to represent the various events.
-  This could be a 12hour clock face, with the events about the sun displayed as
-  an arc inside the clock, another arc for the moon, and a third arc for the
-  Galactic Center.
-
-  The arcs should be colored according to the event type, so the sun arc would
-  orange to indicate the sun twighlight, then black or dark blue to indicate the
-  astronimical night, then yellow for the dawn.
-
-  The moon arc is silver, with the opacity set according to the moon
-  illumination.
-
-  The Galactic Center arc is a light blue, from the Galactic Center rise , then
-  switch to cyan for the observation window, and back to light blue for the
-  Galactic Center set.
-
-  The arcs should be drawn in the correct position according to the time of the
-  event, and the arcs should be sized according to the duration of the event.
-
-  The labels for the time of the events should be displayed around the clock
-  face, including the icons they currently have.
-
-  Labels for events that occur 12 hours from the current time are displayed with
-  a reduced opacity, to indicate they are not relevant for the current night.
+  **Implementation Summary**:
+  - SVG-based clock face with astronomical events displayed as colored arcs
+  - Three arc layers: Sun (orange/black/yellow), Moon (silver with opacity), Galactic Center (light blue/cyan)
+  - Accurate time-to-angle positioning with 12-hour wrap-around handling
+  - Event labels positioned around clock perimeter with icons and times
+  - Interactive tooltips explaining each astronomical event
+  - Distant events (>12 hours) shown with reduced opacity
+  - Hour markers positioned inside clock face for better legibility
+  - Optimized sizing and padding to prevent label clipping
+  - Fixed content centering within SVG foreignObjects
+  - Current time indicator as a glowing blue line from center
+  
+  **Files Created**:
+  - `src/components/AstronomicalClock.tsx` - Main clock component
+  - `src/components/AstronomicalClock.module.css` - Clock styling
+  - `src/components/ClockTooltip.tsx` - Reusable tooltip component
+  - `src/components/ClockTooltip.module.css` - Tooltip styling
+  - `src/utils/timeConversion.ts` - Time-to-angle conversion utilities
+  - `src/utils/arcCalculation.ts` - SVG arc path generation
+  
+  **Technical Achievements**:
+  - Solved complex time-to-angle positioning mathematics
+  - Fixed multiple label clipping issues through container optimization
+  - Implemented proper content centering within SVG foreignObjects
+  - Added interactive tooltips with hover/touch support
+  - Eliminated tooltip conflicts and double tooltip issues
+  - Responsive design with mobile-friendly sizing
 
 - In the Tonight card, display the quality of the observation window over time
   in a simple line chart. The x-axis is the time of the night, the y-axis is the

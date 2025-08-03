@@ -27,6 +27,7 @@ import {
 import { getBortleRatingForLocation, findNearestDarkSky, DarkSiteResult } from "../utils/lightPollutionMap";
 import { findNearestSpecialLocation, calculateDistance } from "../utils/locationParser";
 import FormattedTime from "./FormattedTime";
+import AstronomicalClock from "./AstronomicalClock";
 import styles from "./TonightCard.module.css";
 
 interface TonightCardProps {
@@ -410,6 +411,25 @@ export default function TonightCard({
           </div>
         )}
       </div>
+
+      {/* Astronomical Clock Visualization */}
+      <AstronomicalClock 
+        events={{
+          sunRise: events.sunRise,
+          sunSet: events.sunSet,
+          astronomicalTwilightEnd: events.astronomicalTwilightEnd,
+          astronomicalTwilightStart: events.astronomicalTwilightStart,
+          moonRise: events.moonRise,
+          moonSet: events.moonSet,
+          moonIllumination: events.moonIllumination,
+          gcRise: events.gcRise,
+          gcSet: events.gcSet,
+          optimalWindow: events.optimalWindow
+        }}
+        location={location}
+        currentDate={currentDate}
+        size={420}
+      />
 
       <div className={styles.eventGrid}>
         {/* Sun Events */}
