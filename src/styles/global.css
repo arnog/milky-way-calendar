@@ -12,6 +12,14 @@
   --glow: #b2e3ff;
   --background: #0b0e16;
   --data-font-family: "Rubik", sans-serif;
+  
+  /* Astronomical arc colors */
+  --sun-twilight: #FFA500; /* Orange */
+  --sun-night: #1a2744; /* Dark blue */
+  --sun-dawn: #FFD700; /* Yellow */
+  --moon-arc: #C0C0C0; /* Silver */
+  --gc-visible: #6EC6FF; /* Cyan - swapped */
+  --gc-optimal: #87CEEB; /* Light blue - swapped */
 }
 
 /* Common text styles */
@@ -291,4 +299,17 @@
 
 .small-caps {
   font-variant: small-caps;
+}
+
+/* Accessibility - Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

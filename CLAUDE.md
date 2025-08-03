@@ -1,8 +1,5 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with
-code in this repository.
-
 ## Project Overview
 
 Milky Way Calendar is a React/TypeScript SPA that displays optimal Milky Way
@@ -34,8 +31,9 @@ npm run test:run     # Run tests once (non-watch mode)
   viewing
 - **Dark site suggestions** for locations with poor Bortle ratings (4+),
   automatically finding and suggesting nearby dark sky locations within 500km
-- **Coordinate preservation system** that maintains exact user-entered coordinates
-  while providing helpful location context through nearest known location suggestions
+- **Coordinate preservation system** that maintains exact user-entered
+  coordinates while providing helpful location context through nearest known
+  location suggestions
 - **Interactive location selection** via clickable popover with world map
   integration
 - **Real astronomical calculations** using astronomy-engine library for
@@ -100,86 +98,12 @@ ensure consistency and accuracy:
 
 - **Optimal viewing** requires GC ≥10° above horizon during astronomical
   darkness
-- **Seasonal altitude thresholds**: Jan-Jul: 20°, Aug-Sep: 15°, Oct-Dec: 10°
 - **Moon interference**: Scaled penalty based on illumination percentage when
   moon is up
 - **Timezone handling**: Critical for international users - times must be shown
   in observation location's timezone
 
-## UI Design System
-
-### Color Palette
-
-- **Primary**: #A3C4DC - Main buttons, highlights, navigation
-- **Accent**: #6EC6FF - Links, time displays, hover effects
-- **Highlight**: #F5F5F5 - Body text, general content
-- **Secondary**: #273B4A - Background panels, popovers
-- **Glow**: #B2E3FF - Hover/focus glow effects
-- **Background**: #0B0E16 - Deep night blue base
-
-### Typography System
-
-- **Headlines**: Playfair Display (serif) - All h1, h2, h3 elements
-- **Body Text**: Inter (sans-serif) - Paragraphs, lists, general content
-- **Data/Times**: Orbitron (sans-serif) - Time displays, astronomical data
-- **Special**: Playfair Display italic - Subtitle in header
-
-### Visual Elements
-
-- **Glassmorphism**: `background: rgba(255, 255, 255, 0.05)`,
-  `backdrop-filter: blur(8px)`, `border-radius: 24px`
-- **Background Images**:
-  - Body: Repeating `sky-tile.jpg` for seamless starfield
-  - Header: `milky-way-hero-3.jpg` featuring galactic core
-- **Button Styles**: Primary buttons with hover glow effect using #B2E3FF
-- **Dark/Field Mode**: Red color scheme (#ff4444) for astronomy field use
-
 ## Technical Learnings
-
-### Timezone Implementation
-
-- **Challenge**: Browser `getHours()` returns time in user's timezone, not
-  observation location's timezone
-- **Previous Solution**: Longitude-based approximation (`Math.round(lng / 15)`)
-  was inaccurate for many locations
-- **Current Solution**: Proper IANA timezone lookup using `tz-lookup` library
-  with coordinate-to-timezone conversion
-- **Implementation**: `src/utils/timezoneUtils.ts` with comprehensive timezone
-  handling functions
-- **Accuracy Improvements**:
-  - Non-integer offsets (India UTC+5:30, Australia UTC+9:30) now handled
-    correctly
-  - Political timezone boundaries respected (not just longitude lines)
-  - Daylight saving time automatically calculated
-  - Fallback to longitude approximation if timezone lookup fails
-- **Performance**: Coordinate-based caching for efficient timezone lookups
-
-### UI/UX Evolution
-
-- **Location Input**: Evolved from standalone card to integrated popover for
-  better space utilization
-- **Icon System**: Replaced Unicode emojis with custom SVG sprites for
-  consistency
-- **Information Density**: TonightCard redesigned with 3-column layout and
-  combined event displays
-- **Tooltips**: Custom CSS tooltips replace browser defaults for better mobile
-  support
-
-### Map Integration
-
-- **Light Pollution Maps**: Uses high-resolution light pollution maps
-  (world2024B series) showing dark areas in black and light-polluted areas in
-  yellow/orange
-- **Multiple Resolutions**: Responsive loading with WebP support - small
-  (3600x1400), medium (7200x2800), and large (14400x5600) versions
-- **Projection System**: Equirectangular projection for accurate coordinate
-  mapping (replaced Robinson projection)
-- **Aspect Ratio**: Proper 18:7 aspect ratio matching source images prevents
-  clipping of Alaska and New Zealand
-- **Drag Handling**: Fixed race conditions between drag events and location
-  state updates
-- **Event Flow**: Proper mouseup handling prevents location reset on drag
-  release
 
 ### Routing and Navigation
 
@@ -191,22 +115,14 @@ ensure consistency and accuracy:
   - `/faq` - Comprehensive FAQ about the Milky Way galaxy
 - **Location URLs**: Support both named locations (e.g.,
   `/location/yellowstone`) and coordinates (e.g., `/location/@44.6,-110.5`)
-- **Navigation Bar**: Centered navigation with Home, Explore, and FAQ links,
-  plus Dark/Field mode toggle at far right
-- **Global State**: Dark/Field mode maintained across all pages with app-level
   state management
-- **Active States**: Navigation links show bold styling when on current page
 
 ### Dark Sky Sites Explorer
 
-- **Curated List**: Uses `DARK_SITES` constant containing ~80 prime stargazing
+- **Curated List**: Uses `DARK_SITES` constant containing prime stargazing
   locations worldwide
-- **Regional Grouping**: Locations organized into balanced regions (Western USA,
-  Central USA, Eastern USA, Canada, Europe, etc.)
 - **Interactive Map**: WorldMap component with blue markers for each dark sky
   site, hover tooltips, and click navigation
-- **Smart Categorization**: Location grouping logic handles edge cases (Alaska,
-  Hawaii) and creates balanced regional distributions
 
 ### FAQ System
 
@@ -234,51 +150,13 @@ ensure consistency and accuracy:
 
 - **Single Source of Truth**: All astronomical calculations consolidated to use
   astronomy-engine exclusively
-- **Eliminated Duplication**: Removed duplicate moon calculations between
-  TonightCard and utility functions
-- **Consistent Moon Data**: All components now use `calculateMoonData()`
-  function for moon phase, illumination, and rise/set times
+- **Consistent Moon Data**: All components use `calculateMoonData()` function
+  for moon phase, illumination, and rise/set times
 - **Proper Error Handling**: Robust fallbacks for edge cases like extreme
   latitudes and failed calculations
-- **Library Migration**: Successfully migrated from SunCalc to astronomy-engine
-  for better accuracy and consistency
-- **Timezone Accuracy**: Replaced longitude approximation with proper IANA
-  timezone lookup using `tz-lookup` library
 - **Modular Timezone Utils**: Created `src/utils/timezoneUtils.ts` with
-  comprehensive timezone conversion functions
-- **CSS Architecture Migration**: Migrated from Tailwind CSS to CSS Modules for
-  better component encapsulation and maintainability
-- **Algorithm Migration Completion**: Removed legacy static algorithm and
-  simplified `getOptimalViewingWindow()` API to always use time-integrated
-  approach with required parameters for consistent behavior
-
-### Light Pollution Map Coordinate System Fix
-
-- **Critical Issue Resolved**: Fixed fundamental coordinate mapping error where
-  cities like Los Angeles, New York, Paris, and Tokyo were incorrectly
-  identified as pristine dark sky sites (Bortle 1-1.5)
-- **Root Cause**: Light pollution map covers -65° to +75° latitude (140° span),
-  not the assumed -90° to +90° (180° span)
-- **Before Fix**:
-  - `y = ((90 - lat) / 180) * imageHeight` (incorrect 180° assumption)
-  - Major cities reading dark pixels (R35 G35 B35) instead of bright pollution
-- **After Fix**:
-  - `y = ((75 - lat) / 140) * imageHeight` (correct 140° span)
-  - Cities now correctly read bright pixels (R255 G255 B255) showing severe
-    light pollution
-- **Files Updated**:
-  - `src/utils/lightPollutionMap.ts`: Core coordinate conversion functions
-  - `src/pages/ExplorePage.tsx`: Dark site marker positioning
-  - `src/components/WorldMap.tsx`: Interactive map click handling and marker
-    positioning
-- **Functions Added**:
-  - `coordToNormalized()`: Convert lat/lng to 0-1 coordinates for UI positioning
-  - `normalizedToCoord()`: Convert 0-1 coordinates back to lat/lng for click
-    handling
-- **Verification**: Los Angeles now correctly shows "No dark sky sites found
-  within 500km" instead of being identified as a Bortle 1 dark site
-- **Global Impact**: All interactive map features, dark site searches, and
-  coordinate-based functionality now work accurately worldwide
+  comprehensive timezone conversion functions. Use proper IANA timezone lookup
+  using `tz-lookup` library
 
 ### Dark Sky Classification Threshold Optimization
 
@@ -313,58 +191,6 @@ ensure consistency and accuracy:
   with `global-` prefixed class names for reusable patterns
 - **Vite Configuration**: CSS Modules configured with camelCase conversion and
   scoped name generation for optimal development experience
-- **Migration Benefits**:
-  - Eliminated Tailwind build dependencies and configuration overhead
-  - Improved component isolation with locally scoped styles
-  - Better maintainability with explicit style imports
-  - Reduced bundle size by removing unused utility classes
-- **Consistent Styling**: All visual appearance preserved during migration with
-  identical glassmorphism effects, responsive design, and dark/field modes
-
-### Dark Sky Site Discovery Optimization
-
-- **Bortle Scale Classification**: Uses the International Dark-Sky Association
-  Bortle scale (1-9) to classify light pollution levels based on RGB values from
-  the light pollution map
-- **Optimized Threshold**: Dark sky threshold set to Bortle ≤3.0 to include:
-  - Bortle 1: Pristine dark sky (best possible conditions)
-  - Bortle 2: Excellent dark sky (minimal light pollution)
-  - Bortle 3: Good dark sky (suitable for Milky Way photography)
-- **Real-World Validation**: Threshold validated with actual locations:
-  - Joshua Tree National Park: Bortle 2.5-3.5 (now correctly identified)
-  - Death Valley National Park: Bortle 2.5 (excellent dark sky)
-  - Major cities: Bortle 4+ (correctly excluded)
-- **Search Algorithm**: Modified Dijkstra's algorithm finds nearest dark sites
-  within 500km radius, returning primary site plus 5 alternatives in different
-  directions
-- **Geographic Diversity**: Alternative sites selected using bearing
-  calculations to provide options in multiple directions from user location
-- **Known Site Integration**: Found dark sites are matched with nearest known
-  locations from curated DARK_SITES list for better accessibility information
-
-### Moon Phase Calculation Fix
-
-- **Problem Identified**: Moon phase icons showed reversed phases (except new/full moon), with 93% illuminated moon displaying as crescent
-- **Root Cause**: Incorrect moon phase calculation formula that inverted the relationship between phase angle and lunar cycle phase
-- **Solution**: Implemented proper phase calculation based on:
-  - Illumination percentage comparison with previous day to determine waxing/waning
-  - Correct phase mapping: waxing (0-0.5), waning (0.5-1.0)
-  - Edge case handling for new moon (<1%) and full moon (>99%)
-- **Files Updated**: `src/utils/moonCalculations.ts` with new calculation algorithm
-- **Impact**: Moon icons now accurately represent illumination levels across all phases
-
-### Bortle Rating Display
-
-- **Feature Added**: Bortle scale rating (1-9) displayed in Tonight card for current location
-- **Implementation Details**:
-  - Created `getBortleRatingForLocation()` function in `lightPollutionMap.ts`
-  - Asynchronously fetches light pollution data and calculates Bortle rating
-  - Displays as styled badge below location with data font family
-- **UX Enhancement**: Made Bortle rating clickable link to FAQ explanation
-  - Added anchor IDs to FAQ articles for direct linking
-  - Implemented smooth scroll behavior with React Router hash navigation
-  - Added hover effects with glow and transitions
-- **Educational Value**: Users can instantly learn what their Bortle rating means for Milky Way visibility
 
 ### Testing & Quality Assurance
 
@@ -416,213 +242,82 @@ ensure consistency and accuracy:
 - **Priority & Frequency**: Optimized sitemap attributes for different page
   types (static pages: priority 1.0, dark sites: 0.7, cities: 0.6)
 
-### Typography Enhancement & CSS Variable System
-
-- **Enhanced Time Typography**: Implemented typographically improved time
-  displays with raised colons for better visual hierarchy and readability
-- **FormattedTime Component**: Created reusable component handling both Date
-  objects and time strings with consistent formatting
-- **Precise Vertical Alignment**: Uses CSS `verticalAlign: '0.2em'` for subtle
-  colon elevation (not disruptive `<sup>` tag)
-- **Universal Implementation**: Applied to all time displays across Calendar,
-  DailyVisibilityTable, TonightCard, and optimal viewing times
-- **CSS Variable Color System**: Centralized color palette management:
-  - `--primary` (#A3C4DC): Main buttons, highlights, navigation
-  - `--accent` (#6EC6FF): Links, time displays, hover effects
-  - `--highlight` (#F5F5F5): Body text, general content
-  - `--secondary` (#273B4A): Background panels, popovers
-  - `--glow` (#B2E3FF): Hover/focus glow effects
-  - `--background` (#0B0E16): Deep night blue base
-- **Maintainability Benefits**: All hardcoded hex colors replaced with CSS
-  variables for consistent theming and easy color scheme modifications
-- **Enhanced TonightCard**: Complete Galactic Core event display with rise,
-  optimal viewing, transit, and set times arranged chronologically, improved
-  time filtering to show events from start of day for better "tonight" context
-
-### Time-Integrated Observation Windows
-
-**Problem Solved**: Previously, observation windows were calculated using simple
-intersection logic (GC visibility ∩ astronomical darkness), which ignored when
-moon interference actually occurs during the window, leading to misleading
-duration estimates that disappointed users.
-
-**Solution Implemented**: Hour-by-hour quality analysis using the refined GC
-observation scoring algorithm to provide realistic viewing windows that account
-for actual viewing conditions throughout the night.
-
-- **New Architecture**: `src/utils/integratedOptimalViewing.ts` provides
-  time-integrated window calculation with quality period detection
-- **Enhanced API**: `getOptimalViewingWindow()` with configurable quality
-  thresholds and backward compatibility with existing
-  `calculateOptimalViewingWindow()`
-- **Quality Periods**: Automatic detection of continuous viewing periods above
-  user-defined quality thresholds (30%+ decent, 50%+ good, 70%+ very good, 90%+
-  perfect)
-- **TonightCard Integration**: Now displays realistic viewing windows with
-  quality percentages (e.g., "1.0h (21% quality)") instead of misleading static
-  durations
-- **Real-World Impact**: Example night with 62% moon interference:
-  - **Before**: "3.3 hours viewing" (static intersection, misleading)
-  - **After**: "1.0 hours quality viewing (21%)" (time-integrated, honest)
-  - **User Benefit**: Saves 2.2 hours of poor conditions, sets realistic
-    expectations
-- **Progressive Enhancement**: Opt-in integrated analysis maintains full
-  backward compatibility while providing superior accuracy for components that
-  adopt it
-- **Performance**: Uses the same optimized variable-step integration as GC
-  scoring with minimal computational overhead compared to static intersection
-- **Testing**: Validated with challenging real-world scenarios (high moon
-  interference) and excellent conditions (new moon nights) to ensure accuracy
-  across all conditions
-
-**Technical Implementation**: The system detects continuous quality periods
-within the astronomical viewing window, filters out poor-quality time
-automatically, and provides users with honest expectations about both duration
-and quality of their Milky Way observation sessions. See
-`TIME_INTEGRATED_WINDOWS.md` for comprehensive technical details and migration
-guide.
-
 ## Current Status
 
-✅ **Phase 1**: Project Foundation - React/TypeScript setup with Vite and CSS
-framework  
-✅ **Phase 2**: Core Astronomical Engine - Real calculations implemented  
-✅ **Phase 3**: Advanced UI/UX - Location popover, timezone-aware displays, SVG
-icons  
-✅ **Phase 4**: Map Integration - Interactive world map with drag support  
-✅ **Phase 5**: Dark Sky Sites Explorer - Dedicated page showcasing curated dark
-sky locations  
-✅ **Phase 6**: Code Quality Improvements - Migrated to astronomy-engine,
-eliminated code duplication, improved high-latitude handling  
-✅ **Phase 7**: Navigation & FAQ System - Comprehensive navigation with centered
-layout, FAQ page with educational content, global dark/field mode  
-✅ **Phase 8**: Timezone Accuracy Implementation - Replaced longitude
-approximation with proper IANA timezone lookup using `tz-lookup` library ✅
-**Phase 9**: SEO Implementation - Comprehensive XML sitemap generation with
-dynamic location parsing, robots.txt configuration, and search engine
-optimization ✅ **Phase 10**: Testing & Quality Assurance - Comprehensive unit
-test suite with 98 tests covering all astronomy calculations, coordinate
-mapping, dark site search accuracy, edge cases, and integration scenarios ✅
-**Phase 11**: CSS Architecture Migration - Migrated from Tailwind CSS to CSS
-Modules for better component encapsulation, maintainability, and reduced
-dependencies ✅ **Phase 12**: UI Refresh Implementation - Complete visual
-redesign following UI_REFRESH.md guidelines with new color palette, typography
-system (Playfair Display for headings, Orbitron for data/times, Inter for body),
-enhanced glassmorphism effects, and custom background imagery
-
-✅ **Phase 13**: Critical Coordinate System Fix - Resolved fundamental light
-pollution map coordinate mapping bug that incorrectly identified major cities as
-pristine dark sky sites, implemented comprehensive test coverage to prevent
-regression
-
-✅ **Phase 14**: Dark Sky Classification Optimization - Fixed overly restrictive
-dark sky threshold that prevented legitimate locations like Joshua Tree and
-Death Valley from being found, expanded threshold from Bortle ≤1.5 to ≤3.0 to
-include excellent dark sky areas suitable for Milky Way photography while still
-excluding light-polluted urban areas
-
-✅ **Phase 15**: Typography Enhancement - Implemented enhanced time displays
-with raised colons using precise CSS vertical alignment (0.2em) for improved
-readability across all astronomical time data, created reusable FormattedTime
-component supporting both Date objects and time strings
-
-✅ **Phase 16**: CSS Variable Color System - Centralized color palette using CSS
-variables (--primary, --accent, --highlight, --secondary, --glow, --background)
-replacing all hardcoded hex values for consistent theming and maintainability
-
-✅ **Phase 17**: TonightCard Galactic Core Enhancement - Added complete Galactic
-Core rise and set times to Tonight display, arranged chronologically (Rise →
-Optimal Window → Transit → Set), improved time filtering to show today's events
-for better "tonight" context
-
-✅ **Phase 18**: Time-Integrated Observation Windows - Implemented hour-by-hour
-quality analysis for realistic viewing windows that account for moon
-interference timing, replacing static intersection logic with time-integrated
-scoring, providing users with honest duration estimates and quality percentages
-for better trip planning (see TIME_INTEGRATED_WINDOWS.md for full details)
-
-✅ **Phase 19**: Algorithm Migration Completion - Completed full migration to
-integrated approach by removing the old static algorithm (118 lines),
-simplifying the `getOptimalViewingWindow()` API to always use time-integrated
-analysis with required parameters, updating all components and tests, and
-cleaning up 8 obsolete comparison/analysis files for a cleaner codebase
-
-✅ **Phase 20**: Moon Phase Icon Fix - Corrected moon phase calculation algorithm
-to properly determine waxing/waning phases based on illumination changes,
-ensuring 93% illuminated moon displays as nearly full instead of crescent
-
-✅ **Phase 21**: Bortle Rating Integration - Added Bortle scale rating display to
-Tonight card showing light pollution level (1-9 scale) for current location,
-implemented as clickable link to FAQ explanation, with hover effects and proper
-styling
-
-✅ **Phase 22**: Date Navigation Implementation - Added comprehensive URL query
-parameter support (`?date=YYYY-MM-DD`) for viewing astronomical data on any date,
-implemented custom `useDateFromQuery` hook for centralized date state management,
-made calendar rows clickable to navigate to specific dates, and updated all
-components to respect the selected date instead of always using "today"
-
-✅ **Phase 23**: Dark Site Suggestions - Implemented automatic dark site
-suggestions for locations with poor Bortle ratings (4+), integrated with existing
-dark sky search functionality to find nearest suitable locations within 500km,
-added visually distinct suggestion panels in TonightCard with site details and
-links to the explore page for better user guidance to optimal viewing locations
-
-✅ **Phase 24**: Coordinate Preservation System - Implemented coordinate preservation
-that maintains exact user-entered coordinates instead of automatically switching to
-nearest special locations, added nearest known location suggestions for coordinate
-inputs showing nearby landmarks within 100km with distance calculation, enhanced
-location manager to separate coordinate preservation from location description
-lookup, providing users with precise control over their observation location while
-still offering helpful location context
-
-✅ **Phase 25**: LocationPopover Geolocation Enhancement - Fixed geolocation behavior
-to display nearby location names in the input field while preserving exact user
-coordinates for calculations, enhanced getSpecialLocationDescription function to
-use a more generous 100km distance threshold when a matched location name exists,
-ensuring users near special locations like Yellowstone receive proper location
-descriptions and context
-
-✅ **Phase 26**: Custom Tooltip System Implementation - Replaced browser tooltips
-with custom tooltips for star ratings using React state management and consistent
-styling matching the app's design system, implemented hover/touch event handling
-for better mobile support, and fixed tooltip clipping issues in table views by
-adding appropriate padding to table containers in both Daily and Calendar views
-
 ✅ **Phase 27**: Astronomical Clock Visualization Implementation - Implemented
-comprehensive 12-hour clock visualization in TonightCard showing astronomical events
-as colored arcs and positioned labels around a clock face, created SVG-based clock
-with time-to-angle conversion for timezone-aware positioning, added sun arcs 
-(orange twilight → dark night → yellow dawn), moon arc with illumination-based
-opacity, and galactic center arcs (light blue visibility + cyan optimal window),
-positioned event labels with icons and times around perimeter with interactive
-tooltips, included current time indicator, implemented responsive design with
-420px optimized viewBox, fixed label positioning by properly centering content
-within foreignObject containers using flexbox, resolved tooltip clipping with
-overflow management and proper z-index, and eliminated double tooltips by removing
-conflicting browser title attributes
+comprehensive 12-hour clock visualization in TonightCard showing astronomical
+events as colored arcs and positioned labels around a clock face, created
+SVG-based clock with time-to-angle conversion for timezone-aware positioning,
+added sun arcs (orange twilight → dark night → yellow dawn), moon arc with
+illumination-based opacity, and galactic center arcs (light blue visibility +
+cyan optimal window), positioned event labels with icons and times around
+perimeter with interactive tooltips, included current time indicator,
+implemented responsive design with 420px optimized viewBox, fixed label
+positioning by properly centering content within foreignObject containers using
+flexbox, resolved tooltip clipping with overflow management and proper z-index,
+and eliminated double tooltips by removing conflicting browser title attributes
+
+✅ **Phase 28**: AstronomicalClock Refinements - Comprehensively enhanced the
+astronomical clock with visual and functional improvements: changed night arc
+color from pure black to dark blue (#1a2744) for better visibility, implemented
+color-coded event labels matching their respective arc colors (orange/yellow for
+sun events, silver for moon events, cyan/light blue for galactic center events),
+added auto-refresh functionality updating clock position every 2 minutes,
+extended clock hand beyond center to mimic traditional clock appearance,
+increased clock size from 420px to 600px with proportional scaling of all
+elements, added rounded caps to all arcs for professional appearance,
+repositioned hour tick marks from between arcs to outside outer arc extending
+inward, migrated time displays to use global data-time class with proper
+typography, fixed opacity logic to show reduced opacity for events before 6pm
+same day or after 6am next day, improved icon and time sizing with larger icons
+and tighter spacing in square layouts, and added moon phase icon with
+illumination percentage display in the clock center for enhanced astronomical
+context
+
+✅ **Phase 29**: AstronomicalClock Production Enhancement - Completed
+comprehensive production readiness improvements: implemented centralized
+TypeScript type system with `src/types/astronomicalClock.ts` containing all
+clock interfaces and EventType string union conversion for better tree-shaking,
+created configuration management system with `src/config/clockConfig.ts`
+centralizing all constants and magic numbers with helper functions, added
+complete WCAG accessibility compliance including ARIA labels, keyboard
+navigation, screen reader support, and focus management, implemented
+bidirectional interactive highlighting system where event labels highlight
+corresponding arcs and vice versa with smooth transitions and visual feedback,
+enhanced touch-friendly design with adaptive sizing for mobile devices (44px+
+touch targets), device detection, and optimized gesture handling, created
+intelligent event consolidation system that automatically combines same-time
+events into multi-icon labels, developed robust layered collision detection
+algorithm preventing label overlaps with progressive layer assignment and
+configurable thresholds, added enhanced typography with raised colons in time
+displays and centralized CSS variable color system, simplified hour marker logic
+using data-driven configuration approach, and ensured production-ready code
+quality with comprehensive testing and TypeScript strict mode compliance
 
 **Current state**: Feature-complete astronomy calendar with fully migrated
 time-integrated astronomical calculations, comprehensive date navigation via URL
-parameters allowing users to explore any date, sophisticated coordinate preservation
-system that maintains exact user locations while providing helpful context, automatic
-dark site suggestions for light-polluted locations, enhanced geolocation behavior
-that shows friendly location names while preserving precise coordinates, accurate
-timezone handling for international users, proper high-latitude handling,
-comprehensive dark sky site discovery with corrected coordinate mapping and optimal
-classification thresholds, educational FAQ system with modern navigation and anchor
-linking, full SEO optimization for search engine discoverability, robust test
-coverage (109 tests) ensuring calculation accuracy and preventing critical
-regressions, modern CSS Modules architecture for scalable styling, centralized
-color theming with CSS variables, enhanced typography with raised colons for
-optimal time readability, unified time-integrated observation windows providing
-honest quality expectations across all components, polished night-sky aesthetic
-with professional visual design and complete astronomical event coverage, corrected
-moon phase display with accurate waxing/waning determination, integrated Bortle
-rating display with educational FAQ linking, custom tooltip system providing
-consistent styling and better mobile support across all components, professional
-12-hour astronomical clock visualization with interactive tooltips and precise
-event positioning, and intelligent location guidance for optimal Milky Way photography.
+parameters allowing users to explore any date, sophisticated coordinate
+preservation system that maintains exact user locations while providing helpful
+context, automatic dark site suggestions for light-polluted locations, enhanced
+geolocation behavior that shows friendly location names while preserving precise
+coordinates, accurate timezone handling for international users, proper
+high-latitude handling, comprehensive dark sky site discovery with corrected
+coordinate mapping and optimal classification thresholds, educational FAQ system
+with modern navigation and anchor linking, full SEO optimization for search
+engine discoverability, robust test coverage (109 tests) ensuring calculation
+accuracy and preventing critical regressions, modern CSS Modules architecture
+for scalable styling, centralized color theming with CSS variables, enhanced
+typography with raised colons for optimal time readability, unified
+time-integrated observation windows providing honest quality expectations across
+all components, polished night-sky aesthetic with professional visual design and
+complete astronomical event coverage, corrected moon phase display with accurate
+waxing/waning determination, integrated Bortle rating display with educational
+FAQ linking, custom tooltip system providing consistent styling and better
+mobile support across all components, **production-ready 12-hour astronomical
+clock with comprehensive accessibility, bidirectional interactive highlighting,
+touch-friendly design, intelligent event consolidation, and robust collision
+detection ensuring perfect label positioning**, and intelligent location
+guidance for optimal Milky Way photography.
 
 ## Hosting
 
@@ -652,35 +347,15 @@ The app is deployed using CloudFlare Pages with automatic Git integration:
 - **Static assets**: Served from `public/` directory (includes `icons.svg`,
   `world-map.svg`, `sky-tile.jpg`, `milky-way-hero-3.jpg`)
 
-### Coding Styleguide
+### Coding Guidelines
 
-- **Language**: TypeScript
-- For names of files and directories, use kebab-case (e.g., `my-component.tsx`,
-  `my-directory`) or all caps (e.g., `ARCHITECTURE_REVIEW.md`)
-- When a block has a single statement, use a single line without braces:
+Follow the guidlines in `CODING_GUIDELINES.md` for consistent code style and
+best practices.
 
-  ```typescript
-  if (condition) doSomething();
-  ```
+### UI Design System
 
-- Avoid fallback code for situations that should not occur. If a situation is
-  unexpected, throw an error or log it for debugging:
+See `DESIGN_SYSTEM.md` for the complete design system including color palette,
+typography, and component styles.
 
-  ```typescript
-  if (unexpectedCondition) throw new Error("Unexpected condition occurred");
-  ```
-
-- Use the MCP Playwright to test UI components and get access to the browser
-  console for debugging.
-
-- Before launching the dev server, check if it might already be running in the
-  background.
-
-- When a task has been completed:
-  - Review the code and look for opportunities to remove dead code or simplify
-    logic. Consider opportunities to factor repetitive code. Avoid unnecessary
-    fallbacks.
-  - Run `npm run lint` to check for code style issues and `npm run typecheck` to
-    verify TypeScript types
-  - Update the `CHANGELOG.md` with a summary of changes
-  - Update the `CLAUDE.md` with any new features or architectural changes
+For additional context, refer to HISTORY.md and CHANGELOG.md for detailed
+history of changes and features.

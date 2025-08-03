@@ -49,12 +49,36 @@ export function calculateAngleSpan(startAngle: number, endAngle: number): number
 }
 
 /**
- * Check if an event is more than 12 hours away from current time
+ * Check if an event should be displayed with reduced opacity
+ * Reduced opacity if:
+ * - Event is before 6pm the same day
+ * - Event is after 6am the next day
  */
 export function isEventDistant(eventTime: Date, currentTime: Date): boolean {
-  const timeDiff = Math.abs(eventTime.getTime() - currentTime.getTime());
-  const twelveHours = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
-  return timeDiff > twelveHours;
+  const eventHours = eventTime.getHours();
+  
+  // Get date parts for comparison
+  const eventDate = new Date(eventTime.getFullYear(), eventTime.getMonth(), eventTime.getDate());
+  const currentDate = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate());
+  
+  const daysDiff = Math.floor((eventDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000));
+  
+  // Same day: show reduced opacity if before 6pm (18:00)
+  if (daysDiff === 0 && eventHours < 18) {
+    return true;
+  }
+  
+  // Next day: show reduced opacity if after 6am (06:00)
+  if (daysDiff === 1 && eventHours >= 6) {
+    return true;
+  }
+  
+  // Any other day difference
+  if (daysDiff < 0 || daysDiff > 1) {
+    return true;
+  }
+  
+  return false;
 }
 
 /**

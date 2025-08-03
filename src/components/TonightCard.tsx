@@ -22,12 +22,13 @@ import {
   getOptimalViewingWindow,
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
-  OptimalViewingWindow,
 } from "../utils/optimalViewing";
 import { getBortleRatingForLocation, findNearestDarkSky, DarkSiteResult } from "../utils/lightPollutionMap";
 import { findNearestSpecialLocation, calculateDistance } from "../utils/locationParser";
 import FormattedTime from "./FormattedTime";
 import AstronomicalClock from "./AstronomicalClock";
+import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
+import { type AstronomicalEvents } from "../types/astronomicalClock";
 import styles from "./TonightCard.module.css";
 
 interface TonightCardProps {
@@ -36,66 +37,11 @@ interface TonightCardProps {
   currentDate?: Date;
 }
 
-interface TonightEvents {
-  sunRise?: Date;
-  sunSet?: Date;
-  astronomicalTwilightEnd?: Date;
-  astronomicalTwilightStart?: Date;
-  moonRise?: Date;
-  moonSet?: Date;
-  gcRise?: Date;
-  gcTransit?: Date;
-  gcSet?: Date;
-  maxGcAltitude: number;
-  moonPhase: number;
-  moonIllumination: number;
+interface TonightEvents extends AstronomicalEvents {
   visibility: number;
   visibilityReason?: string;
-  optimalWindow: OptimalViewingWindow;
 }
 
-// Helper function to get moon phase icon name
-const getMoonPhaseIcon = (phase: number, latitude: number): string => {
-  // Phase is 0-1, where 0.5 is full moon
-  // In southern hemisphere, phases appear flipped horizontally
-  const isNorthernHemisphere = latitude >= 0;
-
-  // New Moon and Full Moon appear the same in both hemispheres
-  if (phase < 0.0625 || phase >= 0.9375) return "moon-new"; // New Moon
-  if (phase >= 0.4375 && phase < 0.5625) return "moon-full"; // Full Moon
-
-  // For crescent and quarter phases, flip the icons in southern hemisphere
-  if (isNorthernHemisphere) {
-    // Northern hemisphere - standard orientation
-    if (phase < 0.1875) return "moon-waxing-crescent"; // Waxing Crescent
-    if (phase < 0.3125) return "moon-first-quarter"; // First Quarter
-    if (phase < 0.4375) return "moon-waxing-gibbous"; // Waxing Gibbous
-    if (phase < 0.6875) return "moon-waning-gibbous"; // Waning Gibbous
-    if (phase < 0.8125) return "moon-third-quarter"; // Third Quarter
-    return "moon-waning-crescent"; // Waning Crescent
-  } else {
-    // Southern hemisphere - flip waxing/waning phases
-    if (phase < 0.1875) return "moon-waning-crescent"; // Waxing Crescent (appears as waning crescent)
-    if (phase < 0.3125) return "moon-third-quarter"; // First Quarter (appears as third quarter)
-    if (phase < 0.4375) return "moon-waning-gibbous"; // Waxing Gibbous (appears as waning gibbous)
-    if (phase < 0.6875) return "moon-waxing-gibbous"; // Waning Gibbous (appears as waxing gibbous)
-    if (phase < 0.8125) return "moon-first-quarter"; // Third Quarter (appears as first quarter)
-    return "moon-waxing-crescent"; // Waning Crescent (appears as waxing crescent)
-  }
-};
-
-// Helper function to get moon phase name
-const getMoonPhaseName = (phase: number): string => {
-  // Phase is 0-1, where 0.5 is full moon
-  if (phase < 0.0625 || phase >= 0.9375) return "New Moon";
-  if (phase < 0.1875) return "Waxing Crescent";
-  if (phase < 0.3125) return "First Quarter";
-  if (phase < 0.4375) return "Waxing Gibbous";
-  if (phase < 0.5625) return "Full Moon";
-  if (phase < 0.6875) return "Waning Gibbous";
-  if (phase < 0.8125) return "Third Quarter";
-  return "Waning Crescent";
-};
 
 export default function TonightCard({
   location,
@@ -422,13 +368,16 @@ export default function TonightCard({
           moonRise: events.moonRise,
           moonSet: events.moonSet,
           moonIllumination: events.moonIllumination,
+          moonPhase: events.moonPhase,
           gcRise: events.gcRise,
           gcSet: events.gcSet,
+          gcTransit: events.gcTransit,
+          maxGcAltitude: events.maxGcAltitude,
           optimalWindow: events.optimalWindow
         }}
         location={location}
         currentDate={currentDate}
-        size={420}
+        size={600}
       />
 
       <div className={styles.eventGrid}>

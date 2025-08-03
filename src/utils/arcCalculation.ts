@@ -1,3 +1,5 @@
+import { type CalculatedArc } from '../types/astronomicalClock';
+
 /**
  * Generate SVG path for a circular arc
  * @param startAngle Start angle in degrees (0 = top, clockwise)
@@ -102,14 +104,197 @@ export function createSegmentedArc(
 }
 
 /**
- * Calculate arc parameters for astronomical events
+ * Create gradient arc by splitting into multiple segments
  */
-export interface ArcParams {
-  path: string;
-  color: string;
-  opacity?: number;
-  strokeWidth?: number;
-  className?: string;
+function createGradientArc(
+  startAngle: number,
+  endAngle: number,
+  radius: number,
+  startColor: string,
+  endColor: string,
+  segments: number = 10,
+  centerX: number = 200,
+  centerY: number = 200,
+  className: string = ''
+): CalculatedArc[] {
+  const arcs: CalculatedArc[] = [];
+  const angleSpan = endAngle >= startAngle 
+    ? endAngle - startAngle 
+    : (360 - startAngle) + endAngle;
+  const segmentAngle = angleSpan / segments;
+  
+  // Get the actual color values from CSS variables
+  const getColorFromVar = (varName: string): string => {
+    if (varName === 'var(--sun-twilight)') return '#FFA500';
+    if (varName === 'var(--sun-night)') return '#1a2744';
+    if (varName === 'var(--sun-dawn)') return '#FFD700';
+    if (varName === 'var(--gc-visible)') return '#6EC6FF'; // Cyan  
+    if (varName === 'var(--gc-optimal)') return '#87CEEB'; // Light blue
+    return varName;
+  };
+  
+  // Interpolate between two colors
+  const interpolateColor = (start: string, end: string, factor: number): string => {
+    const startColor = getColorFromVar(start);
+    const endColor = getColorFromVar(end);
+    
+    // Convert hex to RGB
+    const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 0, g: 0, b: 0 };
+    };
+    
+    const rgbToHex = (r: number, g: number, b: number): string => {
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    };
+    
+    const startRgb = hexToRgb(startColor);
+    const endRgb = hexToRgb(endColor);
+    
+    const r = Math.round(startRgb.r + (endRgb.r - startRgb.r) * factor);
+    const g = Math.round(startRgb.g + (endRgb.g - startRgb.g) * factor);
+    const b = Math.round(startRgb.b + (endRgb.b - startRgb.b) * factor);
+    
+    return rgbToHex(r, g, b);
+  };
+  
+  for (let i = 0; i < segments; i++) {
+    const segmentStart = (startAngle + i * segmentAngle) % 360;
+    const segmentEnd = (startAngle + (i + 1) * segmentAngle) % 360;
+    const factor = i / (segments - 1);
+    const color = interpolateColor(startColor, endColor, factor);
+    
+    arcs.push({
+      path: createArcPath(segmentStart, segmentEnd, radius, centerX, centerY),
+      color: color,
+      className: className,
+      opacity: 1
+    });
+  }
+  
+  return arcs;
+}
+
+/**
+ * Create opacity fade arc by splitting into multiple segments with varying opacity
+ */
+function createOpacityFadeArc(
+  startAngle: number,
+  endAngle: number,
+  radius: number,
+  color: string,
+  startOpacity: number,
+  endOpacity: number,
+  segments: number = 15,
+  centerX: number = 200,
+  centerY: number = 200,
+  className: string = ''
+): CalculatedArc[] {
+  const arcs: CalculatedArc[] = [];
+  const angleSpan = endAngle >= startAngle 
+    ? endAngle - startAngle 
+    : (360 - startAngle) + endAngle;
+  const segmentAngle = angleSpan / segments;
+  
+  for (let i = 0; i < segments; i++) {
+    const segmentStart = (startAngle + i * segmentAngle) % 360;
+    const segmentEnd = (startAngle + (i + 1) * segmentAngle) % 360;
+    
+    // Use the midpoint of the segment for opacity calculation
+    const factor = (i + 0.5) / segments;
+    const opacity = startOpacity + (endOpacity - startOpacity) * factor;
+    
+    arcs.push({
+      path: createArcPath(segmentStart, segmentEnd, radius, centerX, centerY),
+      color: color,
+      className: className,
+      opacity: Math.max(0, Math.min(1, opacity))
+    });
+  }
+  
+  return arcs;
+}
+
+/**
+ * Create color gradient arc by splitting into multiple segments with color interpolation
+ */
+function createColorGradientArc(
+  startAngle: number,
+  endAngle: number,
+  radius: number,
+  startColor: string,
+  endColor: string,
+  segments: number = 15,
+  centerX: number = 200,
+  centerY: number = 200,
+  className: string = ''
+): CalculatedArc[] {
+  const arcs: CalculatedArc[] = [];
+  const angleSpan = endAngle >= startAngle 
+    ? endAngle - startAngle 
+    : (360 - startAngle) + endAngle;
+  const segmentAngle = angleSpan / segments;
+  
+  // Get the actual color values from CSS variables
+  const getColorFromVar = (varName: string): string => {
+    if (varName === 'var(--sun-twilight)') return '#FFA500';
+    if (varName === 'var(--sun-night)') return '#1a2744';
+    if (varName === 'var(--sun-dawn)') return '#FFD700';
+    if (varName === 'var(--gc-visible)') return '#6EC6FF'; // Cyan  
+    if (varName === 'var(--gc-optimal)') return '#87CEEB'; // Light blue
+    return varName;
+  };
+  
+  // Interpolate between two colors
+  const interpolateColor = (start: string, end: string, factor: number): string => {
+    const startColorHex = getColorFromVar(start);
+    const endColorHex = getColorFromVar(end);
+    
+    // Convert hex to RGB
+    const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 0, g: 0, b: 0 };
+    };
+    
+    const rgbToHex = (r: number, g: number, b: number): string => {
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    };
+    
+    const startRgb = hexToRgb(startColorHex);
+    const endRgb = hexToRgb(endColorHex);
+    
+    const r = Math.round(startRgb.r + (endRgb.r - startRgb.r) * factor);
+    const g = Math.round(startRgb.g + (endRgb.g - startRgb.g) * factor);
+    const b = Math.round(startRgb.b + (endRgb.b - startRgb.b) * factor);
+    
+    return rgbToHex(r, g, b);
+  };
+  
+  for (let i = 0; i < segments; i++) {
+    const segmentStart = (startAngle + i * segmentAngle) % 360;
+    const segmentEnd = (startAngle + (i + 1) * segmentAngle) % 360;
+    
+    // Use the midpoint of the segment for color calculation
+    const factor = (i + 0.5) / segments;
+    const color = interpolateColor(startColor, endColor, factor);
+    
+    arcs.push({
+      path: createArcPath(segmentStart, segmentEnd, radius, centerX, centerY),
+      color: color,
+      className: className,
+      opacity: 1
+    });
+  }
+  
+  return arcs;
 }
 
 /**
@@ -123,34 +308,46 @@ export function createSunArc(
   radius: number,
   centerX: number = 200,
   centerY: number = 200
-): ArcParams[] {
-  const arcs: ArcParams[] = [];
+): CalculatedArc[] {
+  const arcs: CalculatedArc[] = [];
   
-  // Sunset to astronomical twilight end (orange - twilight)
+  // Sunset to astronomical twilight end (gradient from orange to dark blue)
   if (twilightEndAngle !== sunsetAngle) {
-    arcs.push({
-      path: createArcPath(sunsetAngle, twilightEndAngle, radius, centerX, centerY),
-      color: '#FFA500', // Orange
-      className: 'sun-twilight'
-    });
+    arcs.push(...createGradientArc(
+      sunsetAngle,
+      twilightEndAngle,
+      radius,
+      'var(--sun-twilight)',
+      'var(--sun-night)',
+      30,
+      centerX,
+      centerY,
+      'sun-twilight'
+    ));
   }
   
-  // Astronomical night (dark blue/black)
+  // Astronomical night (dark blue)
   if (twilightStartAngle !== twilightEndAngle) {
     arcs.push({
       path: createArcPath(twilightEndAngle, twilightStartAngle, radius, centerX, centerY),
-      color: '#0B0E16', // Night blue
+      color: 'var(--sun-night)',
       className: 'sun-night'
     });
   }
   
-  // Astronomical twilight start to sunrise (yellow - dawn)
+  // Astronomical twilight start to sunrise (gradient from dark blue to yellow)
   if (sunriseAngle !== twilightStartAngle) {
-    arcs.push({
-      path: createArcPath(twilightStartAngle, sunriseAngle, radius, centerX, centerY),
-      color: '#FFD700', // Yellow
-      className: 'sun-dawn'
-    });
+    arcs.push(...createGradientArc(
+      twilightStartAngle,
+      sunriseAngle,
+      radius,
+      'var(--sun-night)',
+      'var(--sun-dawn)',
+      30,
+      centerX,
+      centerY,
+      'sun-dawn'
+    ));
   }
   
   return arcs;
@@ -166,15 +363,20 @@ export function createMoonArc(
   radius: number,
   centerX: number = 200,
   centerY: number = 200
-): ArcParams | null {
+): CalculatedArc | null {
   if (moonriseAngle === moonsetAngle) {
     return null; // No moon visibility
   }
   
+  // Make opacity proportional to illumination
+  // Full moon (100%) = fully opaque (1.0)
+  // New moon (0%) = almost transparent (0.1)
+  const opacity = Math.max(0.1, illumination);
+  
   return {
     path: createArcPath(moonriseAngle, moonsetAngle, radius, centerX, centerY),
-    color: '#C0C0C0', // Silver
-    opacity: Math.max(0.2, illumination), // Minimum 20% opacity for visibility
+    color: 'var(--moon-arc)',
+    opacity: opacity,
     className: 'moon-arc'
   };
 }
@@ -191,37 +393,111 @@ export function createGalacticCenterArc(
   radius: number,
   centerX: number = 200,
   centerY: number = 200
-): ArcParams[] {
-  const arcs: ArcParams[] = [];
+): CalculatedArc[] {
+  const arcs: CalculatedArc[] = [];
   
-  // GC rise to optimal window start (light blue)
-  if (optimalStartAngle !== gcRiseAngle) {
+  // Calculate angles for timing offsets
+  // 1 hour = 15 degrees, 20 minutes = 5 degrees (360 degrees / 24 hours / 3)
+  const oneHourDegrees = 15;
+  const twentyMinDegrees = 5;
+  
+  const fadeInEndAngle = (gcRiseAngle + oneHourDegrees) % 360;
+  const fadeOutStartAngle = (gcSetAngle - oneHourDegrees + 360) % 360;
+  
+  const optimalExtendedStartAngle = (optimalStartAngle - twentyMinDegrees + 360) % 360;
+  const optimalExtendedEndAngle = (optimalEndAngle + twentyMinDegrees) % 360;
+  
+  // GC rise with opacity fade in (0 to 1 opacity over 1 hour)
+  arcs.push(...createOpacityFadeArc(
+    gcRiseAngle,
+    fadeInEndAngle,
+    radius,
+    'var(--gc-visible)',
+    0, // Start transparent
+    1, // End fully opaque
+    15,
+    centerX,
+    centerY,
+    'gc-visible'
+  ));
+  
+  // Full opacity section (1 hour after rise to 20min before optimal start)
+  if (optimalExtendedStartAngle !== fadeInEndAngle) {
     arcs.push({
-      path: createArcPath(gcRiseAngle, optimalStartAngle, radius, centerX, centerY),
-      color: '#87CEEB', // Light blue
+      path: createArcPath(fadeInEndAngle, optimalExtendedStartAngle, radius, centerX, centerY),
+      color: 'var(--gc-visible)',
+      opacity: 1,
       className: 'gc-visible'
     });
   }
   
-  // Optimal viewing window (cyan with quality-based opacity)
-  if (optimalEndAngle !== optimalStartAngle) {
+  // Optimal viewing window with gradient transitions (extends 20min before/after)
+  if (optimalExtendedEndAngle !== optimalExtendedStartAngle) {
+    // Gradient fade in: GC color to optimal color (20min before optimal start)
+    const fadeInGradient = createColorGradientArc(
+      optimalExtendedStartAngle,
+      optimalStartAngle,
+      radius,
+      'var(--gc-visible)', // Start with cyan
+      'var(--gc-optimal)', // End with light blue
+      10,
+      centerX,
+      centerY,
+      'gc-optimal'
+    );
+    // Set stroke width for optimal window
+    fadeInGradient.forEach(arc => arc.strokeWidth = 60);
+    arcs.push(...fadeInGradient);
+    
+    // Core optimal window (solid optimal color, thicker)
     arcs.push({
       path: createArcPath(optimalStartAngle, optimalEndAngle, radius, centerX, centerY),
-      color: '#6EC6FF', // Cyan (accent color)
-      opacity: Math.max(0.4, qualityScore), // Quality-based opacity
-      strokeWidth: 12, // Thicker for emphasis
+      color: 'var(--gc-optimal)',
+      opacity: Math.max(0.8, qualityScore), // Quality-based opacity
+      strokeWidth: 60, // Thicker for emphasis
       className: 'gc-optimal'
     });
+    
+    // Gradient fade out: optimal color to GC color (20min after optimal end)
+    const fadeOutGradient = createColorGradientArc(
+      optimalEndAngle,
+      optimalExtendedEndAngle,
+      radius,
+      'var(--gc-optimal)', // Start with light blue
+      'var(--gc-visible)', // End with cyan
+      10,
+      centerX,
+      centerY,
+      'gc-optimal'
+    );
+    // Set stroke width for optimal window
+    fadeOutGradient.forEach(arc => arc.strokeWidth = 60);
+    arcs.push(...fadeOutGradient);
   }
   
-  // Optimal window end to GC set (light blue)
-  if (gcSetAngle !== optimalEndAngle) {
+  // Full opacity section (20min after optimal end to 1 hour before set)
+  if (fadeOutStartAngle !== optimalExtendedEndAngle) {
     arcs.push({
-      path: createArcPath(optimalEndAngle, gcSetAngle, radius, centerX, centerY),
-      color: '#87CEEB', // Light blue
+      path: createArcPath(optimalExtendedEndAngle, fadeOutStartAngle, radius, centerX, centerY),
+      color: 'var(--gc-visible)',
+      opacity: 1,
       className: 'gc-visible'
     });
   }
+  
+  // GC set with opacity fade out (1 to 0 opacity over 1 hour)
+  arcs.push(...createOpacityFadeArc(
+    fadeOutStartAngle,
+    gcSetAngle,
+    radius,
+    'var(--gc-visible)',
+    1, // Start fully opaque
+    0, // End transparent
+    15,
+    centerX,
+    centerY,
+    'gc-visible'
+  ));
   
   return arcs;
 }
