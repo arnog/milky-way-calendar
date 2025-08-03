@@ -1,12 +1,9 @@
 /* StarRating Component Styles */
 
 .container {
-  /* inline-flex */
+  /* inline-flex with relative position for tooltip */
   display: inline-flex;
-}
-
-.dash {
-  /* No specific styles needed, inherits from parent */
+  position: relative;
 }
 
 .star {

@@ -74,6 +74,9 @@
   overflow-x: auto;
   max-width: 600px;
   margin: 0 auto;
+  /* Add top padding to prevent tooltip clipping */
+  padding-top: 3rem;
+  margin-top: -1.5rem;
 }
 
 .table {
