@@ -11,39 +11,37 @@ export function calculateMoonData(date: Date, location: Location): MoonData {
     
     // Calculate moon illumination
     const moonIllum = Astronomy.Illumination(Astronomy.Body.Moon, date);
-    const moonPhaseAngle = moonIllum.phase_angle;
-    const moonPhase = (moonPhaseAngle + 180) / 360; // Convert to 0-1 range where 0.5 is full moon
+    
+    // Calculate lunar phase (0-1) where 0.5 = full moon
+    // Distinguish between waxing (0-0.5) and waning (0.5-1.0) phases
+    // by comparing illumination to previous day
+    const prevDate = new Date(date.getTime() - 24 * 60 * 60 * 1000);
+    const prevIllum = Astronomy.Illumination(Astronomy.Body.Moon, prevDate);
+    const isWaxing = moonIllum.phase_fraction > prevIllum.phase_fraction;
+    
+    let moonPhase;
+    if (moonIllum.phase_fraction < 0.01) {
+      moonPhase = 0; // New moon
+    } else if (moonIllum.phase_fraction > 0.99) {
+      moonPhase = 0.5; // Full moon
+    } else if (isWaxing) {
+      // Waxing: 0 to 0.5
+      moonPhase = moonIllum.phase_fraction * 0.5;
+    } else {
+      // Waning: 0.5 to 1.0
+      moonPhase = 0.5 + (1 - moonIllum.phase_fraction) * 0.5;
+    }
+    
     const moonIllumination = moonIllum.phase_fraction; // Fraction of moon's visible disk that is illuminated
     
     // Calculate moon rise/set times
-    // Direction: +1 = Rise, -1 = Set
-    const moonRise = Astronomy.SearchRiseSet(
-      Astronomy.Body.Moon,
-      observer,
-      +1,
-      date,
-      1
-    );
-    
-    const moonSet = Astronomy.SearchRiseSet(
-      Astronomy.Body.Moon,
-      observer,
-      -1,
-      date,
-      1
-    );
+    const moonRise = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, +1, date, 1);
+    const moonSet = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, date, 1);
 
-    // If moon set precedes rise, get the next set time
+    // If moon set precedes rise, search for the next set time
     if (moonRise && moonSet && moonSet.date < moonRise.date) {
-      const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() + 1);
-      const nextSet = Astronomy.SearchRiseSet(
-        Astronomy.Body.Moon,
-        observer,
-        -1,
-        nextDay,
-        1
-      );
+      const nextDay = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+      const nextSet = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, nextDay, 1);
       if (nextSet) {
         moonSet.date = nextSet.date;
       }

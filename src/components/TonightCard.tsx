@@ -12,7 +12,10 @@ import {
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
 import { calculateMoonData } from "../utils/moonCalculations";
 import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import { calculateVisibilityRating, getVisibilityRatingNumber } from "../utils/visibilityRating";
+import {
+  calculateVisibilityRating,
+  getVisibilityRatingNumber,
+} from "../utils/visibilityRating";
 import { getSpecialLocationDescription } from "../utils/locationParser";
 import {
   getOptimalViewingWindow,
@@ -173,7 +176,7 @@ export default function TonightCard({
 
         // Calculate Galactic Core times using the existing utility
         const gcData = calculateGalacticCenterPosition(now, location);
-        
+
         // Use the calculated GC data which already includes rise/set times
         const gcRise = gcData.riseTime;
         const gcSet = gcData.setTime;
@@ -210,7 +213,10 @@ export default function TonightCard({
           now
         );
         const visibility = getVisibilityRatingNumber(visibilityResult);
-        const visibilityReason = typeof visibilityResult === 'object' ? visibilityResult.reason : undefined;
+        const visibilityReason =
+          typeof visibilityResult === "object"
+            ? visibilityResult.reason
+            : undefined;
 
         // For "Tonight" viewing, show events from today onwards
         const todayStart = new Date(now);
@@ -252,7 +258,6 @@ export default function TonightCard({
     calculateTonight();
   }, [location]);
 
-
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -273,7 +278,11 @@ export default function TonightCard({
           Tonight
           <div>
             {events && events.visibility > 0 && (
-              <StarRating rating={events.visibility} size="lg" reason={events.visibilityReason} />
+              <StarRating
+                rating={events.visibility}
+                size="lg"
+                reason={events.visibilityReason}
+              />
             )}
           </div>
         </h2>
@@ -308,7 +317,7 @@ export default function TonightCard({
                     title="Sunset (Civil Twilight)"
                     className={`global-icon-medium color-orange-400`}
                   />
-                  <FormattedTime 
+                  <FormattedTime
                     date={events.sunSet}
                     location={location}
                     className="data-time"
@@ -322,7 +331,7 @@ export default function TonightCard({
                     title="Astronomical Night Start"
                     className={`global-icon-medium`}
                   />
-                  <FormattedTime 
+                  <FormattedTime
                     date={events.astronomicalTwilightEnd}
                     location={location}
                     className="data-time"
@@ -340,7 +349,7 @@ export default function TonightCard({
                     title="Astronomical Night End"
                     className={`global-icon-medium`}
                   />
-                  <FormattedTime 
+                  <FormattedTime
                     date={events.astronomicalTwilightStart}
                     location={location}
                     className="data-time"
@@ -354,7 +363,7 @@ export default function TonightCard({
                     title="Sunrise (Civil Dawn)"
                     className={`global-icon-medium color-yellow-200`}
                   />
-                  <FormattedTime 
+                  <FormattedTime
                     date={events.sunRise}
                     location={location}
                     className="data-time"
@@ -387,7 +396,7 @@ export default function TonightCard({
                 className={`global-icon-medium color-gray-300`}
                 baselineOffset={-2}
               />
-              <FormattedTime 
+              <FormattedTime
                 date={events.moonRise}
                 location={location}
                 className="data-time"
@@ -402,7 +411,7 @@ export default function TonightCard({
                 className={`global-icon-medium color-gray-300`}
                 baselineOffset={-2}
               />
-              <FormattedTime 
+              <FormattedTime
                 date={events.moonSet}
                 location={location}
                 className="data-time"
@@ -426,7 +435,7 @@ export default function TonightCard({
                   title="Galactic Core Rise (≥10°)"
                   className={`global-icon-medium color-gray-300`}
                 />
-                <FormattedTime 
+                <FormattedTime
                   date={events.gcRise}
                   location={location}
                   className="data-time"
@@ -437,19 +446,31 @@ export default function TonightCard({
               <div className={styles.eventRowWide}>
                 <Icon
                   name="telescope"
-                  title={events.optimalWindow.isIntegrated ? "Quality-Based Viewing Window" : "Optimal Viewing Window"}
+                  title={
+                    events.optimalWindow.isIntegrated
+                      ? "Quality-Based Viewing Window"
+                      : "Optimal Viewing Window"
+                  }
                   className={`global-icon-medium color-gray-300`}
                 />
                 <span className="data-time">
-                  <FormattedTime 
-                    timeString={formatOptimalViewingTime(events.optimalWindow, location)}
+                  <FormattedTime
+                    timeString={formatOptimalViewingTime(
+                      events.optimalWindow,
+                      location
+                    )}
                     className=""
                   />
                   <span className="small-caps"> for </span>
                   {formatOptimalViewingDuration(events.optimalWindow)}
-                  {events.optimalWindow.isIntegrated && events.optimalWindow.averageScore && (
-                    <span className="small-caps"> ({Math.round(events.optimalWindow.averageScore * 100)}% quality)</span>
-                  )}
+                  {events.optimalWindow.isIntegrated &&
+                    events.optimalWindow.averageScore && (
+                      <span className="small-caps">
+                        {" "}
+                        ({Math.round(events.optimalWindow.averageScore * 100)}%
+                        quality)
+                      </span>
+                    )}
                 </span>
               </div>
             )}
@@ -461,7 +482,7 @@ export default function TonightCard({
                   className={`global-icon-medium color-gray-300`}
                 />
                 <span className="data-time">
-                  <FormattedTime 
+                  <FormattedTime
                     date={events.gcTransit}
                     location={location}
                     className="data-time"
@@ -478,7 +499,7 @@ export default function TonightCard({
                   title="Galactic Core Set (≤10°)"
                   className={`global-icon-medium color-gray-300`}
                 />
-                <FormattedTime 
+                <FormattedTime
                   date={events.gcSet}
                   location={location}
                   className="data-time"
