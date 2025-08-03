@@ -1,3 +1,43 @@
+I want to determine an algorithm that, given a lat/long and a date, can provide:
+
+- the best time to observe the Galactic Center of the Milky Way
+- a rating from 1 to 4 of how good the observation condition are on that date
+
+The factors to consider are:
+
+- the start of the astronomical night (`nightStart`)
+- the end of the astronomical night (`nightEnd`)
+- the moon rise time (`moonRise`) (could be the next day)
+- the moon set time (`moonSet`) (could be the next day)
+- the moon phase (`moonPhase`) and/or moon illumination (`moonIllumination`)
+- the time at which the Galactic Center is above the horizon
+  (`galacticCenterRise`)
+- the time at which the Galactic Center sets below the horizon
+  (`galacticCenterSet`)
+- the angle between the Galactic Center and the moon (`galacticCenterMoonAngle`)
+  at a given time
+
+Given this:
+
+- a longer observation window (between `galacticCenterRise` and
+  `galacticCenterSet`) is better. 4h30 is probably the maximum. If the
+  observation window is less than 30minutes, the rating should be 0.
+- a higher moon illumination is worse.
+- a smaller angle between the Galactic Center and the moon is worse, if the
+  illumination is greater than 0
+- a minimal angle of 90deg is desirable, which is slightly wider than the 84def
+  angle of view of a 24mm lense
+- the score probably needs to be integrated over the observation window, since
+  it should depend on `galacticCenterMoonAngle` and `moonIllumination`. This of
+  course can be simplified if the illumination is 0 (in which case the moon is
+  not visible) or greater than 60% (in which case the moon is very bright and
+  the angle does not matter much)
+- the rating should be 0 for no visible galactic core, 1 for very bad
+  conditions, 2 for bad conditions, 3 for good conditions and 4 for very good
+  conditions
+
+---
+
 Let's refine the algorithm for scoring the best time to observe the Galactic
 Center, the optimal time for observation, duration of the observation window.
 
