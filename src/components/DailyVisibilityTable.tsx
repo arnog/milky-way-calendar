@@ -18,6 +18,7 @@ import styles from "./DailyVisibilityTable.module.css";
 
 interface DailyVisibilityTableProps {
   location: Location;
+  currentDate?: Date;
 }
 
 interface DayData {
@@ -85,6 +86,7 @@ const getMoonPhaseName = (phase: number): string => {
 
 export default function DailyVisibilityTable({
   location,
+  currentDate,
 }: DailyVisibilityTableProps) {
   const [dailyData, setDailyData] = useState<DayData[]>([]);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
@@ -95,7 +97,7 @@ export default function DailyVisibilityTable({
       setIsLoading(true);
 
       try {
-        const today = new Date();
+        const today = currentDate || new Date();
         const data: DayData[] = [];
 
         // Calculate data for the next 7 days
@@ -176,10 +178,10 @@ export default function DailyVisibilityTable({
     };
 
     calculateDailyData();
-  }, [location]);
+  }, [location, currentDate]);
 
   const formatDate = (date: Date) => {
-    const today = new Date();
+    const today = currentDate || new Date();
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
     if (date.toDateString() === today.toDateString()) {

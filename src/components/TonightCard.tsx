@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Location } from "../types/astronomy";
 import LocationPopover from "./LocationPopover";
 import StarRating from "./StarRating";
@@ -23,12 +24,14 @@ import {
   formatOptimalViewingDuration,
   OptimalViewingWindow,
 } from "../utils/optimalViewing";
+import { getBortleRatingForLocation } from "../utils/lightPollutionMap";
 import FormattedTime from "./FormattedTime";
 import styles from "./TonightCard.module.css";
 
 interface TonightCardProps {
   location: Location;
   onLocationChange: (location: Location) => void;
+  currentDate?: Date;
 }
 
 interface TonightEvents {
@@ -95,6 +98,7 @@ const getMoonPhaseName = (phase: number): string => {
 export default function TonightCard({
   location,
   onLocationChange,
+  currentDate,
 }: TonightCardProps) {
   const [events, setEvents] = useState<TonightEvents | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -103,6 +107,7 @@ export default function TonightCard({
   const [locationDescription, setLocationDescription] = useState<string | null>(
     null
   );
+  const [bortleRating, setBortleRating] = useState<number | null>(null);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
 
   // Update location display name and description when location changes
@@ -132,6 +137,14 @@ export default function TonightCard({
     // Get special location description if available
     const description = getSpecialLocationDescription(location);
     setLocationDescription(description);
+    
+    // Fetch Bortle rating for the location
+    getBortleRatingForLocation({ lat: location.lat, lng: location.lng })
+      .then(rating => setBortleRating(rating))
+      .catch(error => {
+        console.error("Error fetching Bortle rating:", error);
+        setBortleRating(null);
+      });
   }, [location]);
 
   useEffect(() => {
@@ -139,7 +152,7 @@ export default function TonightCard({
       setIsLoading(true);
 
       try {
-        const now = new Date();
+        const now = currentDate || new Date();
         const observer = new Observer(location.lat, location.lng, 0);
 
         // Calculate sun times using astronomy-engine
@@ -302,6 +315,11 @@ export default function TonightCard({
           />{" "}
           {locationDisplayName}
         </button>
+        {bortleRating !== null && (
+          <Link to="/faq#bortle-scale" className={styles.bortleRating}>
+            Bortle {bortleRating.toFixed(1)}
+          </Link>
+        )}
       </div>
 
       <div className={styles.eventGrid}>

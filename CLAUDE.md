@@ -33,7 +33,8 @@ npm run test:run     # Run tests once (non-watch mode)
 - **Real astronomical calculations** using astronomy-engine library for
   consistent, accurate results
 - **Timezone-aware time display** - all times shown in location's local timezone
-- **Enhanced typography** - time displays with raised colons for improved readability
+- **Enhanced typography** - time displays with raised colons for improved
+  readability
 - **SVG icon system** with custom tooltips for better UX
 - **Glassmorphism UI** with starry sky background and responsive design
 - **Location parsing** supporting coordinates, city names, and special astronomy
@@ -331,6 +332,30 @@ ensure consistency and accuracy:
 - **Known Site Integration**: Found dark sites are matched with nearest known
   locations from curated DARK_SITES list for better accessibility information
 
+### Moon Phase Calculation Fix
+
+- **Problem Identified**: Moon phase icons showed reversed phases (except new/full moon), with 93% illuminated moon displaying as crescent
+- **Root Cause**: Incorrect moon phase calculation formula that inverted the relationship between phase angle and lunar cycle phase
+- **Solution**: Implemented proper phase calculation based on:
+  - Illumination percentage comparison with previous day to determine waxing/waning
+  - Correct phase mapping: waxing (0-0.5), waning (0.5-1.0)
+  - Edge case handling for new moon (<1%) and full moon (>99%)
+- **Files Updated**: `src/utils/moonCalculations.ts` with new calculation algorithm
+- **Impact**: Moon icons now accurately represent illumination levels across all phases
+
+### Bortle Rating Display
+
+- **Feature Added**: Bortle scale rating (1-9) displayed in Tonight card for current location
+- **Implementation Details**:
+  - Created `getBortleRatingForLocation()` function in `lightPollutionMap.ts`
+  - Asynchronously fetches light pollution data and calculates Bortle rating
+  - Displays as styled badge below location with data font family
+- **UX Enhancement**: Made Bortle rating clickable link to FAQ explanation
+  - Added anchor IDs to FAQ articles for direct linking
+  - Implemented smooth scroll behavior with React Router hash navigation
+  - Added hover effects with glow and transitions
+- **Educational Value**: Users can instantly learn what their Bortle rating means for Milky Way visibility
+
 ### Testing & Quality Assurance
 
 - **Comprehensive Test Suite**: 100+ unit tests across 7 test files covering all
@@ -383,8 +408,8 @@ ensure consistency and accuracy:
 
 ### Typography Enhancement & CSS Variable System
 
-- **Enhanced Time Typography**: Implemented typographically improved time displays
-  with raised colons for better visual hierarchy and readability
+- **Enhanced Time Typography**: Implemented typographically improved time
+  displays with raised colons for better visual hierarchy and readability
 - **FormattedTime Component**: Created reusable component handling both Date
   objects and time strings with consistent formatting
 - **Precise Vertical Alignment**: Uses CSS `verticalAlign: '0.2em'` for subtle
@@ -393,52 +418,59 @@ ensure consistency and accuracy:
   DailyVisibilityTable, TonightCard, and optimal viewing times
 - **CSS Variable Color System**: Centralized color palette management:
   - `--primary` (#A3C4DC): Main buttons, highlights, navigation
-  - `--accent` (#6EC6FF): Links, time displays, hover effects  
+  - `--accent` (#6EC6FF): Links, time displays, hover effects
   - `--highlight` (#F5F5F5): Body text, general content
   - `--secondary` (#273B4A): Background panels, popovers
   - `--glow` (#B2E3FF): Hover/focus glow effects
   - `--background` (#0B0E16): Deep night blue base
 - **Maintainability Benefits**: All hardcoded hex colors replaced with CSS
   variables for consistent theming and easy color scheme modifications
-- **Enhanced TonightCard**: Complete Galactic Core event display with rise, optimal
-  viewing, transit, and set times arranged chronologically, improved time filtering
-  to show events from start of day for better "tonight" context
+- **Enhanced TonightCard**: Complete Galactic Core event display with rise,
+  optimal viewing, transit, and set times arranged chronologically, improved
+  time filtering to show events from start of day for better "tonight" context
 
 ### Time-Integrated Observation Windows
 
-**Problem Solved**: Previously, observation windows were calculated using simple 
-intersection logic (GC visibility ∩ astronomical darkness), which ignored when moon 
-interference actually occurs during the window, leading to misleading duration 
-estimates that disappointed users.
+**Problem Solved**: Previously, observation windows were calculated using simple
+intersection logic (GC visibility ∩ astronomical darkness), which ignored when
+moon interference actually occurs during the window, leading to misleading
+duration estimates that disappointed users.
 
-**Solution Implemented**: Hour-by-hour quality analysis using the refined GC 
-observation scoring algorithm to provide realistic viewing windows that account for 
-actual viewing conditions throughout the night.
+**Solution Implemented**: Hour-by-hour quality analysis using the refined GC
+observation scoring algorithm to provide realistic viewing windows that account
+for actual viewing conditions throughout the night.
 
-- **New Architecture**: `src/utils/integratedOptimalViewing.ts` provides 
+- **New Architecture**: `src/utils/integratedOptimalViewing.ts` provides
   time-integrated window calculation with quality period detection
-- **Enhanced API**: `getOptimalViewingWindow()` with configurable quality thresholds 
-  and backward compatibility with existing `calculateOptimalViewingWindow()`
-- **Quality Periods**: Automatic detection of continuous viewing periods above 
-  user-defined quality thresholds (30%+ decent, 50%+ good, 70%+ very good, 90%+ perfect)
-- **TonightCard Integration**: Now displays realistic viewing windows with quality 
-  percentages (e.g., "1.0h (21% quality)") instead of misleading static durations
+- **Enhanced API**: `getOptimalViewingWindow()` with configurable quality
+  thresholds and backward compatibility with existing
+  `calculateOptimalViewingWindow()`
+- **Quality Periods**: Automatic detection of continuous viewing periods above
+  user-defined quality thresholds (30%+ decent, 50%+ good, 70%+ very good, 90%+
+  perfect)
+- **TonightCard Integration**: Now displays realistic viewing windows with
+  quality percentages (e.g., "1.0h (21% quality)") instead of misleading static
+  durations
 - **Real-World Impact**: Example night with 62% moon interference:
   - **Before**: "3.3 hours viewing" (static intersection, misleading)
   - **After**: "1.0 hours quality viewing (21%)" (time-integrated, honest)
-  - **User Benefit**: Saves 2.2 hours of poor conditions, sets realistic expectations
-- **Progressive Enhancement**: Opt-in integrated analysis maintains full backward 
-  compatibility while providing superior accuracy for components that adopt it
-- **Performance**: Uses the same optimized variable-step integration as GC scoring 
-  with minimal computational overhead compared to static intersection
-- **Testing**: Validated with challenging real-world scenarios (high moon interference) 
-  and excellent conditions (new moon nights) to ensure accuracy across all conditions
+  - **User Benefit**: Saves 2.2 hours of poor conditions, sets realistic
+    expectations
+- **Progressive Enhancement**: Opt-in integrated analysis maintains full
+  backward compatibility while providing superior accuracy for components that
+  adopt it
+- **Performance**: Uses the same optimized variable-step integration as GC
+  scoring with minimal computational overhead compared to static intersection
+- **Testing**: Validated with challenging real-world scenarios (high moon
+  interference) and excellent conditions (new moon nights) to ensure accuracy
+  across all conditions
 
-**Technical Implementation**: The system detects continuous quality periods within 
-the astronomical viewing window, filters out poor-quality time automatically, and 
-provides users with honest expectations about both duration and quality of their 
-Milky Way observation sessions. See `TIME_INTEGRATED_WINDOWS.md` for comprehensive 
-technical details and migration guide.
+**Technical Implementation**: The system detects continuous quality periods
+within the astronomical viewing window, filters out poor-quality time
+automatically, and provides users with honest expectations about both duration
+and quality of their Milky Way observation sessions. See
+`TIME_INTEGRATED_WINDOWS.md` for comprehensive technical details and migration
+guide.
 
 ## Current Status
 
@@ -479,8 +511,8 @@ Death Valley from being found, expanded threshold from Bortle ≤1.5 to ≤3.0 t
 include excellent dark sky areas suitable for Milky Way photography while still
 excluding light-polluted urban areas
 
-✅ **Phase 15**: Typography Enhancement - Implemented enhanced time displays with
-raised colons using precise CSS vertical alignment (0.2em) for improved
+✅ **Phase 15**: Typography Enhancement - Implemented enhanced time displays
+with raised colons using precise CSS vertical alignment (0.2em) for improved
 readability across all astronomical time data, created reusable FormattedTime
 component supporting both Date objects and time strings
 
@@ -493,30 +525,41 @@ Core rise and set times to Tonight display, arranged chronologically (Rise →
 Optimal Window → Transit → Set), improved time filtering to show today's events
 for better "tonight" context
 
-✅ **Phase 18**: Time-Integrated Observation Windows - Implemented hour-by-hour 
-quality analysis for realistic viewing windows that account for moon interference 
-timing, replacing static intersection logic with time-integrated scoring, 
-providing users with honest duration estimates and quality percentages for 
-better trip planning (see TIME_INTEGRATED_WINDOWS.md for full details)
+✅ **Phase 18**: Time-Integrated Observation Windows - Implemented hour-by-hour
+quality analysis for realistic viewing windows that account for moon
+interference timing, replacing static intersection logic with time-integrated
+scoring, providing users with honest duration estimates and quality percentages
+for better trip planning (see TIME_INTEGRATED_WINDOWS.md for full details)
 
-✅ **Phase 19**: Algorithm Migration Completion - Completed full migration to 
-integrated approach by removing the old static algorithm (118 lines), 
-simplifying the `getOptimalViewingWindow()` API to always use time-integrated 
-analysis with required parameters, updating all components and tests, and 
+✅ **Phase 19**: Algorithm Migration Completion - Completed full migration to
+integrated approach by removing the old static algorithm (118 lines),
+simplifying the `getOptimalViewingWindow()` API to always use time-integrated
+analysis with required parameters, updating all components and tests, and
 cleaning up 8 obsolete comparison/analysis files for a cleaner codebase
+
+✅ **Phase 20**: Moon Phase Icon Fix - Corrected moon phase calculation algorithm
+to properly determine waxing/waning phases based on illumination changes,
+ensuring 93% illuminated moon displays as nearly full instead of crescent
+
+✅ **Phase 21**: Bortle Rating Integration - Added Bortle scale rating display to
+Tonight card showing light pollution level (1-9 scale) for current location,
+implemented as clickable link to FAQ explanation, with hover effects and proper
+styling
 
 **Current state**: Feature-complete astronomy calendar with fully migrated
 time-integrated astronomical calculations, accurate timezone handling for
 international users, proper high-latitude handling, comprehensive dark sky site
 discovery with corrected coordinate mapping and optimal classification
-thresholds, educational FAQ system with modern navigation, full SEO optimization
-for search engine discoverability, robust test coverage (109 tests) ensuring
-calculation accuracy and preventing critical regressions, modern CSS Modules
-architecture for scalable styling, centralized color theming with CSS variables,
-enhanced typography with raised colons for optimal time readability, unified
-time-integrated observation windows providing honest quality expectations across
-all components, and a polished night-sky aesthetic with professional visual
-design and complete astronomical event coverage.
+thresholds, educational FAQ system with modern navigation and anchor linking,
+full SEO optimization for search engine discoverability, robust test coverage
+(109 tests) ensuring calculation accuracy and preventing critical regressions,
+modern CSS Modules architecture for scalable styling, centralized color theming
+with CSS variables, enhanced typography with raised colons for optimal time
+readability, unified time-integrated observation windows providing honest quality
+expectations across all components, polished night-sky aesthetic with
+professional visual design and complete astronomical event coverage, corrected
+moon phase display with accurate waxing/waning determination, and integrated
+Bortle rating display with educational FAQ linking.
 
 ## Hosting
 
@@ -545,3 +588,36 @@ The app is deployed using CloudFlare Pages with automatic Git integration:
 - **Node.js version**: Latest LTS
 - **Static assets**: Served from `public/` directory (includes `icons.svg`,
   `world-map.svg`, `sky-tile.jpg`, `milky-way-hero-3.jpg`)
+
+### Coding Styleguide
+
+- **Language**: TypeScript
+- For names of files and directories, use kebab-case (e.g., `my-component.tsx`,
+  `my-directory`) or all caps (e.g., `ARCHITECTURE_REVIEW.md`)
+- When a block has a single statement, use a single line without braces:
+
+  ```typescript
+  if (condition) doSomething();
+  ```
+
+- Avoid fallback code for situations that should not occur. If a situation is
+  unexpected, throw an error or log it for debugging:
+
+  ```typescript
+  if (unexpectedCondition) throw new Error("Unexpected condition occurred");
+  ```
+
+- Use the MCP Playwright to test UI components and get access to the browser
+  console for debugging.
+
+- Before launching the dev server, check if it might already be running in the
+  background.
+
+- When a task has been completed:
+  - Review the code and look for opportunities to remove dead code or simplify
+    logic. Consider opportunities to factor repetitive code. Avoid unnecessary
+    fallbacks.
+  - Run `npm run lint` to check for code style issues and `npm run typecheck` to
+    verify TypeScript types
+  - Update the `CHANGELOG.md` with a summary of changes
+  - Update the `CLAUDE.md` with any new features or architectural changes

@@ -579,6 +579,29 @@ export async function findNearestDarkSky(
 }
 
 /**
+ * Get the Bortle scale rating for a specific location
+ */
+export async function getBortleRatingForLocation(
+  coord: Coordinate
+): Promise<number | null> {
+  try {
+    const { imageData, width, height } = await loadLightPollutionMap();
+    const pixel = coordToPixel(coord, width, height);
+    const pixelData = getPixelData(imageData, pixel);
+    
+    // Skip pure black pixels (water/no-data areas)
+    if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
+      return null;
+    }
+    
+    return rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
+  } catch (error) {
+    console.error("Error getting Bortle rating:", error);
+    return null;
+  }
+}
+
+/**
  * Find multiple dark sites in different directions from the user's location
  */
 export async function findMultipleDarkSites(
