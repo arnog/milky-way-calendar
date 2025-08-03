@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Location } from "../types/astronomy";
+import { useLocation } from "../hooks/useLocation";
+import { locationToSlug } from "../utils/urlHelpers";
 import LocationPopover from "./LocationPopover";
 import StarRating from "./StarRating";
 import { Icon } from "./Icon";
@@ -25,6 +27,7 @@ import {
 } from "../utils/optimalViewing";
 import { getBortleRatingForLocation, findNearestDarkSky, DarkSiteResult } from "../utils/lightPollutionMap";
 import { findNearestSpecialLocation, calculateDistance } from "../utils/locationParser";
+import { storageService } from "../services/storageService";
 import FormattedTime from "./FormattedTime";
 import AstronomicalClock from "./AstronomicalClock";
 import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
@@ -32,8 +35,6 @@ import { type AstronomicalEvents } from "../types/astronomicalClock";
 import styles from "./TonightCard.module.css";
 
 interface TonightCardProps {
-  location: Location;
-  onLocationChange: (location: Location) => void;
   currentDate?: Date;
 }
 
@@ -44,10 +45,10 @@ interface TonightEvents extends AstronomicalEvents {
 
 
 export default function TonightCard({
-  location,
-  onLocationChange,
   currentDate,
 }: TonightCardProps) {
+  const { location, updateLocation } = useLocation();
+  const navigate = useNavigate();
   const [events, setEvents] = useState<TonightEvents | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showLocationPopover, setShowLocationPopover] = useState(false);
@@ -60,24 +61,22 @@ export default function TonightCard({
   const [nearestKnownLocation, setNearestKnownLocation] = useState<{name: string, distance: number} | null>(null);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Handle location changes with navigation
+  const handleLocationChange = (newLocation: Location) => {
+    updateLocation(newLocation);
+    const slug = locationToSlug(newLocation);
+    navigate(`/location/${slug}`, { replace: true });
+  };
+
   // Update location display name and description when location changes
   useEffect(() => {
-    const savedLocation = localStorage.getItem("milkyway-location");
-    if (savedLocation) {
-      try {
-        const parsed = JSON.parse(savedLocation);
-        if (parsed.matchedName) {
-          setLocationDisplayName(parsed.matchedName);
-        } else {
-          setLocationDisplayName(
-            `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
-          );
-        }
-      } catch {
-        setLocationDisplayName(
-          `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
-        );
-      }
+    // Don't update if location is not available
+    if (!location) {
+      return;
+    }
+    const savedLocationData = storageService.getLocationData();
+    if (savedLocationData?.matchedName) {
+      setLocationDisplayName(savedLocationData.matchedName);
     } else {
       setLocationDisplayName(
         `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`
@@ -85,31 +84,15 @@ export default function TonightCard({
     }
 
     // Get special location description if available
-    // Pass the matched name from localStorage to help find descriptions for nearby locations
-    let matchedName = null;
-    if (savedLocation) {
-      try {
-        const parsed = JSON.parse(savedLocation);
-        matchedName = parsed.matchedName;
-      } catch {
-        // No valid saved location data
-      }
-    }
+    // Pass the matched name from storage to help find descriptions for nearby locations
+    const matchedName = savedLocationData?.matchedName;
     const description = getSpecialLocationDescription(location, matchedName);
     setLocationDescription(description);
     
     // Find nearest known location for coordinates display
     const nearestSpecial = findNearestSpecialLocation(location);
-    // Check if this is a coordinate location (no matched name in localStorage)
-    let hasMatchedName = false;
-    if (savedLocation) {
-      try {
-        const parsed = JSON.parse(savedLocation);
-        hasMatchedName = !!parsed.matchedName;
-      } catch {
-        // No valid saved location data
-      }
-    }
+    // Check if this is a coordinate location (no matched name in storage)
+    const hasMatchedName = !!savedLocationData?.matchedName;
     
     if (nearestSpecial && !hasMatchedName) {
       const distance = calculateDistance(location, nearestSpecial.location);
@@ -149,6 +132,11 @@ export default function TonightCard({
   }, [location]);
 
   useEffect(() => {
+    // Don't calculate if location is not available
+    if (!location) {
+      return;
+    }
+
     const calculateTonight = async () => {
       setIsLoading(true);
 
@@ -272,12 +260,13 @@ export default function TonightCard({
     calculateTonight();
   }, [location, currentDate]);
 
-  if (isLoading) {
+  // Show loading if location is not available yet or if loading data
+  if (!location || isLoading) {
     return (
       <div className={styles.container}>
         <h2 className={styles.title}>Tonight</h2>
         <p className="global-loading-text">
-          Calculating astronomical events...
+          {!location ? "Loading location..." : "Calculating astronomical events..."}
         </p>
       </div>
     );
@@ -599,7 +588,7 @@ export default function TonightCard({
           location={location}
           triggerRef={locationButtonRef}
           onClose={() => setShowLocationPopover(false)}
-          onLocationChange={onLocationChange}
+          onLocationChange={handleLocationChange}
         />
       )}
     </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Location, WeekData } from "../types/astronomy";
+import { WeekData } from "../types/astronomy";
+import { useLocation } from "../hooks/useLocation";
 import { getVisibilityDescription } from "../utils/visibilityRating";
 import StarRating from "./StarRating";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
@@ -16,12 +17,12 @@ import FormattedTime from "./FormattedTime";
 import styles from "./Calendar.module.css";
 
 interface CalendarProps {
-  location: Location;
   currentDate?: Date;
   onDateClick?: (date: Date) => void;
 }
 
-export default function Calendar({ location, currentDate, onDateClick }: CalendarProps) {
+export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
+  const { location } = useLocation();
   const [weekData, setWeekData] = useState<WeekData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -32,6 +33,8 @@ export default function Calendar({ location, currentDate, onDateClick }: Calenda
 
   const loadWeeks = useCallback(
     async (startWeek: number, numWeeks: number) => {
+      if (!location) return [];
+      
       const weeks: WeekData[] = [];
       const today = currentDate || new Date();
       const currentWeekNumber =
@@ -170,7 +173,8 @@ export default function Calendar({ location, currentDate, onDateClick }: Calenda
     [weekData]
   );
 
-  if (isLoading) {
+  // Show loading if location is not available yet or if loading data
+  if (!location || isLoading) {
     return (
       <div className={styles.container}>
         <h2 className={styles.title}>
@@ -180,9 +184,9 @@ export default function Calendar({ location, currentDate, onDateClick }: Calenda
           <div className={styles.loadingContent}>
             <div className={styles.spinner}></div>
             <p className={styles.loadingText}>
-              Calculating astronomical data...
+              {!location ? "Loading location..." : "Calculating astronomical data..."}
             </p>
-            <p className={styles.loadingSubtext}>This may take a moment</p>
+            {!location ? null : <p className={styles.loadingSubtext}>This may take a moment</p>}
           </div>
         </div>
       </div>

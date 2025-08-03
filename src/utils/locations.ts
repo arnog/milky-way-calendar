@@ -149,7 +149,7 @@ export const LARGE_CITIES: SpecialLocation[] = [
   ["Lisbon, Portugal", "Lisbon", 38.72, -9.13, "lisbon"],
   ["Budapest, Hungary", "Budapest", 47.5, 19.04, "budapest"],
   ["Brussels, Belgium", "Brussels", 50.85, 4.35, "brussels"],
-  ["Hamburg, Germany", "Hamburg", 53.55, 10.0, "hamburg"],
+  ["Hamburg, Germany", "Hamburg", 53.55, 10, "hamburg"],
   ["Warsaw, Poland", "Warsaw", 52.23, 21.01, "warsaw"],
   ["Vienna, Austria", "Vienna", 48.21, 16.37, "vienna"],
   ["Frankfurt, Germany", "Frankfurt", 50.11, 8.68, "frankfurt"],
@@ -779,7 +779,7 @@ export const DARK_SITES: SpecialLocation[] = [
     -0.87,
     "northyorkmoors",
   ],
-  ["Rhön Dark Sky Reserve, Germany", "Rhön", 50.45, 10.0, "rhon"],
+  ["Rhön Dark Sky Reserve, Germany", "Rhön", 50.45, 10, "rhon"],
   ["Exmoor National Park, England", "Exmoor", 51.18, -3.68, "exmoor"],
 
   // === Auto-generated additional DARK_SITES from Go-Astronomy Bortle Class 2 list (first 60 entries) ===

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Location } from "../types/astronomy";
+import { useLocation } from "../hooks/useLocation";
 import StarRating from "./StarRating";
 import { Icon } from "./Icon";
 import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
@@ -18,7 +18,6 @@ import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
 import styles from "./DailyVisibilityTable.module.css";
 
 interface DailyVisibilityTableProps {
-  location: Location;
   currentDate?: Date;
 }
 
@@ -44,14 +43,18 @@ interface DayData {
 
 
 export default function DailyVisibilityTable({
-  location,
   currentDate,
 }: DailyVisibilityTableProps) {
+  const { location } = useLocation();
   const [dailyData, setDailyData] = useState<DayData[]>([]);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Don't calculate if location is not available
+    if (!location) {
+      return;
+    }
     const calculateDailyData = async () => {
       setIsLoading(true);
 
@@ -160,11 +163,12 @@ export default function DailyVisibilityTable({
     setExpandedRow(expandedRow === index ? null : index);
   };
 
-  if (isLoading) {
+  // Show loading if location is not available yet or if loading data
+  if (!location || isLoading) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingText}>
-          Loading daily visibility data...
+          {!location ? "Loading location..." : "Loading daily visibility data..."}
         </div>
       </div>
     );

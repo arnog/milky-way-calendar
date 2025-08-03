@@ -4,6 +4,7 @@ import {
   parseLocationInput,
   findNearestSpecialLocation,
 } from "../utils/locationParser";
+import { storageService } from "../services/storageService";
 
 interface UseLocationManagerProps {
   initialLocation: Location | null;
@@ -39,30 +40,22 @@ export function useLocationManager({
   const [dragLocation, setDragLocation] = useState<Location | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load saved location from localStorage on mount
+  // Load saved location from storage on mount
   useEffect(() => {
-    const savedLocation = localStorage.getItem("milkyway-location");
-    if (savedLocation && !initialLocation) {
-      try {
-        const parsed = JSON.parse(savedLocation);
-
-        // Always use the exact saved coordinates, even if there's no matched name
-        // The matched name is used for description purposes only
-
-        onLocationChange(parsed.location);
-        if (parsed.matchedName) {
-          setInputValue(parsed.matchedName);
-          setSuggestion(null);
-          setIsNearbyMatch(false);
-        } else {
-          setInputValue(
-            `${parsed.location.lat.toFixed(1)}, ${parsed.location.lng.toFixed(1)}`
-          );
-          setSuggestion(null);
-        }
-      } catch {
-        // Invalid saved data, get current location
-        getCurrentLocation();
+    const savedLocationData = storageService.getLocationData();
+    if (savedLocationData && !initialLocation) {
+      // Always use the exact saved coordinates, even if there's no matched name
+      // The matched name is used for description purposes only
+      onLocationChange(savedLocationData.location);
+      if (savedLocationData.matchedName) {
+        setInputValue(savedLocationData.matchedName);
+        setSuggestion(null);
+        setIsNearbyMatch(false);
+      } else {
+        setInputValue(
+          `${savedLocationData.location.lat.toFixed(1)}, ${savedLocationData.location.lng.toFixed(1)}`
+        );
+        setSuggestion(null);
       }
     } else if (!initialLocation) {
       getCurrentLocation();
@@ -72,42 +65,23 @@ export function useLocationManager({
   // Update input value when location changes externally
   useEffect(() => {
     if (initialLocation) {
-      const savedLocation = localStorage.getItem("milkyway-location");
-      if (savedLocation) {
-        try {
-          const parsed = JSON.parse(savedLocation);
-          if (parsed.matchedName) {
-            setInputValue(parsed.matchedName);
-            setSuggestion(null); // Clear suggestions since we have a confirmed location
-            setIsNearbyMatch(false);
-          } else {
-            setInputValue(
-              `${initialLocation.lat.toFixed(1)}, ${initialLocation.lng.toFixed(1)}`
-            );
-            setSuggestion(null);
-            setIsNearbyMatch(false);
-          }
-        } catch {
-          setInputValue(
-            `${initialLocation.lat.toFixed(1)}, ${initialLocation.lng.toFixed(1)}`
-          );
-        }
+      const savedLocationData = storageService.getLocationData();
+      if (savedLocationData?.matchedName) {
+        setInputValue(savedLocationData.matchedName);
+        setSuggestion(null); // Clear suggestions since we have a confirmed location
+        setIsNearbyMatch(false);
       } else {
         setInputValue(
           `${initialLocation.lat.toFixed(1)}, ${initialLocation.lng.toFixed(1)}`
         );
+        setSuggestion(null);
+        setIsNearbyMatch(false);
       }
     }
   }, [initialLocation]);
 
   const saveLocation = useCallback((loc: Location, name: string | null) => {
-    localStorage.setItem(
-      "milkyway-location",
-      JSON.stringify({
-        location: loc,
-        matchedName: name,
-      })
-    );
+    storageService.setLocationData(loc, name);
   }, []);
 
   const getCurrentLocation = useCallback(() => {

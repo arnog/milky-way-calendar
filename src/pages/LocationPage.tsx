@@ -1,59 +1,58 @@
 import { useEffect, useState } from 'react'
-import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useParams, Navigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet'
 import TonightCard from '../components/TonightCard'
 import DailyVisibilityTable from '../components/DailyVisibilityTable'
 import Calendar from '../components/Calendar'
 import { Location } from '../types/astronomy'
-import { slugToLocation, generateLocationTitle, generateLocationDescription, locationToSlug } from '../utils/urlHelpers'
+import { slugToLocation, generateLocationTitle, generateLocationDescription } from '../utils/urlHelpers'
 import { useDateFromQuery } from '../hooks/useDateFromQuery'
-import styles from '../App.module.css'
+import { LocationProvider } from '../contexts/LocationContext'
+import { useLocation } from '../hooks/useLocation'
 import { findNearestSpecialLocation } from '../utils/locationParser'
+import { storageService } from '../services/storageService'
+import styles from '../App.module.css'
 
 interface LocationPageProps {
   isDarkroomMode: boolean;
 }
 
+// Wrapper component that parses URL and provides location to context
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
+function LocationPageWrapper({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
   const { locationSlug } = useParams<{ locationSlug: string }>()
-  const navigate = useNavigate()
-  const [location, setLocation] = useState<Location | null>(null)
+  const [parsedLocation, setParsedLocation] = useState<Location | null>(null)
   const [isInvalidLocation, setIsInvalidLocation] = useState(false)
-  const [currentDate, setCurrentDate] = useDateFromQuery()
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     if (!locationSlug) {
       setIsInvalidLocation(true)
+      setIsLoading(false)
       return
     }
 
-    const parsedLocation = slugToLocation(locationSlug)
-    if (parsedLocation) {
-      setLocation(parsedLocation)
+    const location = slugToLocation(locationSlug)
+    if (location) {
+      setParsedLocation(location)
       setIsInvalidLocation(false)
       
       // Try to find if this location matches a special location for display name
       let matchedName = null
       if (!locationSlug.startsWith('@')) {
         // For named location slugs, try to find the proper display name
-        const nearbyLocation = findNearestSpecialLocation(parsedLocation, 1) // Very small threshold for exact matches
+        const nearbyLocation = findNearestSpecialLocation(location, 1) // Very small threshold for exact matches
         if (nearbyLocation) {
           matchedName = nearbyLocation.matchedName
         }
       }
       
-      // Save to localStorage for future visits
-      localStorage.setItem(
-        "milkyway-location",
-        JSON.stringify({
-          location: parsedLocation,
-          matchedName: matchedName,
-        })
-      )
+      // Save to storage for future visits
+      storageService.setLocationData(location, matchedName)
     } else {
       setIsInvalidLocation(true)
     }
+    setIsLoading(false)
   }, [locationSlug])
 
   // Redirect to home if invalid location
@@ -62,7 +61,7 @@ function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
   }
 
   // Show loading while location is being parsed
-  if (!location) {
+  if (isLoading || !parsedLocation) {
     return (
       <div className={styles.container}>
         <div className={styles.content}>
@@ -74,25 +73,28 @@ function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
     )
   }
 
-  // Handle location changes and update URL
-  const handleLocationChange = (newLocation: Location) => {
-    setLocation(newLocation)
-    
-    // Try to find matched name for the new location
-    const nearbyLocation = findNearestSpecialLocation(newLocation, 100)
-    const matchedName = nearbyLocation ? nearbyLocation.matchedName : null
-    
-    // Update localStorage
-    localStorage.setItem(
-      "milkyway-location",
-      JSON.stringify({
-        location: newLocation,
-        matchedName: matchedName,
-      })
+  return (
+    <LocationProvider initialLocation={parsedLocation} skipGeolocaton={true}>
+      <LocationPageContent />
+    </LocationProvider>
+  )
+}
+
+// The actual content component that uses the location context
+function LocationPageContent() {
+  const { location } = useLocation()
+  const [currentDate, setCurrentDate] = useDateFromQuery()
+
+  if (!location) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <div className={`global-flex-center ${styles.loadingContainer}`}>
+            <div className={`global-text-lg ${styles.loadingText}`}>Loading location...</div>
+          </div>
+        </div>
+      </div>
     )
-    
-    const slug = locationToSlug(newLocation)
-    navigate(`/location/${slug}`, { replace: true })
   }
 
   const pageTitle = generateLocationTitle(location)
@@ -113,13 +115,13 @@ function LocationPage({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
       
       <div className={styles.container}>
         <div className={styles.content}>
-          <TonightCard location={location} onLocationChange={handleLocationChange} currentDate={currentDate} />
-          <DailyVisibilityTable location={location} currentDate={currentDate} />
-          <Calendar location={location} currentDate={currentDate} onDateClick={setCurrentDate} />
+          <TonightCard currentDate={currentDate} />
+          <DailyVisibilityTable currentDate={currentDate} />
+          <Calendar currentDate={currentDate} onDateClick={setCurrentDate} />
         </div>
       </div>
     </>
   )
 }
 
-export default LocationPage
+export default LocationPageWrapper

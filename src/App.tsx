@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import Header from "./components/Header";
 import TonightCard from "./components/TonightCard";
@@ -8,9 +8,8 @@ import Calendar from "./components/Calendar";
 import LocationPage from "./pages/LocationPage";
 import ExplorePage from "./pages/ExplorePage";
 import FAQPage from "./pages/FAQPage";
-import { Location } from "./types/astronomy";
-import { findNearestSpecialLocation } from "./utils/locationParser";
-import { locationToSlug } from "./utils/urlHelpers";
+import { LocationProvider } from "./contexts/LocationContext";
+import { useLocation } from "./hooks/useLocation";
 import { useDateFromQuery } from "./hooks/useDateFromQuery";
 import styles from "./App.module.css";
 
@@ -20,92 +19,8 @@ interface HomePageProps {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
-  const [location, setLocation] = useState<Location | null>(null);
-  const navigate = useNavigate();
+  const { location } = useLocation();
   const [currentDate, setCurrentDate] = useDateFromQuery();
-
-  // Initialize location from localStorage or geolocation
-  useEffect(() => {
-    const savedLocation = localStorage.getItem("milkyway-location");
-    if (savedLocation) {
-      try {
-        const parsed = JSON.parse(savedLocation);
-        if (parsed.location?.lat && parsed.location?.lng) {
-          setLocation(parsed.location);
-          return;
-        }
-      } catch {
-        // Invalid saved data, fall through to geolocation
-      }
-    }
-
-    // Get current location if no saved location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const newLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          // Check if near a special location
-          const nearbyLocation = findNearestSpecialLocation(newLocation);
-          if (nearbyLocation) {
-            setLocation(nearbyLocation.location);
-            localStorage.setItem(
-              "milkyway-location",
-              JSON.stringify({
-                location: nearbyLocation.location,
-                matchedName: nearbyLocation.matchedName,
-              })
-            );
-          } else {
-            setLocation(newLocation);
-            localStorage.setItem(
-              "milkyway-location",
-              JSON.stringify({
-                location: newLocation,
-                matchedName: null,
-              })
-            );
-          }
-        },
-        () => {
-          // Default to LA if geolocation fails
-          const defaultLocation = { lat: 34.0549, lng: -118.2426 };
-          setLocation(defaultLocation);
-          localStorage.setItem(
-            "milkyway-location",
-            JSON.stringify({
-              location: defaultLocation,
-              matchedName: "LA",
-            })
-          );
-        }
-      );
-    }
-  }, []);
-
-  // Navigate to location URL when location changes
-  const handleLocationChange = (newLocation: Location) => {
-    setLocation(newLocation);
-
-    // Try to find matched name for the new location
-    const nearbyLocation = findNearestSpecialLocation(newLocation);
-    const matchedName = nearbyLocation ? nearbyLocation.matchedName : null;
-
-    // Update localStorage
-    localStorage.setItem(
-      "milkyway-location",
-      JSON.stringify({
-        location: newLocation,
-        matchedName: matchedName,
-      })
-    );
-
-    const slug = locationToSlug(newLocation);
-    navigate(`/location/${slug}`, { replace: true });
-  };
 
   return (
     <>
@@ -140,13 +55,10 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
           {location && (
             <>
               <TonightCard
-                location={location}
-                onLocationChange={handleLocationChange}
                 currentDate={currentDate}
               />
-              <DailyVisibilityTable location={location} currentDate={currentDate} />
+              <DailyVisibilityTable currentDate={currentDate} />
               <Calendar 
-                location={location} 
                 currentDate={currentDate}
                 onDateClick={setCurrentDate}
               />
@@ -170,7 +82,11 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={<HomePage isDarkroomMode={isDarkroomMode} />}
+          element={
+            <LocationProvider>
+              <HomePage isDarkroomMode={isDarkroomMode} />
+            </LocationProvider>
+          }
         />
         <Route
           path="/location/:locationSlug"

@@ -191,7 +191,7 @@ export function findNearestSpecialLocation(
   let minDistance = thresholdKm;
 
   for (const loc of SPECIAL_LOCATIONS) {
-    const specialLoc = { lat: loc[2] as number, lng: loc[3] as number };
+    const specialLoc = { lat: loc[2], lng: loc[3] };
     const distance = calculateDistance(location, specialLoc);
 
     if (distance < minDistance) {

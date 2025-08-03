@@ -1,6 +1,7 @@
 import { WeekData, Location } from "../types/astronomy";
 import { findNearestSpecialLocation } from "./locationParser";
 import { formatDateForStructuredData } from "./timezoneUtils";
+import { storageService } from "../services/storageService";
 
 export interface StructuredEventData {
   "@context": string;
@@ -38,17 +39,12 @@ function getVisibilityDescription(rating: number): string {
 }
 
 function getLocationName(location: Location): string {
-  // First check if there's a saved location with a matched name from localStorage
-  try {
-    const savedLocation = localStorage.getItem("milkyway-location");
-    if (savedLocation) {
-      const parsed = JSON.parse(savedLocation);
-      if (parsed.matchedName && Math.abs(parsed.lat - location.lat) < 0.01 && Math.abs(parsed.lng - location.lng) < 0.01) {
-        return parsed.matchedName;
-      }
-    }
-  } catch {
-    // Fall through to other methods if localStorage fails
+  // First check if there's a saved location with a matched name from storage
+  const savedLocationData = storageService.getLocationData();
+  if (savedLocationData?.matchedName && 
+      Math.abs(savedLocationData.location.lat - location.lat) < 0.01 && 
+      Math.abs(savedLocationData.location.lng - location.lng) < 0.01) {
+    return savedLocationData.matchedName;
   }
 
   // Try to find nearest special location

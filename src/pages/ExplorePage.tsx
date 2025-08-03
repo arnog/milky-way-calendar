@@ -13,6 +13,7 @@ import {
   MultipleDarkSitesResult,
   coordToNormalized,
 } from "../utils/lightPollutionMap";
+import { storageService } from "../services/storageService";
 import styles from "../App.module.css";
 import exploreStyles from "./ExplorePage.module.css";
 
@@ -41,16 +42,9 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
 
   // Auto-load user's previous location on page visit
   useEffect(() => {
-    const savedLocation = localStorage.getItem("milkyway-location");
-    if (savedLocation) {
-      try {
-        const parsed = JSON.parse(savedLocation);
-        if (parsed.location?.lat && parsed.location?.lng) {
-          setUserLocation(parsed.location);
-        }
-      } catch {
-        // Invalid saved data, ignore
-      }
+    const savedLocationData = storageService.getLocationData();
+    if (savedLocationData?.location) {
+      setUserLocation(savedLocationData.location);
     }
   }, []);
 
