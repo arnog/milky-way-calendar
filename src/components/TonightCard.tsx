@@ -14,6 +14,7 @@ import {
 import FormattedTime from "./FormattedTime";
 import AstronomicalClock from "./AstronomicalClock";
 import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
+import DarkSiteSuggestion from "./DarkSiteSuggestion";
 import styles from "./TonightCard.module.css";
 
 interface TonightCardProps {
@@ -180,31 +181,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           locationData?.bortleRating !== undefined &&
           locationData.bortleRating >= 4 &&
           locationData?.nearestDarkSite && (
-            <div className={styles.darkSiteSuggestion}>
-              <p className={styles.suggestionText}>
-                Consider visiting a darker location for better Milky Way
-                visibility:
-              </p>
-              <div className={styles.suggestionSite}>
-                <strong>
-                  {locationData.nearestDarkSite.nearestKnownSite?.name ||
-                    `Dark site ${locationData.nearestDarkSite.distance.toFixed(
-                      0
-                    )}km away`}
-                </strong>
-                {locationData.nearestDarkSite.nearestKnownSite && (
-                  <span className={styles.siteDistance}>
-                    {locationData.nearestDarkSite.distance.toFixed(0)}km away
-                  </span>
-                )}
-                <span className={styles.siteBortle}>
-                  Bortle {locationData.nearestDarkSite.bortleScale.toFixed(1)}
-                </span>
-              </div>
-              <Link to="/explore" className={styles.exploreLink}>
-                Explore more dark sites →
-              </Link>
-            </div>
+            <DarkSiteSuggestion nearestDarkSite={locationData.nearestDarkSite} />
           )}
       </div>
 

@@ -1,0 +1,112 @@
+.listView {
+  width: 100%;
+  padding: 1rem;
+}
+
+.panelTitle {
+  font-family: "Playfair Display", serif;
+  font-size: 1.5rem;
+  color: var(--highlight);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.eventList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.listEventItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.listEventItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.listEventContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.listEventTitle {
+  font-weight: 500;
+  color: var(--highlight);
+  font-size: 1rem;
+}
+
+.listEventDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.listEventExtra {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--primary);
+  opacity: 0.8;
+}
+
+/* Event type specific styling */
+.sunsetEvent svg,
+.sunriseEvent svg {
+  color: var(--sun-twilight);
+  fill: var(--sun-twilight);
+}
+
+.nightEvent svg {
+  color: var(--sun-night);
+  fill: var(--sun-night);
+}
+
+.moonEvent svg {
+  color: var(--moon-arc);
+  fill: var(--moon-arc);
+}
+
+.gcEvent svg {
+  color: var(--gc-visible);
+  fill: var(--gc-visible);
+}
+
+.optimalEvent svg {
+  color: var(--gc-optimal);
+  fill: var(--gc-optimal);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .listView {
+    padding: 0.5rem;
+  }
+  
+  .panelTitle {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .listEventItem {
+    gap: 0.75rem;
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .panelTitle {
+    font-size: 1.1rem;
+  }
+}

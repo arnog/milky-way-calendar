@@ -260,65 +260,6 @@
   font-family: "Inter", sans-serif;
 }
 
-.darkSiteSuggestion {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(255, 165, 0, 0.1);
-  border: 1px solid rgba(255, 165, 0, 0.3);
-  border-radius: 12px;
-  text-align: center;
-}
-
-.suggestionText {
-  font-size: 0.9rem;
-  color: rgb(255, 223, 186);
-  margin: 0 0 0.75rem 0;
-  font-family: "Inter", sans-serif;
-}
-
-.suggestionSite {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  margin-bottom: 0.75rem;
-}
-
-.suggestionSite strong {
-  color: var(--highlight);
-  font-size: 1rem;
-}
-
-.siteDistance {
-  font-family: var(--data-font-family);
-  font-size: 0.875rem;
-  color: var(--accent);
-  opacity: 0.8;
-}
-
-.siteBortle {
-  font-family: var(--data-font-family);
-  font-size: 0.8rem;
-  color: rgb(255, 223, 186);
-  background: rgba(0, 0, 0, 0.3);
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255, 165, 0, 0.3);
-}
-
-.exploreLink {
-  color: var(--accent);
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: inline-block;
-}
-
-.exploreLink:hover {
-  color: var(--glow);
-  text-shadow: 0 0 8px rgba(178, 227, 255, 0.4);
-}
 
 /* Location Required Interface */
 .locationRequired {

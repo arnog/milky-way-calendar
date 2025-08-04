@@ -1,0 +1,53 @@
+.darkSiteSuggestion {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255, 165, 0, 0.1);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.suggestionText {
+  font-size: 0.9rem;
+  color: rgb(255, 223, 186);
+  margin: 0 0 0.75rem 0;
+}
+
+.suggestionSite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.suggestionSite strong {
+  color: var(--highlight);
+  font-size: 1rem;
+}
+
+.siteDistance {
+  font-family: var(--data-font-family);
+  font-size: 0.875rem;
+  color: var(--accent);
+  margin-top: 0.25rem;
+}
+
+.siteBortle {
+  font-family: var(--data-font-family);
+  font-size: 0.8rem;
+  color: rgb(255, 223, 186);
+  margin-top: 0.25rem;
+}
+
+.exploreLink {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.exploreLink:hover {
+  color: var(--glow);
+  text-shadow: 0 0 8px rgba(178, 227, 255, 0.4);
+}

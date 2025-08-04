@@ -1,0 +1,52 @@
+.container {
+  position: relative;
+  width: 100%;
+}
+
+.panelDots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.dot:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.activeDot {
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.4);
+}
+
+.panelsContainer {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.panelsContainer:active {
+  cursor: grabbing;
+}
+
+.panel {
+  flex: 0 0 100%;
+  width: 100%;
+}
