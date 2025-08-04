@@ -113,23 +113,17 @@ export const DARK_SITE_BORTLE: Record<string, number> = {
   flagstaffareanationalmonument: 2.0,
   kartchnercaverns: 2.0,
   oraclestatepark: 2.0,
-  petrifiedforestnationalpark: 2.0,
   tontomonument: 2.2,
   tumacacorinationalhistoricalpark: 2.2,
-  kartchnercavernsstateparkarizona: 2.0,
-  oraclestateparkarizona: 2.0,
-  petrifiedforestnationalparkarizona: 2.0,
 
   // Arkansas - Rural mountainous areas
   buffalonationalrivernationalreserve: 2.0,
   cossatotriverstateparknaturalarea: 2.2,
   queenwilhelminastatepark: 2.0,
-  queenwilhelminastateparkarkansas: 2.0,
 
   // California - Varied, coastal areas more polluted
   admiralwilliamstandleystate: 2.5,
   ahjumawilavaspringsstatepark: 2.0,
-  anzaborregodesertstatepark: 2.2,
   benbowstaterecreationarea: 2.2,
   casparheadlandsstatenaturalreserve: 2.0,
   castlecragsstatepark: 2.0,
@@ -157,9 +151,6 @@ export const DARK_SITE_BORTLE: Record<string, number> = {
   richardsongrovestatepark: 2.2,
   saltpointstatepark: 2.5,
   vandammestatepark: 2.2,
-  admiralwilliamstandleystaterecreationareacalifornia: 2.5,
-  ahjumawilavaspringsstateparkcalifornia: 2.0,
-  anzaborregodesertstateparkcalifornia: 2.2,
   benbowstaterecreationareacalifornia: 2.2,
   casparheadlandsstatenaturalreservecalifornia: 2.0,
   castlecragsstateparkcalifornia: 2.0,
@@ -179,7 +170,6 @@ export const DARK_SITE_BORTLE: Record<string, number> = {
   pfeifferbigsurstateparkcalifornia: 2.5,
   prairiecreekredwoodsstateparkcalifornia: 2.2,
   richardsongrovestateparkcalifornia: 2.2,
-  saltpointstateparkcalifornia: 2.5,
   vandammestateparkcalifornia: 2.2,
 
   // Colorado - High altitude, excellent dark skies
@@ -193,16 +183,6 @@ export const DARK_SITE_BORTLE: Record<string, number> = {
   ridgwaystatepark: 1.8,
   slumgullioncountypark: 1.8,
   stagecoachstatepark: 1.8,
-  crawfordstateparkcolorado: 1.8,
-  greatsanddunesnationalparkcolorado: 1.8,
-  gunnisonnationalforestcolorado: 1.5,
-  jacksonlakestateparkcolorado: 2.0,
-  johnmartinreservoircolorado: 2.0,
-  navajostateparkcolorado: 1.8,
-  paoniastateparkcolorado: 1.8,
-  pearllakestateparkcolorado: 1.8,
-  ridgwaystateparkcolorado: 1.8,
-  stagecoachstateparkcolorado: 1.8,
   stateforeststateparkcolorado: 1.8,
   steamboatlakestateparkcolorado: 1.8,
   sylvanlakestateparkcolorado: 1.8,
@@ -322,7 +302,6 @@ export const DARK_SITE_BORTLE: Record<string, number> = {
   willamettenationalforestoregon: 2.0,
 
   // Pennsylvania
-  cherryspringsstateparkpennsylvania: 2.0,
   susquehannockstateforestpennsylvania: 2.0,
 
   // Texas - Large state with varied conditions
