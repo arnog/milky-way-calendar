@@ -226,30 +226,6 @@ export function rgbToBortleScale(r: number, g: number, b: number): number {
 }
 
 /**
- * Convert brightness to approximate Bortle scale (legacy function - kept for backward compatibility)
- * @deprecated Use rgbToBortleScale instead for accurate colorbar-based mapping
- */
-export function brightnessToBortleScale(brightness: number): number {
-  // This is now deprecated - we should use the RGB-based mapping instead
-  console.warn(
-    "brightnessToBortleScale is deprecated, use rgbToBortleScale instead"
-  );
-
-  // Fallback to simple brightness mapping
-  const normalizedBrightness = Math.max(0, Math.min(255, brightness));
-
-  if (normalizedBrightness < 20) return 1;
-  if (normalizedBrightness < 40) return 2;
-  if (normalizedBrightness < 60) return 3;
-  if (normalizedBrightness < 80) return 4;
-  if (normalizedBrightness < 100) return 4.5;
-  if (normalizedBrightness < 130) return 5;
-  if (normalizedBrightness < 160) return 6;
-  if (normalizedBrightness < 200) return 7;
-  return 8;
-}
-
-/**
  * Check if a Bortle scale value represents good dark sky conditions
  * Bortle 1-3 are considered good for Milky Way photography
  */
@@ -589,12 +565,12 @@ export async function getBortleRatingForLocation(
     const { imageData, width, height } = await loadLightPollutionMap();
     const pixel = coordToPixel(coord, width, height);
     const pixelData = getPixelData(imageData, pixel);
-    
+
     // Skip pure black pixels (water/no-data areas)
     if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
       return null;
     }
-    
+
     return rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
   } catch (error) {
     console.error("Error getting Bortle rating:", error);
@@ -755,7 +731,10 @@ async function findDarkSiteInDirection(
     visited.add(key);
 
     processedPixels++;
-    if (onProgress && processedPixels % APP_CONFIG.SEARCH.PROGRESS_UPDATE_INTERVAL === 0) {
+    if (
+      onProgress &&
+      processedPixels % APP_CONFIG.SEARCH.PROGRESS_UPDATE_INTERVAL === 0
+    ) {
       onProgress(Math.min(processedPixels / totalEstimatedPixels, 0.95));
     }
 

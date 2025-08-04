@@ -17,20 +17,42 @@ export function LocationProvider({
   initialLocation = null,
   skipGeolocaton = false 
 }: LocationProviderProps) {
-  const [location, setLocationState] = useState<Location | null>(initialLocation);
-  const [isLoading, setIsLoading] = useState(!skipGeolocaton && !initialLocation);
-  const [geolocationFailed, setGeolocationFailed] = useState(false);
-
-  // Initialize location from localStorage or geolocation
-  useEffect(() => {
-    if (initialLocation || skipGeolocaton) {
-      setIsLoading(false);
-      return;
-    }
-
+  // Check localStorage synchronously on initialization to avoid loading flash
+  const getInitialLocation = () => {
+    if (initialLocation) return initialLocation;
+    if (skipGeolocaton) return null;
+    
     const savedLocationData = storageService.getLocationData();
     if (savedLocationData?.location) {
-      setLocationState(savedLocationData.location);
+      return savedLocationData.location;
+    }
+    return null;
+  };
+
+  const [location, setLocationState] = useState<Location | null>(getInitialLocation());
+  // Only show loading if we don't have any location (initial or saved)
+  const [isLoading, setIsLoading] = useState(!skipGeolocaton && !initialLocation && !location);
+  const [geolocationFailed, setGeolocationFailed] = useState(false);
+
+  // Define updateLocation before useEffect
+  const updateLocation = (newLocation: Location, matchedName?: string | null) => {
+    setLocationState(newLocation);
+
+    // If matchedName wasn't provided, try to find one
+    let finalMatchedName = matchedName;
+    if (finalMatchedName === undefined) {
+      const nearbyLocation = findNearestSpecialLocation(newLocation);
+      finalMatchedName = nearbyLocation ? nearbyLocation.matchedName : null;
+    }
+
+    // Update storage
+    storageService.setLocationData(newLocation, finalMatchedName);
+  };
+
+  // Initialize location from geolocation if needed
+  useEffect(() => {
+    // If we have any location already (initial, saved, or skip), we're done
+    if (initialLocation || skipGeolocaton || location) {
       setIsLoading(false);
       return;
     }
@@ -113,7 +135,8 @@ export function LocationProvider({
     };
 
     requestLocation();
-  }, [initialLocation, skipGeolocaton]);
+  }, [initialLocation, skipGeolocaton]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Note: We intentionally don't include location in deps to avoid re-running after setting it
 
   const retryGeolocation = () => {
     if (!navigator.geolocation) {
@@ -165,20 +188,6 @@ export function LocationProvider({
       },
       options
     );
-  };
-
-  const updateLocation = (newLocation: Location, matchedName?: string | null) => {
-    setLocationState(newLocation);
-
-    // If matchedName wasn't provided, try to find one
-    let finalMatchedName = matchedName;
-    if (finalMatchedName === undefined) {
-      const nearbyLocation = findNearestSpecialLocation(newLocation);
-      finalMatchedName = nearbyLocation ? nearbyLocation.matchedName : null;
-    }
-
-    // Update storage
-    storageService.setLocationData(newLocation, finalMatchedName);
   };
 
   const setLocation = (newLocation: Location) => {

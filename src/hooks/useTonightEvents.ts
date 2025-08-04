@@ -20,7 +20,6 @@ export interface LocationDisplayData {
 export interface UseTonightEventsResult {
   events: AstronomicalEvents | null;
   locationData: LocationDisplayData | null;
-  isLoading: boolean;
   error: string | null;
 }
 
@@ -34,8 +33,22 @@ export function useTonightEvents(
   const { location } = useLocation();
   const { getBortleRatingForLocation, findNearestDarkSky } = useDarkSiteWorker();
   const [events, setEvents] = useState<AstronomicalEvents | null>(null);
-  const [locationData, setLocationData] = useState<LocationDisplayData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [locationData, setLocationData] = useState<LocationDisplayData | null>(() => {
+    // Initialize with basic location data immediately if we have a location
+    if (!location) return null;
+    
+    const savedLocationData = storageService.getLocationData();
+    const displayName = savedLocationData?.matchedName || 
+      `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`;
+    
+    return {
+      displayName,
+      description: null,
+      bortleRating: null,
+      nearestDarkSite: null,
+      nearestKnownLocation: null
+    };
+  });
   const [error, setError] = useState<string | null>(null);
 
   // Calculate location display data
@@ -44,6 +57,19 @@ export function useTonightEvents(
       setLocationData(null);
       return;
     }
+    
+    // Immediately set basic location data to avoid "Loading location..." text
+    const savedLocationData = storageService.getLocationData();
+    const immediateDisplayName = savedLocationData?.matchedName || 
+      `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`;
+    
+    setLocationData({
+      displayName: immediateDisplayName,
+      description: null,
+      bortleRating: null,
+      nearestDarkSite: null,
+      nearestKnownLocation: null
+    });
 
     const calculateLocationData = async () => {
       try {
@@ -114,18 +140,16 @@ export function useTonightEvents(
   useEffect(() => {
     if (!location) {
       setEvents(null);
-      setIsLoading(false);
       return;
     }
 
     const calculateTonight = async () => {
-      setIsLoading(true);
       setError(null);
 
       try {
         const now = currentDate || new Date();
         
-        // Calculate all astronomical events
+        // Calculate all astronomical events (this is synchronous and fast)
         const events = calculateAstronomicalEvents(now, location);
         
         // Calculate tomorrow's events for sunrise if needed
@@ -165,8 +189,6 @@ export function useTonightEvents(
       } catch (error) {
         console.error("useTonightEvents: Error during calculation:", error);
         setError("Failed to calculate tonight's events");
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -176,7 +198,6 @@ export function useTonightEvents(
   return {
     events,
     locationData,
-    isLoading: !location || isLoading,
     error
   };
 }

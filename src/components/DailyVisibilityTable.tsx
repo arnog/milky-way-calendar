@@ -20,7 +20,7 @@ export default function DailyVisibilityTable({
   currentDate,
 }: DailyVisibilityTableProps) {
   const { location, isLoading: locationLoading } = useLocation();
-  const { dailyData, isLoading, error } = useWeeklyVisibility(currentDate);
+  const { dailyData, error } = useWeeklyVisibility(currentDate);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
 
@@ -50,16 +50,6 @@ export default function DailyVisibilityTable({
     return null;
   }
 
-  // Show loading if loading data
-  if (isLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingText}>
-          Loading daily visibility data...
-        </div>
-      </div>
-    );
-  }
 
   // Show error if something went wrong
   if (error) {

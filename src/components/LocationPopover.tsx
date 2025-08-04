@@ -26,7 +26,6 @@ export default function LocationPopover({
   const {
     inputValue,
     suggestion,
-    isLoading,
     dragLocation,
     handleInputChange,
     handleMapClick,
@@ -263,7 +262,7 @@ export default function LocationPopover({
         </button>
       </div>
 
-      {isLoading ? (
+      {geoLoading ? (
         <p className={styles.detectingText}>Detecting your location...</p>
       ) : (
         <>

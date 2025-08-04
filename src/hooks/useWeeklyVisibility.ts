@@ -26,7 +26,6 @@ export interface DayData {
 
 export interface UseWeeklyVisibilityResult {
   dailyData: DayData[];
-  isLoading: boolean;
   error: string | null;
 }
 
@@ -40,18 +39,15 @@ export function useWeeklyVisibility(
 ): UseWeeklyVisibilityResult {
   const { location } = useLocation();
   const [dailyData, setDailyData] = useState<DayData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!location) {
       setDailyData([]);
-      setIsLoading(false);
       return;
     }
 
     const calculateDailyData = async () => {
-      setIsLoading(true);
       setError(null);
 
       try {
@@ -89,8 +85,6 @@ export function useWeeklyVisibility(
       } catch (error) {
         console.error("useWeeklyVisibility: Error calculating daily visibility data:", error);
         setError("Failed to calculate weekly visibility data");
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -99,7 +93,6 @@ export function useWeeklyVisibility(
 
   return {
     dailyData,
-    isLoading: !location || isLoading,
     error
   };
 }

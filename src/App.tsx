@@ -85,46 +85,44 @@ function App() {
   const [isDarkroomMode, setIsDarkroomMode] = useState(false);
 
   return (
-    <div className={isDarkroomMode ? "darkroom-mode" : ""}>
-      <Header
-        isDarkroomMode={isDarkroomMode}
-        onToggleDarkroomMode={() => setIsDarkroomMode(!isDarkroomMode)}
-      />
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <LocationProvider>
+    <LocationProvider>
+      <div className={isDarkroomMode ? "darkroom-mode" : ""}>
+        <Header
+          isDarkroomMode={isDarkroomMode}
+          onToggleDarkroomMode={() => setIsDarkroomMode(!isDarkroomMode)}
+        />
+        <Routes>
+          <Route
+            path="/"
+            element={
               <LocationErrorBoundary>
                 <HomePage isDarkroomMode={isDarkroomMode} />
               </LocationErrorBoundary>
-            </LocationProvider>
-          }
-        />
-        <Route
-          path="/location/:locationSlug"
-          element={<LocationPage isDarkroomMode={isDarkroomMode} />}
-        />
-        <Route
-          path="/explore"
-          element={
-            <LocationProvider>
+            }
+          />
+          <Route
+            path="/location/:locationSlug"
+            element={<LocationPage isDarkroomMode={isDarkroomMode} />}
+          />
+          <Route
+            path="/explore"
+            element={
               <Suspense fallback={<PageLoader />}>
                 <ExplorePage isDarkroomMode={isDarkroomMode} />
               </Suspense>
-            </LocationProvider>
-          }
-        />
-        <Route 
-          path="/faq" 
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <FAQPage />
-            </Suspense>
-          } 
-        />
-      </Routes>
-    </div>
+            }
+          />
+          <Route 
+            path="/faq" 
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <FAQPage />
+              </Suspense>
+            } 
+          />
+        </Routes>
+      </div>
+    </LocationProvider>
   );
 }
 

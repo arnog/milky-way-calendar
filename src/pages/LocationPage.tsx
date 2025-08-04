@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet'
 import TonightCard from '../components/TonightCard'
 import DailyVisibilityTable from '../components/DailyVisibilityTable'
 import Calendar from '../components/Calendar'
-import { Location } from '../types/astronomy'
 import { slugToLocation, generateLocationTitle, generateLocationDescription } from '../utils/urlHelpers'
 import { useDateFromQuery } from '../hooks/useDateFromQuery'
 import { LocationProvider } from '../contexts/LocationContext'
@@ -21,47 +20,39 @@ interface LocationPageProps {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function LocationPageWrapper({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
   const { locationSlug } = useParams<{ locationSlug: string }>()
-  const [parsedLocation, setParsedLocation] = useState<Location | null>(null)
-  const [isInvalidLocation, setIsInvalidLocation] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  // Parse location synchronously - no need for loading state
+  const parsedLocation = useMemo(() => {
+    if (!locationSlug) return null;
+    return slugToLocation(locationSlug);
+  }, [locationSlug]);
+  
+  const isInvalidLocation = !locationSlug || !parsedLocation;
 
   useEffect(() => {
-    if (!locationSlug) {
-      setIsInvalidLocation(true)
-      setIsLoading(false)
-      return
-    }
-
-    const location = slugToLocation(locationSlug)
-    if (location) {
-      setParsedLocation(location)
-      setIsInvalidLocation(false)
+    if (parsedLocation) {
       
       // Try to find if this location matches a special location for display name
       let matchedName = null
-      if (!locationSlug.startsWith('@')) {
+      if (locationSlug && !locationSlug.startsWith('@')) {
         // For named location slugs, try to find the proper display name
-        const nearbyLocation = findNearestSpecialLocation(location, 1) // Very small threshold for exact matches
+        const nearbyLocation = findNearestSpecialLocation(parsedLocation, 1) // Very small threshold for exact matches
         if (nearbyLocation) {
           matchedName = nearbyLocation.matchedName
         }
       }
       
       // Save to storage for future visits
-      storageService.setLocationData(location, matchedName)
-    } else {
-      setIsInvalidLocation(true)
+      storageService.setLocationData(parsedLocation, matchedName)
     }
-    setIsLoading(false)
-  }, [locationSlug])
+  }, [parsedLocation, locationSlug])
 
   // Redirect to home if invalid location
   if (isInvalidLocation) {
     return <Navigate to="/" replace />
   }
 
-  // Show loading while location is being parsed
-  if (isLoading || !parsedLocation) {
+  // Should never happen now since parsing is synchronous
+  if (!parsedLocation) {
     return (
       <div className={styles.container}>
         <div className={styles.content}>

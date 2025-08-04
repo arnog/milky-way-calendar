@@ -21,7 +21,6 @@ interface CalendarProps {
 export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
   const { location, isLoading: locationLoading } = useLocation();
   const [weekData, setWeekData] = useState<WeekData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [weeksLoaded, setWeeksLoaded] = useState(0);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -77,11 +76,9 @@ export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
   // Initial load
   useEffect(() => {
     const loadInitial = async () => {
-      setIsLoading(true);
       const initialWeeks = await loadWeeks(1, 12);
       setWeekData(initialWeeks);
       setWeeksLoaded(12);
-      setIsLoading(false);
     };
     loadInitial();
   }, [location, loadWeeks, currentDate]);
@@ -132,8 +129,8 @@ export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
     [weekData]
   );
 
-  // Show loading if location is not available yet or if loading data
-  if (!location || isLoading) {
+  // Show loading if location is not available yet
+  if (!location) {
     return (
       <div className={styles.container}>
         <h2 className={styles.title}>
@@ -142,10 +139,7 @@ export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
         <div className={styles.loadingContainer}>
           <div className={styles.loadingContent}>
             <div className={styles.spinner}></div>
-            <p className={styles.loadingText}>
-              {!location ? "Loading location..." : "Calculating astronomical data..."}
-            </p>
-            {!location ? null : <p className={styles.loadingSubtext}>This may take a moment</p>}
+            <p className={styles.loadingText}>Loading location...</p>
           </div>
         </div>
       </div>

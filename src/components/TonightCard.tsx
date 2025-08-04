@@ -12,9 +12,9 @@ import {
   formatOptimalViewingDuration,
 } from "../utils/integratedOptimalViewing";
 import FormattedTime from "./FormattedTime";
-import AstronomicalClock from "./AstronomicalClock";
+// import AstronomicalClock from "./AstronomicalClock";
 import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
-import DarkSiteSuggestion from "./DarkSiteSuggestion";
+// import DarkSiteSuggestion from "./DarkSiteSuggestion";
 import styles from "./TonightCard.module.css";
 
 interface TonightCardProps {
@@ -22,9 +22,14 @@ interface TonightCardProps {
 }
 
 export default function TonightCard({ currentDate }: TonightCardProps) {
-  const { location, updateLocation, isLoading: locationLoading, geolocationFailed } = useLocation();
+  const {
+    location,
+    updateLocation,
+    isLoading: locationLoading,
+    geolocationFailed,
+  } = useLocation();
   const navigate = useNavigate();
-  const { events, locationData, isLoading, error } = useTonightEvents(currentDate);
+  const { events, locationData, error } = useTonightEvents(currentDate);
   const [showLocationPopover, setShowLocationPopover] = useState(false);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -48,9 +53,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
       <div className={styles.container}>
         <h2 className={styles.title}>Tonight</h2>
         <div className={styles.locationRequired}>
-          <p className={styles.locationMessage}>
-            Determining your location...
-          </p>
+          <p className={styles.locationMessage}>Determining your location...</p>
           <div className={styles.loadingActions}>
             <div className={styles.spinner}></div>
             <button
@@ -86,7 +89,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           {/* Hidden button just for popover positioning */}
           <button
             ref={locationButtonRef}
-            style={{ visibility: 'hidden', position: 'absolute' }}
+            style={{ visibility: "hidden", position: "absolute" }}
           >
             Choose Location
           </button>
@@ -102,17 +105,6 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
     );
   }
 
-  // Show loading if loading astronomical data
-  if (isLoading) {
-    return (
-      <div className={styles.container}>
-        <h2 className={styles.title}>Tonight</h2>
-        <p className="global-loading-text">
-          Calculating astronomical events...
-        </p>
-      </div>
-    );
-  }
 
   // Show error if something went wrong
   if (error) {
@@ -176,22 +168,26 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           </div>
         )}
 
-        {/* Dark Site Suggestion for poor Bortle ratings */}
+        {/* Dark Site Suggestion for poor Bortle ratings 
+          EXPERIMENTAL
         {locationData?.bortleRating !== null &&
           locationData?.bortleRating !== undefined &&
           locationData.bortleRating >= 4 &&
           locationData?.nearestDarkSite && (
-            <DarkSiteSuggestion nearestDarkSite={locationData.nearestDarkSite} />
+            <DarkSiteSuggestion
+              nearestDarkSite={locationData.nearestDarkSite}
+            />
           )}
+            */}
       </div>
 
-      {/* Astronomical Clock Visualization */}
+      {/* Astronomical Clock Visualization- For now, we're going to keep it EXPERIMENTAL and hide it.
       <AstronomicalClock
         events={events}
         currentDate={currentDate}
         size={600}
       />
-
+      */}
       <div className={styles.eventGrid}>
         {/* Sun Events */}
         <div className={styles.eventSection}>
@@ -215,9 +211,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                     title="Astronomical Night Start"
                     className={`global-icon-medium`}
                   />
-                  <FormattedTime
-                    date={events.nightStart}
-                  />
+                  <FormattedTime date={events.nightStart} />
                 </>
               )}
             </div>
@@ -231,9 +225,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                     title="Astronomical Night End"
                     className={`global-icon-medium`}
                   />
-                  <FormattedTime
-                    date={events.nightEnd}
-                  />
+                  <FormattedTime date={events.nightEnd} />
                 </>
               )}
               {events.sunRise && (
@@ -341,9 +333,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                   className={`global-icon-medium color-gray-300`}
                 />
                 <span className="data-time">
-                  <FormattedTime
-                    date={events.gcTransit}
-                  />
+                  <FormattedTime date={events.gcTransit} />
                   <span className="small-caps"> at </span>
                   {events.maxGcAltitude.toFixed(0)}°
                 </span>

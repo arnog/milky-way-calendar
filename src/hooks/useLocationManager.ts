@@ -17,7 +17,6 @@ interface UseLocationManagerReturn {
   setInputValue: (value: string) => void;
   suggestion: string | null;
   isNearbyMatch: boolean;
-  isLoading: boolean;
   dragLocation: Location | null;
   setDragLocation: (location: Location | null) => void;
   handleInputChange: (value: string) => void;
@@ -38,7 +37,6 @@ export function useLocationManager({
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [suggestedLocation, setSuggestedLocation] = useState<Location | null>(null);
   const [isNearbyMatch, setIsNearbyMatch] = useState<boolean>(false);
-  const [isLoading] = useState(false);
   const [dragLocation, setDragLocation] = useState<Location | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -241,7 +239,6 @@ export function useLocationManager({
     setInputValue,
     suggestion,
     isNearbyMatch,
-    isLoading,
     dragLocation,
     setDragLocation,
     handleInputChange,
