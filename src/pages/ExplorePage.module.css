@@ -48,6 +48,13 @@
   white-space: nowrap;
 }
 
+.tooltipBortle {
+  font-family: var(--data-font-family);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.125rem;
+}
+
 .mapDescription {
   /* text-sm text-white/50 mt-2 */
   font-size: 0.875rem;
@@ -71,6 +78,21 @@
   font-weight: 600;
   color: white;
   margin-bottom: 0.75rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.locationCount {
+  font-family: var(--data-font-family);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  white-space: nowrap;
 }
 
 .darkSiteMarker {
@@ -92,21 +114,40 @@
 }
 
 .regionsGrid {
-  /* grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 */
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+  /* CSS Columns masonry layout - better browser support */
+  columns: 1;
+  column-gap: 2rem;
+  column-fill: balance;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .regionsGrid {
-    grid-template-columns: repeat(2, 1fr);
+    columns: 2;
   }
 }
 
 @media (min-width: 1024px) {
   .regionsGrid {
-    grid-template-columns: repeat(3, 1fr);
+    columns: 3;
+  }
+}
+
+@media (min-width: 1536px) {
+  .regionsGrid {
+    columns: 4;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 639px) {
+  .regionTitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .locationCount {
+    align-self: flex-start;
   }
 }
 
@@ -115,6 +156,56 @@
   background-color: rgba(255, 255, 255, 0.05);
   border-radius: 0.5rem;
   padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  height: fit-content;
+  
+  /* Essential for CSS columns masonry */
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+  width: 100%;
+}
+
+.regionCard:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Varied styling for different card sizes in masonry layout */
+.regionCard.large {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.regionCard.medium {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.regionCard.small {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Large cards get special styling */
+.regionCard.large .regionTitle {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.regionCard.large .locationsList {
+  gap: 0.75rem;
+}
+
+/* Medium cards get moderate styling */
+.regionCard.medium .regionTitle {
+  font-size: 1.125rem;
+}
+
+.regionCard.medium .locationsList {
+  gap: 0.5rem;
 }
 
 .locationsList {
@@ -130,17 +221,21 @@
 .locationButton {
   /* text-blue-400 hover:text-blue-300 transition-colors text-left */
   color: rgb(96 165 250);
-  transition: color 0.15s ease-in-out;
+  transition: all 0.2s ease-in-out;
   text-align: left;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 0.25rem 0;
   font: inherit;
+  position: relative;
+  border-radius: 0.25rem;
+  width: 100%;
 }
 
 .locationButton:hover {
   color: rgb(147 197 253);
+  background-color: rgba(96, 165, 250, 0.1);
 }
 
 .mapContainer {
@@ -215,26 +310,6 @@
   box-shadow: 0 0 20px rgba(178, 227, 255, 0.3);
 }
 
-.findButton {
-  padding: 0.75rem 1.5rem;
-  background-color: var(--accent);
-  border: none;
-  border-radius: 0.5rem;
-  color: var(--background);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.findButton:hover:not(:disabled) {
-  background-color: #5ab3e6;
-  box-shadow: 0 0 20px rgba(110, 198, 255, 0.4);
-}
-
-.findButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .progressContainer {
   display: flex;

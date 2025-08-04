@@ -314,29 +314,43 @@ already in place. These suggestions can build on that foundation.
 
 **Prioritized Task List:**
 
-1.  **Manage Focus for Popovers and Modals (Medium Priority)**
+1.  **✅ COMPLETED - Manage Focus for Popovers and Modals (Medium Priority)**
 
-    - **Observation:** When the `LocationPopover` opens, keyboard focus should
-      be trapped inside it. This prevents users from accidentally tabbing to
-      elements underneath the popover.
-    - **Suggestion:** Use a library like `focus-trap-react` or implement a
-      custom focus trap in the `LocationPopover` component. When it opens, focus
-      should move to the first interactive element (the input field). When it
-      closes, focus should return to the button that opened it
-      (`locationButtonRef`).
-    - **Benefits & Impact:**
-      - **Usability:** Critical for keyboard-only users, preventing them from
-        losing their place on the page.
-      - **Compliance:** Meets WCAG guidelines for modal dialogs.
+    - **Observation:** When the LocationPopover opened, keyboard focus could escape
+      to elements underneath, making it difficult for keyboard-only users to navigate
+      and potentially causing them to lose their place on the page.
+    - **Implementation:** Created comprehensive focus management system:
+      - `useFocusTrap` custom hook implementing WCAG-compliant focus trapping
+      - Automatic focus to input field when popover opens
+      - Tab/Shift+Tab cycling constrained within popover elements
+      - Escape key handling integrated with focus management
+      - Return focus to trigger button when popover closes
+      - Enhanced LocationPopover with proper ARIA attributes (`role="dialog"`, `aria-modal="true"`)
+      - Comprehensive test coverage (8 unit tests) for all focus trap scenarios
+    - **Results & Impact:**
+      - **Accessibility:** ✅ WCAG-compliant focus management for keyboard-only users
+      - **User Experience:** ✅ Intuitive navigation with proper focus cycling
+      - **Code Quality:** ✅ Reusable focus trap hook for future modal components
+      - **Testing:** ✅ Robust test coverage preventing regressions
+    - **Files Modified:** `src/hooks/useFocusTrap.ts` (new), `src/components/LocationPopover.tsx`,
+      `src/test/useFocusTrap.test.ts` (new with 8 comprehensive tests)
 
-2.  **Ensure All Interactive Elements are Semantic**
-    - **Suggestion:** In `AstronomicalClock.tsx`, the event labels use a `div`
-      with `role="button"` and `tabIndex={0}`. While this works, wrapping the
-      content in a native `<button>` element within the `foreignObject` can
-      provide more robust accessibility semantics out of the box.
-    - **Benefit:** Leverages native browser accessibility features, ensuring
-      maximum compatibility and expected behavior with assistive technologies.
-    - **Impact:** Low. A minor refactor that improves semantic correctness.
+2.  **✅ COMPLETED - Ensure All Interactive Elements are Semantic**
+    - **Observation:** In ClockFace.tsx, the event labels used div elements 
+      with `role="button"` and `tabIndex={0}` which worked functionally but 
+      weren't semantically optimal for screen readers and assistive technologies.
+    - **Implementation:** Converted div-based pseudo-buttons to native HTML button elements:
+      - Replaced div with `role="button"` with proper `<button type="button">` elements
+      - Added comprehensive button style resets (appearance, margins, font inheritance)
+      - Maintained all existing styling and interaction behavior
+      - Enhanced keyboard navigation with native button semantics
+      - Preserved all hover, focus, and accessibility features
+    - **Results & Impact:**
+      - **Accessibility:** ✅ Native button semantics provide optimal screen reader support
+      - **Keyboard Navigation:** ✅ Better keyboard interaction with expected button behavior  
+      - **Standards Compliance:** ✅ Follows HTML semantic best practices
+      - **User Experience:** ✅ Maintains all visual styling and interactions
+    - **Files Modified:** `src/components/ClockFace.tsx`, `src/components/ClockFace.module.css`
 
 ---
 

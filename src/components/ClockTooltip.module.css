@@ -37,6 +37,21 @@
   animation: tooltipFadeIn 0.2s ease-out forwards;
 }
 
+.touchTooltip {
+  /* Enhanced styling for touch tooltips */
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+}
+
+.dismissHint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-style: italic;
+}
+
 .tooltipArrow {
   position: absolute;
   top: 100%;

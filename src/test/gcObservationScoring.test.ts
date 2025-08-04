@@ -231,8 +231,6 @@ describe("GC Observation Scoring Algorithm", () => {
     // but the long window should have equal or higher raw score
     expect(longWindow.rating).toBeGreaterThanOrEqual(shortWindow.rating);
     
-    // Log for debugging
-    console.log(`Short window: ${shortWindow.rating}⭐, Long window: ${longWindow.rating}⭐`);
   });
 
   it("should skip samples where GC altitude < 15°", () => {

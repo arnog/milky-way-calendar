@@ -579,6 +579,68 @@ export async function getBortleRatingForLocation(
 }
 
 /**
+ * Find the darkest (lowest) Bortle scale value within a given radius of a coordinate
+ */
+export async function findDarkestBortleInRadius(
+  centerCoord: Coordinate,
+  radiusKm: number = 10
+): Promise<number | null> {
+  try {
+    const { imageData, width, height } = await loadLightPollutionMap();
+    
+    // Convert radius to approximate pixel distance
+    const pixelsPerDegree = width / 360; // Approximate for longitude
+    const radiusDegrees = radiusKm / (111.32 * Math.cos((centerCoord.lat * Math.PI) / 180)); // Account for latitude
+    const radiusPixels = Math.ceil(radiusDegrees * pixelsPerDegree);
+    
+    const centerPixel = coordToPixel(centerCoord, width, height);
+    let darkestBortle = Infinity;
+    let validPixelsFound = 0;
+    
+    // Search in a square around the center, then filter by actual distance
+    for (let dx = -radiusPixels; dx <= radiusPixels; dx++) {
+      for (let dy = -radiusPixels; dy <= radiusPixels; dy++) {
+        const testPixel = {
+          x: centerPixel.x + dx,
+          y: centerPixel.y + dy
+        };
+        
+        // Check bounds
+        if (testPixel.x < 0 || testPixel.x >= width || testPixel.y < 0 || testPixel.y >= height) {
+          continue;
+        }
+        
+        // Convert back to coordinates and check actual distance
+        const testCoord = pixelToCoord(testPixel, width, height);
+        const actualDistance = haversineDistance(centerCoord, testCoord);
+        
+        if (actualDistance <= radiusKm) {
+          const pixelData = getPixelData(imageData, testPixel);
+          
+          // Skip pure black pixels (water/no-data areas)
+          if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
+            continue;
+          }
+          
+          const bortleScale = rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
+          
+          if (bortleScale < darkestBortle) {
+            darkestBortle = bortleScale;
+          }
+          
+          validPixelsFound++;
+        }
+      }
+    }
+    
+    return validPixelsFound > 0 ? darkestBortle : null;
+  } catch (error) {
+    console.error("Error finding darkest Bortle in radius:", error);
+    return null;
+  }
+}
+
+/**
  * Find multiple dark sites in different directions from the user's location
  */
 export async function findMultipleDarkSites(

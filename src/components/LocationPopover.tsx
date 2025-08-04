@@ -6,6 +6,7 @@ import WorldMap from "./WorldMap";
 import { useLocationManager } from "../hooks/useLocationManager";
 import { Icon } from "./Icon";
 import { APP_CONFIG } from "../config/appConfig";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import styles from "./LocationPopover.module.css";
 
 interface LocationPopoverProps {
@@ -42,6 +43,14 @@ export default function LocationPopover({
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Implement focus trapping for accessibility
+  useFocusTrap(popoverRef, {
+    isActive: true,
+    initialFocusRef: inputRef,
+    returnFocusRef: triggerRef,
+    onEscape: onClose,
+  });
 
   // Position popover relative to trigger and update on scroll
   useEffect(() => {
@@ -93,23 +102,15 @@ export default function LocationPopover({
       }
     };
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
     const handleResize = () => {
       onClose();
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("resize", handleResize);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("resize", handleResize);
     };
   }, [onClose, triggerRef]);
@@ -233,6 +234,9 @@ export default function LocationPopover({
     <div
       ref={popoverRef}
       className={styles.popover}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Select location"
       style={{
         top: popoverPosition.top,
         left: popoverPosition.left,
@@ -245,12 +249,18 @@ export default function LocationPopover({
     >
       <div className={styles.header}>
         <h3></h3>
-        <button onClick={onClose} className={styles.closeButton}>
+        <button 
+          onClick={onClose} 
+          className={styles.closeButton}
+          aria-label="Close location picker"
+          title="Close location picker"
+        >
           <svg
             className={styles.closeIcon}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"

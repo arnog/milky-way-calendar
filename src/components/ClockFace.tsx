@@ -315,10 +315,9 @@ export default function ClockFace({
                 style={{ overflow: 'visible' }}
               >
                 <ClockTooltip content={event.tooltip}>
-                  <div 
+                  <button 
+                    type="button"
                     className={styles.eventLabelContent}
-                    tabIndex={0}
-                    role="button"
                     aria-label={`${event.title} at ${event.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}. ${event.tooltip}`}
                     onMouseEnter={() => {
                       onEventHover(event.id);
@@ -330,11 +329,9 @@ export default function ClockFace({
                       onArcHover(null); // Clear arc hover when focusing event
                     }}
                     onBlur={() => onEventHover(null)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        // Focus will show the tooltip
-                      }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // Focus will show the tooltip
                     }}
                   >
                     {/* Render multiple icons for consolidated events */}
@@ -360,7 +357,7 @@ export default function ClockFace({
                       date={event.time} 
                       aria-hidden="true"
                     />
-                  </div>
+                  </button>
                 </ClockTooltip>
               </foreignObject>
             </g>

@@ -15,6 +15,7 @@ import {
 import { useDarkSiteWorker } from "../hooks/useDarkSiteWorker";
 import { storageService } from "../services/storageService";
 import { APP_CONFIG, formatMessage } from "../config/appConfig";
+import { getDarkSiteBortleWithFallback } from "../data/darkSiteBortle";
 import styles from "../App.module.css";
 import exploreStyles from "./ExplorePage.module.css";
 
@@ -24,9 +25,9 @@ interface ExplorePageProps {
 
 // Session storage keys for ExplorePage state persistence
 const EXPLORE_SESSION_KEYS = {
-  USER_LOCATION: 'explore_user_location',
-  DARK_SITES_RESULT: 'explore_dark_sites_result',
-  HAS_AUTO_SEARCHED: 'explore_has_auto_searched',
+  USER_LOCATION: "explore_user_location",
+  DARK_SITES_RESULT: "explore_dark_sites_result",
+  HAS_AUTO_SEARCHED: "explore_has_auto_searched",
 } as const;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -53,7 +54,9 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   useEffect(() => {
     try {
       // Load user location (prioritize sessionStorage over localStorage)
-      const sessionUserLocation = sessionStorage.getItem(EXPLORE_SESSION_KEYS.USER_LOCATION);
+      const sessionUserLocation = sessionStorage.getItem(
+        EXPLORE_SESSION_KEYS.USER_LOCATION
+      );
       if (sessionUserLocation) {
         setUserLocation(JSON.parse(sessionUserLocation));
       } else {
@@ -65,18 +68,25 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
       }
 
       // Load dark sites search results
-      const sessionDarkSitesResult = sessionStorage.getItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT);
+      const sessionDarkSitesResult = sessionStorage.getItem(
+        EXPLORE_SESSION_KEYS.DARK_SITES_RESULT
+      );
       if (sessionDarkSitesResult) {
         setDarkSitesResult(JSON.parse(sessionDarkSitesResult));
       }
 
       // Load auto-search flag
-      const sessionHasAutoSearched = sessionStorage.getItem(EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED);
+      const sessionHasAutoSearched = sessionStorage.getItem(
+        EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED
+      );
       if (sessionHasAutoSearched) {
         setHasAutoSearched(JSON.parse(sessionHasAutoSearched));
       }
     } catch (error) {
-      console.warn('Failed to load ExplorePage state from sessionStorage:', error);
+      console.warn(
+        "Failed to load ExplorePage state from sessionStorage:",
+        error
+      );
     }
   }, []);
 
@@ -84,12 +94,15 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   useEffect(() => {
     try {
       if (userLocation) {
-        sessionStorage.setItem(EXPLORE_SESSION_KEYS.USER_LOCATION, JSON.stringify(userLocation));
+        sessionStorage.setItem(
+          EXPLORE_SESSION_KEYS.USER_LOCATION,
+          JSON.stringify(userLocation)
+        );
       } else {
         sessionStorage.removeItem(EXPLORE_SESSION_KEYS.USER_LOCATION);
       }
     } catch (error) {
-      console.warn('Failed to persist user location to sessionStorage:', error);
+      console.warn("Failed to persist user location to sessionStorage:", error);
     }
   }, [userLocation]);
 
@@ -97,21 +110,33 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   useEffect(() => {
     try {
       if (darkSitesResult) {
-        sessionStorage.setItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT, JSON.stringify(darkSitesResult));
+        sessionStorage.setItem(
+          EXPLORE_SESSION_KEYS.DARK_SITES_RESULT,
+          JSON.stringify(darkSitesResult)
+        );
       } else {
         sessionStorage.removeItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT);
       }
     } catch (error) {
-      console.warn('Failed to persist dark sites result to sessionStorage:', error);
+      console.warn(
+        "Failed to persist dark sites result to sessionStorage:",
+        error
+      );
     }
   }, [darkSitesResult]);
 
   // Persist hasAutoSearched to sessionStorage when it changes
   useEffect(() => {
     try {
-      sessionStorage.setItem(EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED, JSON.stringify(hasAutoSearched));
+      sessionStorage.setItem(
+        EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED,
+        JSON.stringify(hasAutoSearched)
+      );
     } catch (error) {
-      console.warn('Failed to persist auto-search flag to sessionStorage:', error);
+      console.warn(
+        "Failed to persist auto-search flag to sessionStorage:",
+        error
+      );
     }
   }, [hasAutoSearched]);
 
@@ -127,21 +152,18 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
         setDarkSitesResult(null);
 
         try {
-          const result = await findMultipleDarkSites(
-            userLocation,
-            {
-              maxDistance: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
-              knownSites: DARK_SITES, // Pass known sites for secondary location matching
-              onProgress: (progress) => setSearchProgress(progress),
-            }
-          );
+          const result = await findMultipleDarkSites(userLocation, {
+            maxDistance: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
+            knownSites: DARK_SITES, // Pass known sites for secondary location matching
+            onProgress: (progress) => setSearchProgress(progress),
+          });
 
           if (result) {
             setDarkSitesResult(result);
           } else {
             setSearchError(
               formatMessage(APP_CONFIG.MESSAGES.NO_DARK_SITES_FOUND, {
-                radius: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM
+                radius: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
               })
             );
           }
@@ -169,13 +191,16 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     setDarkSitesResult(null);
     setSearchError(null);
     setHasAutoSearched(false);
-    
+
     // Clear session storage for search results since we're starting fresh
     try {
       sessionStorage.removeItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT);
       sessionStorage.removeItem(EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED);
     } catch (error) {
-      console.warn('Failed to clear search results from sessionStorage:', error);
+      console.warn(
+        "Failed to clear search results from sessionStorage:",
+        error
+      );
     }
   };
 
@@ -212,44 +237,6 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     );
   };
 
-  // This is now replaced by handleUserLocationChangeWrapper
-
-  const handleFindNearestDarkSite = async () => {
-    if (!userLocation) return;
-
-    setIsSearching(true);
-    setSearchProgress(0);
-    setSearchError(null);
-    setDarkSitesResult(null);
-
-    try {
-      const result = await findMultipleDarkSites(
-        userLocation,
-        {
-          maxDistance: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
-          knownSites: DARK_SITES, // Pass known sites for secondary location matching
-          onProgress: (progress) => setSearchProgress(progress),
-        }
-      );
-
-      if (result) {
-        setDarkSitesResult(result);
-      } else {
-        setSearchError(
-          formatMessage(APP_CONFIG.MESSAGES.NO_DARK_SITES_FOUND, {
-            radius: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM
-          })
-        );
-      }
-    } catch (error) {
-      console.error("Error finding dark sites:", error);
-      setSearchError(APP_CONFIG.MESSAGES.SEARCH_ERROR);
-    } finally {
-      setIsSearching(false);
-      setSearchProgress(0);
-    }
-  };
-
   const handleDarkSiteClick = (lat: number, lng: number) => {
     navigate(`/location/@${lat.toFixed(4)},${lng.toFixed(4)}`);
   };
@@ -268,59 +255,145 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
 
   // Group locations by region for better organization
   const groupedLocations = {
-    "Western USA": [] as typeof DARK_SITES,
+    "Eastern North America": [] as typeof DARK_SITES,
     "Central USA": [] as typeof DARK_SITES,
-    "Eastern USA": [] as typeof DARK_SITES,
-    Canada: [] as typeof DARK_SITES,
-    "South America": [] as typeof DARK_SITES,
+    "Northern California": [] as typeof DARK_SITES,
+    "Bay Area & Central Coast": [] as typeof DARK_SITES,
+    "Sierra Nevada & Central Valley": [] as typeof DARK_SITES,
+    "Southern California Deserts": [] as typeof DARK_SITES,
+    "Southern California Coast": [] as typeof DARK_SITES,
+    Utah: [] as typeof DARK_SITES,
+    Colorado: [] as typeof DARK_SITES,
+    "New Mexico": [] as typeof DARK_SITES,
+    Arizona: [] as typeof DARK_SITES,
+    Texas: [] as typeof DARK_SITES,
+    "Mountain West": [] as typeof DARK_SITES,
+    "Pacific Northwest": [] as typeof DARK_SITES,
+    "Alaska & Hawaii": [] as typeof DARK_SITES,
+    "Africa and the Middle East": [] as typeof DARK_SITES,
     Europe: [] as typeof DARK_SITES,
-    "Africa & Middle East": [] as typeof DARK_SITES,
-    "Asia & Oceania": [] as typeof DARK_SITES,
+    "Asia and Oceania": [] as typeof DARK_SITES,
   };
 
-  // More detailed region detection based on coordinates
+  // More detailed region detection based on coordinates and names
   DARK_SITES.forEach((loc) => {
     const lat = loc[2] as number;
     const lng = loc[3] as number;
     const name = loc[0] as string;
 
     // Check for specific cases first
-    if (name.includes("Hawaii")) {
-      groupedLocations["Western USA"].push(loc);
-    } else if (name.includes("Alaska")) {
-      groupedLocations["Western USA"].push(loc);
-    } else if (name.includes("Canada")) {
-      groupedLocations["Canada"].push(loc);
+    if (name.includes("Canada")) {
+      groupedLocations["Eastern North America"].push(loc);
+    } else if (name.includes("California")) {
+      // Sub-divide California by geographic regions
+      if (
+        name.includes("Redwood") ||
+        name.includes("Del Norte") ||
+        name.includes("Prairie Creek") ||
+        name.includes("Humboldt") ||
+        name.includes("Richardson Grove") ||
+        name.includes("Benbow") ||
+        name.includes("Grizzly Creek") ||
+        name.includes("Ahjumawi") ||
+        name.includes("Castle Crags") ||
+        name.includes("McArthur-Burney") ||
+        lat > 39.5 // Northern California latitude
+      ) {
+        groupedLocations["Northern California"].push(loc);
+      } else if (
+        name.includes("Yosemite") ||
+        name.includes("Sequoia") ||
+        name.includes("Kings Canyon") ||
+        name.includes("Pinnacles") ||
+        name.includes("Mono Lake") ||
+        name.includes("Plumas-Eureka") ||
+        (lat >= 36.2 && lat <= 39.5 && lng >= -121.5) // Sierra Nevada region
+      ) {
+        groupedLocations["Sierra Nevada & Central Valley"].push(loc);
+      } else if (
+        name.includes("Big Sur") ||
+        name.includes("Julia Pfeiffer") ||
+        name.includes("Pfeiffer") ||
+        name.includes("Limekiln") ||
+        name.includes("Point Sur") ||
+        name.includes("Monterey") ||
+        name.includes("Carmel") ||
+        name.includes("Van Damme") ||
+        name.includes("Mendocino") ||
+        name.includes("Fort Ross") ||
+        name.includes("Salt Point") ||
+        name.includes("Kruse") ||
+        name.includes("Manchester") ||
+        name.includes("Navarro") ||
+        name.includes("Caspar") ||
+        name.includes("Estero") ||
+        (lat >= 35.5 && lat <= 39.5 && lng <= -121.0) // Central Coast region
+      ) {
+        groupedLocations["Bay Area & Central Coast"].push(loc);
+      } else if (
+        name.includes("Joshua Tree") ||
+        name.includes("Death Valley") ||
+        name.includes("Mojave") ||
+        name.includes("Anza") ||
+        (lat <= 36.2 && lng <= -116) // Desert region
+      ) {
+        groupedLocations["Southern California Deserts"].push(loc);
+      } else if (
+        name.includes("Channel Islands") ||
+        (lat <= 35.5 && lng >= -120 && lng <= -117) // Southern coast
+      ) {
+        groupedLocations["Southern California Coast"].push(loc);
+      } else {
+        // Default California locations to Bay Area & Central Coast
+        groupedLocations["Bay Area & Central Coast"].push(loc);
+      }
+    } else if (name.includes("Utah")) {
+      groupedLocations["Utah"].push(loc);
+    } else if (name.includes("Colorado")) {
+      groupedLocations["Colorado"].push(loc);
+    } else if (name.includes("New Mexico")) {
+      groupedLocations["New Mexico"].push(loc);
+    } else if (name.includes("Arizona")) {
+      groupedLocations["Arizona"].push(loc);
+    } else if (name.includes("Texas")) {
+      groupedLocations["Texas"].push(loc);
+    } else if (name.includes("Alaska") || name.includes("Hawaii")) {
+      groupedLocations["Alaska & Hawaii"].push(loc);
+    } else if (name.includes("Montana") || name.includes("Wyoming") || name.includes("Idaho")) {
+      groupedLocations["Mountain West"].push(loc);
+    } else if (name.includes("Washington") || name.includes("Oregon")) {
+      groupedLocations["Pacific Northwest"].push(loc);
     } else if (name.includes("New Zealand") || name.includes(", NZ")) {
-      groupedLocations["Asia & Oceania"].push(loc);
+      groupedLocations["Asia and Oceania"].push(loc);
     } else if (name.includes("Japan")) {
-      groupedLocations["Asia & Oceania"].push(loc);
+      groupedLocations["Asia and Oceania"].push(loc);
     } else if (name.includes("Bolivia")) {
-      groupedLocations["South America"].push(loc);
+      groupedLocations["Asia and Oceania"].push(loc); // South America goes to Asia and Oceania for now
     } else if (name.includes("Namibia")) {
-      groupedLocations["Africa & Middle East"].push(loc);
+      groupedLocations["Africa and the Middle East"].push(loc);
     } else if (name.includes("Israel")) {
-      groupedLocations["Africa & Middle East"].push(loc);
+      groupedLocations["Africa and the Middle East"].push(loc);
     } else if (name.includes("Canary Islands")) {
-      groupedLocations["Africa & Middle East"].push(loc);
+      groupedLocations["Africa and the Middle East"].push(loc);
     } else if (lng >= -130 && lng <= -60 && lat >= 25 && lat <= 70) {
       // Continental USA subdivision
       if (lng <= -100) {
-        // West of 100°W (roughly Mountain/Pacific time zones)
-        groupedLocations["Western USA"].push(loc);
+        // West of 100°W - should mostly be handled by specific state checks above
+        // Any remaining western locations go to Mountain West as default
+        groupedLocations["Mountain West"].push(loc);
       } else if (lng <= -85) {
         // Between 100°W and 85°W (roughly Central time zone)
         groupedLocations["Central USA"].push(loc);
       } else {
-        // East of 85°W (roughly Eastern time zone)
-        groupedLocations["Eastern USA"].push(loc);
+        // East of 85°W (roughly Eastern time zone) - includes eastern US
+        groupedLocations["Eastern North America"].push(loc);
       }
     } else if (lng >= -30 && lng <= 60 && lat >= 35) {
       // Europe
       groupedLocations["Europe"].push(loc);
     } else {
       // Default to Asia & Oceania for anything else
-      groupedLocations["Asia & Oceania"].push(loc);
+      groupedLocations["Asia and Oceania"].push(loc);
     }
   });
 
@@ -376,6 +449,10 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                     const shortName = loc[1] as string;
                     const lat = loc[2] as number;
                     const lng = loc[3] as number;
+                    const slug = loc[4] as string | undefined;
+
+                    // Get Bortle rating for this dark site
+                    const bortleRating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
 
                     // Equirectangular projection transform (matching WorldMap component and light pollution map)
                     const { x: normalizedX, y: normalizedY } =
@@ -401,6 +478,9 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                           <div className={exploreStyles.tooltip}>
                             <div className={exploreStyles.tooltipContent}>
                               {fullName}
+                              <div className={exploreStyles.tooltipBortle}>
+                                Bortle {bortleRating.toFixed(1)}
+                              </div>
                             </div>
                           </div>
                         )}
@@ -502,8 +582,8 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
               </h2>
               <p className={exploreStyles.sectionDescription}>
                 {userLocation
-                  ? "We've automatically loaded your saved location and searched for the nearest dark sky area."
-                  : "Enter your location to find the nearest dark sky area with minimal light pollution."}
+                  ? "We've loaded your saved location and found the nearest dark sky areas automatically. Change location to search a different area."
+                  : "Select your location to automatically find the nearest dark sky areas with minimal light pollution."}
               </p>
 
               <div className={exploreStyles.locationFinderContainer}>
@@ -518,14 +598,6 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                           4
                         )}, ${userLocation.lng.toFixed(4)}`
                       : "Select your location"}
-                  </button>
-
-                  <button
-                    onClick={handleFindNearestDarkSite}
-                    disabled={!userLocation || isSearching}
-                    className={exploreStyles.findButton}
-                  >
-                    {isSearching ? "Searching..." : "Find Nearest Dark Site"}
                   </button>
                 </div>
 
@@ -791,9 +863,26 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                 {Object.entries(groupedLocations).map(([region, locations]) => {
                   if (locations.length === 0) return null;
 
+                  // Determine card size based on number of locations for bento-box effect
+                  const getCardSizeClass = (count: number) => {
+                    if (count >= 8) return "large";
+                    if (count >= 4) return "medium";
+                    return "small";
+                  };
+
+                  const sizeClass = getCardSizeClass(locations.length);
+
                   return (
-                    <div key={region} className={exploreStyles.regionCard}>
-                      <h3 className={exploreStyles.regionTitle}>{region}</h3>
+                    <div
+                      key={region}
+                      className={`${exploreStyles.regionCard} ${exploreStyles[sizeClass]}`}
+                    >
+                      <h3 className={exploreStyles.regionTitle}>
+                        {region}{" "}
+                        <span className={exploreStyles.locationCount}>
+                          ({locations.length})
+                        </span>
+                      </h3>
                       <ul className={exploreStyles.locationsList}>
                         {locations.map((loc, idx) => {
                           const fullName = loc[0] as string;
@@ -812,8 +901,9 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                   })
                                 }
                                 className={exploreStyles.locationButton}
+                                title={fullName}
                               >
-                                {fullName}
+                                {shortName}
                               </button>
                             </li>
                           );
