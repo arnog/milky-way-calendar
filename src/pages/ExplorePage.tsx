@@ -4,6 +4,8 @@ import { Helmet } from "react-helmet";
 import WorldMap from "../components/WorldMap";
 import LocationPopover from "../components/LocationPopover";
 import ResultsMap from "../components/ResultsMap";
+import DarkSiteTooltip from "../components/DarkSiteTooltip";
+import SegmentedControl, { SegmentedControlOption } from "../components/SegmentedControl";
 import { Icon } from "../components/Icon";
 import { Location } from "../types/astronomy";
 import { DARK_SITES } from "../utils/locations";
@@ -35,9 +37,14 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const navigate = useNavigate();
   const { findMultipleDarkSites } = useDarkSiteWorker();
   const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
+  const [hoveredCatalogLocation, setHoveredCatalogLocation] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
   );
+  
+  // Bortle filter state
+  type BortleFilter = "all" | "pristine" | "excellent" | "good";
+  const [bortleFilter, setBortleFilter] = useState<BortleFilter>("all");
 
   // Nearest dark site finder state
   const [userLocation, setUserLocation] = useState<Location | null>(null);
@@ -178,6 +185,60 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     }
   }, [userLocation, hasAutoSearched, isSearching, findMultipleDarkSites]);
 
+  // Filter sites based on Bortle scale
+  const filterSitesByBortle = (sites: typeof DARK_SITES) => {
+    return sites.filter((site) => {
+      const slug = site[4] as string | undefined;
+      const bortleRating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
+      
+      switch (bortleFilter) {
+        case "pristine": return bortleRating <= 1.0;
+        case "excellent": return bortleRating <= 1.8;
+        case "good": return bortleRating <= 2.0;
+        case "all":
+        default: return true;
+      }
+    });
+  };
+
+  const filteredDarkSites = filterSitesByBortle(DARK_SITES);
+
+  // Create filter options with counts
+  const bortleFilterOptions: SegmentedControlOption<BortleFilter>[] = [
+    {
+      value: "all",
+      label: "All Sites",
+      count: DARK_SITES.length
+    },
+    {
+      value: "good",
+      label: "≤2.0",
+      count: DARK_SITES.filter(site => {
+        const slug = site[4] as string | undefined;
+        const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
+        return rating <= 2.0;
+      }).length
+    },
+    {
+      value: "excellent", 
+      label: "≤1.8",
+      count: DARK_SITES.filter(site => {
+        const slug = site[4] as string | undefined;
+        const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
+        return rating <= 1.8;
+      }).length
+    },
+    {
+      value: "pristine",
+      label: "≤1.0", 
+      count: DARK_SITES.filter(site => {
+        const slug = site[4] as string | undefined;
+        const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
+        return rating <= 1.0;
+      }).length
+    }
+  ];
+
   // Reset auto-search flag when user manually changes location
   const handleUserLocationChangeWrapper = (
     location: Location,
@@ -276,7 +337,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   };
 
   // More detailed region detection based on coordinates and names
-  DARK_SITES.forEach((loc) => {
+  filteredDarkSites.forEach((loc) => {
     const lat = loc[2] as number;
     const lng = loc[3] as number;
     const name = loc[0] as string;
@@ -444,7 +505,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                 />
                 {/* Overlay markers for dark sites */}
                 <div className={exploreStyles.markersOverlay}>
-                  {DARK_SITES.map((loc, idx) => {
+                  {filteredDarkSites.map((loc, idx) => {
                     const fullName = loc[0] as string;
                     const shortName = loc[1] as string;
                     const lat = loc[2] as number;
@@ -475,14 +536,11 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                           }
                         />
                         {hoveredLocation === fullName && (
-                          <div className={exploreStyles.tooltip}>
-                            <div className={exploreStyles.tooltipContent}>
-                              {fullName}
-                              <div className={exploreStyles.tooltipBortle}>
-                                Bortle {bortleRating.toFixed(1)}
-                              </div>
-                            </div>
-                          </div>
+                          <DarkSiteTooltip 
+                            siteName={fullName}
+                            bortleRating={bortleRating}
+                            className={exploreStyles.mapTooltip}
+                          />
                         )}
                       </div>
                     );
@@ -856,9 +914,17 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
 
             {/* Dark Sites List by Region */}
             <div>
-              <h2 className={exploreStyles.sectionTitle}>
-                Dark Sky Sites by Region
-              </h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 className={exploreStyles.sectionTitle} style={{ marginBottom: 0 }}>
+                  Dark Sky Sites by Region
+                </h2>
+                <SegmentedControl
+                  options={bortleFilterOptions}
+                  value={bortleFilter}
+                  onChange={setBortleFilter}
+                  size="sm"
+                />
+              </div>
               <div className={exploreStyles.regionsGrid}>
                 {Object.entries(groupedLocations).map(([region, locations]) => {
                   if (locations.length === 0) return null;
@@ -889,9 +955,13 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                           const shortName = loc[1] as string;
                           const lat = loc[2] as number;
                           const lng = loc[3] as number;
+                          const slug = loc[4] as string | undefined;
+
+                          // Get Bortle rating for this dark site
+                          const bortleRating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
 
                           return (
-                            <li key={idx}>
+                            <li key={idx} className={exploreStyles.catalogItem}>
                               <button
                                 onClick={() =>
                                   handleLocationClick({
@@ -901,10 +971,23 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                   })
                                 }
                                 className={exploreStyles.locationButton}
-                                title={fullName}
+                                onMouseEnter={() => setHoveredCatalogLocation(fullName)}
+                                onMouseLeave={() => setHoveredCatalogLocation(null)}
                               >
-                                {shortName}
+                                <span className={exploreStyles.locationName}>
+                                  {shortName}
+                                </span>
+                                <span className={exploreStyles.bortleRating}>
+                                  B{bortleRating.toFixed(1)}
+                                </span>
                               </button>
+                              {hoveredCatalogLocation === fullName && (
+                                <DarkSiteTooltip 
+                                  siteName={fullName}
+                                  bortleRating={bortleRating}
+                                  className={exploreStyles.catalogTooltip}
+                                />
+                              )}
                             </li>
                           );
                         })}

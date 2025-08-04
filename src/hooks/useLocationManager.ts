@@ -26,6 +26,7 @@ interface UseLocationManagerReturn {
   getCurrentLocation: () => void;
   acceptSuggestion: () => void;
   confirmCurrentInput: () => void;
+  handleGeolocationSuccess: (location: Location) => void;
 }
 
 export function useLocationManager({
@@ -134,9 +135,11 @@ export function useLocationManager({
     }, 300);
   }, []);
 
-  const updateLocationState = useCallback((newLocation: Location) => {
+  const updateLocationState = useCallback((newLocation: Location, isFromGeolocation: boolean = false) => {
     // Always use the exact location, but find nearby location for description
-    const nearbyLocation = findNearestSpecialLocation(newLocation);
+    // For Find Me (geolocation), use stricter threshold (5km), otherwise use default (100km)
+    const distanceThreshold = isFromGeolocation ? 5 : 100;
+    const nearbyLocation = findNearestSpecialLocation(newLocation, distanceThreshold);
     
     // Show nearby location name if found, otherwise show coordinates
     if (nearbyLocation?.matchedName) {
@@ -152,6 +155,7 @@ export function useLocationManager({
     saveLocation(newLocation, nearbyLocation?.matchedName || null);
   }, [saveLocation]);
 
+
   const handleMapClick = useCallback((
     newLocation: Location,
     isCurrentlyDragging: boolean = false
@@ -165,7 +169,7 @@ export function useLocationManager({
       );
     } else {
       // Normal click or drag end - update everything
-      updateLocationState(newLocation);
+      updateLocationState(newLocation, false); // Map clicks use regular distance threshold
       onLocationChange(newLocation, true); // Close popover on map click
     }
   }, [updateLocationState, onLocationChange]);
@@ -209,19 +213,9 @@ export function useLocationManager({
 
       // For coordinates without a matched name, preserve the exact coordinates
       if (!parsed.matchedName) {
-        const nearbyLocation = findNearestSpecialLocation(parsed.location);
+        // Use regular distance threshold for typed coordinates
+        updateLocationState(parsed.location, false);
         onLocationChange(parsed.location, true);
-        
-        // Show nearby location name if found, otherwise show coordinates
-        if (nearbyLocation?.matchedName) {
-          setInputValue(nearbyLocation.matchedName);
-        } else {
-          setInputValue(`${parsed.location.lat.toFixed(1)}, ${parsed.location.lng.toFixed(1)}`);
-        }
-        setSuggestion(null);
-        setIsNearbyMatch(false);
-        // Save with nearby location name for description purposes, but keep exact coordinates
-        saveLocation(parsed.location, nearbyLocation?.matchedName || null);
         return;
       }
 
@@ -233,6 +227,12 @@ export function useLocationManager({
       saveLocation(parsed.location, parsed.matchedName);
     }
   }, [inputValue, onLocationChange, saveLocation]);
+
+  const handleGeolocationSuccess = useCallback((location: Location) => {
+    // For geolocation, update state with strict 5km threshold
+    updateLocationState(location, true);
+    onLocationChange(location, true); // Close popover
+  }, [onLocationChange, updateLocationState]);
 
   return {
     inputValue,
@@ -248,5 +248,6 @@ export function useLocationManager({
     getCurrentLocation,
     acceptSuggestion,
     confirmCurrentInput,
+    handleGeolocationSuccess,
   };
 }

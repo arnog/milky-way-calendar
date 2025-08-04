@@ -660,7 +660,7 @@ export const DARK_SITES: SpecialLocation[] = [
   ["Curecanti NRA, Colorado", "Curecanti", 38.52, -107.34, "curecanti"],
   [
     "Dinosaur National Monument, Colorado/Utah",
-    "Dinosaur NM",
+    "Dinosaur",
     40.42,
     -108.99,
     "dinosaur",
@@ -881,7 +881,7 @@ export const DARK_SITES: SpecialLocation[] = [
     "Grover Hot Springs",
     38.700462,
     -119.837678,
-    "groverhotspringsstatepark",
+    "groverhotsprings",
   ],
   [
     "Harry A. Merlo State Recreation Area, California",
@@ -923,7 +923,7 @@ export const DARK_SITES: SpecialLocation[] = [
     "Kruse Rhododendron",
     39.338704,
     -123.84828,
-    "kruserhododendronstatenaturalreserve",
+    "kruserhododendron",
   ],
   [
     "Limekiln State Park, California",
@@ -958,7 +958,7 @@ export const DARK_SITES: SpecialLocation[] = [
     "Mono Lake Tufa",
     38.0369,
     -119.0092,
-    "monolaketu StateNaturalReserve",
+    "monolaketufa",
   ],
   [
     "Navarro River Redwoods State Park, California",
@@ -1129,13 +1129,6 @@ export const DARK_SITES: SpecialLocation[] = [
     "sandspitpointstatemarineparkalaska",
   ],
   [
-    "Alamo Lake State Park, Arizona",
-    "Alamo Lake",
-    34.232222,
-    -113.602778,
-    "alamolakestateparkarizona",
-  ],
-  [
     "Kartchner Caverns State Park, Arizona",
     "Kartchner Caverns",
     31.8375,
@@ -1227,13 +1220,6 @@ export const DARK_SITES: SpecialLocation[] = [
     "grizzlycreekredwoodsstateparkcalifornia",
   ],
   [
-    "Grover Hot Springs State Park, California",
-    "Grover Hot Springs , California",
-    38.7014,
-    -119.839,
-    "groverhotspringsstateparkcalifornia",
-  ],
-  [
     "Harry A. Merlo State Recreation Area, California",
     "Harry A. Merlo  Area, California",
     41.1914,
@@ -1260,20 +1246,6 @@ export const DARK_SITES: SpecialLocation[] = [
     36.1167,
     -121.633,
     "johnlittlestatenaturalreservecalifornia",
-  ],
-  [
-    "Joshua Tree National Park, California",
-    "Joshua Tree National Park, California",
-    33.748381,
-    -115.819308,
-    "joshuatreenationalparkcalifornia",
-  ],
-  [
-    "Julia Pfeiffer Burns State Park, California",
-    "Julia Pfeiffer Burns , California",
-    36.168056,
-    -121.67,
-    "juliapfeifferburnsstateparkcalifornia",
   ],
   [
     "Kruse Rhododendron State Natural Reserve, California",
@@ -1304,13 +1276,6 @@ export const DARK_SITES: SpecialLocation[] = [
     "mendocinonationalforestcalifornia",
   ],
   [
-    "Mono Lake Tufa State Natural Reserve, California",
-    "Mono Lake Tufa State Natural Reserve, California",
-    37.9453,
-    -119.036,
-    "monolaketufastatenaturalreservecalifornia",
-  ],
-  [
     "Navarro River Redwoods State Park, California",
     "Navarro River Redwoods , California",
     39.175,
@@ -1330,13 +1295,6 @@ export const DARK_SITES: SpecialLocation[] = [
     36.2476,
     -121.782,
     "pfeifferbigsurstateparkcalifornia",
-  ],
-  [
-    "Plumas-Eureka State Park, California",
-    "Plumas-Eureka , California",
-    39.761111,
-    -120.706667,
-    "plumaseurekastateparkcalifornia",
   ],
   [
     "Prairie Creek Redwoods State Park, California",
@@ -1913,13 +1871,6 @@ export const DARK_SITES: SpecialLocation[] = [
     "fishcreekstateparkmontana",
   ],
   [
-    "Glacier National Park, Montana",
-    "Glacier National Park, Montana",
-    48.755,
-    -113.8,
-    "glaciernationalparkmontana",
-  ],
-  [
     "Logan State Park, Montana",
     "Logan",
     48.033056,
@@ -2113,7 +2064,7 @@ export const DARK_SITES: SpecialLocation[] = [
     "Big Bend Ranch",
     29.5306,
     -104.154,
-    "bigbendranchstateparktexas",
+    "bigbendranch",
   ],
   [
     "Colorado Bend State Park, Texas",

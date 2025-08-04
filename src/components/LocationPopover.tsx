@@ -34,6 +34,7 @@ export default function LocationPopover({
     handleDragEnd,
     acceptSuggestion,
     confirmCurrentInput,
+    handleGeolocationSuccess,
   } = useLocationManager({ initialLocation: location, onLocationChange });
 
   const [popoverPosition, setPopoverPosition] = useState({
@@ -173,11 +174,11 @@ export default function LocationPopover({
           lng: position.coords.longitude,
         };
         
-        // Success! Clear states and update location
+        // Success! Clear states and update location via geolocation handler
         setGeoLoading(false);
         setGeoMessage(null);
         setRetryCount(0);
-        onLocationChange(newLocation, true); // This will close the popover
+        handleGeolocationSuccess(newLocation); // This uses strict 5km threshold and closes popover
       },
       (error: GeolocationPositionError) => {
         console.warn('LocationPopover geolocation error:', {
@@ -224,7 +225,7 @@ export default function LocationPopover({
       },
       options
     );
-  }, [onLocationChange]);
+  }, [handleGeolocationSuccess]);
 
   const handleFindMeClick = useCallback(() => {
     attemptGeolocation(1);

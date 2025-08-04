@@ -41,10 +41,15 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
   }, [geolocationFailed, showLocationPopover]);
 
   // Handle location changes with navigation
-  const handleLocationChange = (newLocation: Location) => {
+  const handleLocationChange = (newLocation: Location, shouldClose?: boolean) => {
     updateLocation(newLocation);
     const slug = locationToSlug(newLocation);
     navigate(`/location/${slug}`, { replace: true });
+    
+    // Close popover if requested
+    if (shouldClose) {
+      setShowLocationPopover(false);
+    }
   };
 
   // Show loading if location is still being determined

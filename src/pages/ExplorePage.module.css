@@ -26,33 +26,12 @@
   margin-bottom: 3rem;
 }
 
-.tooltip {
-  /* absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 -mb-2 pointer-events-none */
-  position: absolute;
-  z-index: 10;
+/* Map tooltip positioning */
+.mapTooltip {
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   margin-bottom: 0.5rem;
-  pointer-events: none;
-}
-
-.tooltipContent {
-  /* bg-black/80 text-white text-sm px-3 py-1 rounded border border-white/20 whitespace-nowrap */
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  font-size: 0.875rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  white-space: nowrap;
-}
-
-.tooltipBortle {
-  font-family: var(--data-font-family);
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 0.125rem;
 }
 
 .mapDescription {
@@ -218,6 +197,28 @@
   padding: 0;
 }
 
+.catalogItem {
+  position: relative;
+}
+
+.catalogTooltip {
+  z-index: 20;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 0.5rem;
+}
+
+/* For smaller screens, show tooltip above instead of to the right */
+@media (max-width: 768px) {
+  .catalogTooltip {
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, calc(-100% - 0.5rem));
+    margin-left: 0;
+  }
+}
+
 .locationButton {
   /* text-blue-400 hover:text-blue-300 transition-colors text-left */
   color: rgb(96 165 250);
@@ -231,11 +232,35 @@
   position: relative;
   border-radius: 0.25rem;
   width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .locationButton:hover {
   color: rgb(147 197 253);
   background-color: rgba(96, 165, 250, 0.1);
+}
+
+.locationName {
+  flex: 1;
+  text-align: left;
+}
+
+.bortleRating {
+  font-family: var(--data-font-family);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.locationButton:hover .bortleRating {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .mapContainer {
