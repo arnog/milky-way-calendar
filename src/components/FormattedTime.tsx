@@ -19,9 +19,12 @@ export default function FormattedTime({
   if (timeString !== undefined) {
     // Use provided time string directly
     finalTimeString = timeString;
-  } else if (date) {
+  } else if (date && location) {
     // Format the date using the timezone utils
     finalTimeString = formatTimeInLocationTimezone(date, location);
+  } else if (date && !location) {
+    // Fallback to local time if location is not available
+    finalTimeString = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   } else {
     // No valid time to display
     return <span className={className}>—</span>;

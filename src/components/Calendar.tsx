@@ -19,7 +19,7 @@ interface CalendarProps {
 }
 
 export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
-  const { location } = useLocation();
+  const { location, isLoading: locationLoading } = useLocation();
   const [weekData, setWeekData] = useState<WeekData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -150,6 +150,11 @@ export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
         </div>
       </div>
     );
+  }
+
+  // Don't render anything if location is not available
+  if (locationLoading || !location) {
+    return null;
   }
 
   // Don't render anything if there are no visible weeks

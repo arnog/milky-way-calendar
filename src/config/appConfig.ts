@@ -18,6 +18,17 @@ export const APP_CONFIG = {
   },
 
   /**
+   * Default Location Settings
+   */
+  DEFAULT_LOCATION: {
+    /** Default fallback location coordinates (Death Valley National Park) */
+    COORDINATES: { lat: 36.5323, lng: -117.0794 },
+    
+    /** Default fallback location name */
+    NAME: "Death Valley",
+  },
+
+  /**
    * UI Layout and Responsive Design
    */
   LAYOUT: {
@@ -122,4 +133,16 @@ export function formatMessage(template: string, values: Record<string, string | 
   return template.replace(/\{(\w+)\}/g, (match, key) => {
     return values[key]?.toString() || match;
   });
+}
+
+/**
+ * Utility function to apply default location settings
+ * Encapsulates the common pattern of setting default location, updating location, and setting loading state
+ */
+export function applyDefaultLocation(
+  updateLocation: (location: { lat: number; lng: number }, name?: string) => void,
+  setIsLoading: (loading: boolean) => void
+): void {
+  updateLocation(APP_CONFIG.DEFAULT_LOCATION.COORDINATES, APP_CONFIG.DEFAULT_LOCATION.NAME);
+  setIsLoading(false);
 }

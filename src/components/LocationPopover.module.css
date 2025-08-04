@@ -245,3 +245,68 @@
   line-height: 1.75rem;
   color: rgb(156 163 175);
 }
+
+/* Geolocation Message Styles */
+.geoMessageWrapper {
+  padding: 0.75rem 0;
+}
+
+.geoMessage {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-family: "Inter", sans-serif;
+}
+
+.geoMessage.loading {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: rgb(147, 197, 253);
+}
+
+.geoMessage.error {
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: rgb(254, 240, 138);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(147, 197, 253, 0.3);
+  border-top: 2px solid rgb(147, 197, 253);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.retryInfo {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.loading {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}

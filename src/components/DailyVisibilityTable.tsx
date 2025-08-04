@@ -19,7 +19,7 @@ interface DailyVisibilityTableProps {
 export default function DailyVisibilityTable({
   currentDate,
 }: DailyVisibilityTableProps) {
-  const { location } = useLocation();
+  const { location, isLoading: locationLoading } = useLocation();
   const { dailyData, isLoading, error } = useWeeklyVisibility(currentDate);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
@@ -44,6 +44,11 @@ export default function DailyVisibilityTable({
   const toggleRow = (index: number) => {
     setExpandedRow(expandedRow === index ? null : index);
   };
+
+  // Don't render anything if location is not available
+  if (locationLoading || !location) {
+    return null;
+  }
 
   // Show loading if loading data
   if (isLoading) {

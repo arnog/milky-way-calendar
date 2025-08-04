@@ -5,6 +5,7 @@ import {
   findNearestSpecialLocation,
 } from "../utils/locationParser";
 import { storageService } from "../services/storageService";
+import { useLocation } from "./useLocation";
 
 interface UseLocationManagerProps {
   initialLocation: Location | null;
@@ -32,11 +33,12 @@ export function useLocationManager({
   initialLocation,
   onLocationChange,
 }: UseLocationManagerProps): UseLocationManagerReturn {
+  const { retryGeolocation } = useLocation();
   const [inputValue, setInputValue] = useState("");
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [suggestedLocation, setSuggestedLocation] = useState<Location | null>(null);
   const [isNearbyMatch, setIsNearbyMatch] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [dragLocation, setDragLocation] = useState<Location | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -85,48 +87,10 @@ export function useLocationManager({
   }, []);
 
   const getCurrentLocation = useCallback(() => {
-    if (navigator.geolocation) {
-      setIsLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const newLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          // Always use the exact user location, but find nearby location for description
-          const nearbyLocation = findNearestSpecialLocation(newLocation);
-          onLocationChange(newLocation, true);
-          
-          // Show nearby location name if found, otherwise show coordinates
-          if (nearbyLocation?.matchedName) {
-            setInputValue(nearbyLocation.matchedName);
-          } else {
-            setInputValue(
-              `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
-            );
-          }
-          setSuggestion(null);
-          setIsNearbyMatch(false);
-          // Save with nearby location name for description purposes, but keep exact coordinates
-          saveLocation(newLocation, nearbyLocation?.matchedName || null);
-          setIsLoading(false);
-        },
-        () => {
-          // Default to LA if geolocation fails
-          const defaultLocation = { lat: 34.0549, lng: -118.2426 };
-          onLocationChange(defaultLocation, true);
-          setInputValue(
-            `${defaultLocation.lat.toFixed(1)}, ${defaultLocation.lng.toFixed(1)}`
-          );
-          setSuggestion(null);
-          setIsNearbyMatch(false);
-          saveLocation(defaultLocation, "LA");
-          setIsLoading(false);
-        }
-      );
-    }
-  }, [onLocationChange, saveLocation]);
+    // Use the context's retry function which has proper error handling
+    // and doesn't fallback to Death Valley
+    retryGeolocation();
+  }, [retryGeolocation]);
 
   const handleInputChange = useCallback((value: string) => {
     setInputValue(value);

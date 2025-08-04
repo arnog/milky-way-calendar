@@ -294,30 +294,48 @@ displays and centralized CSS variable color system, simplified hour marker logic
 using data-driven configuration approach, and ensured production-ready code
 quality with comprehensive testing and TypeScript strict mode compliance
 
+✅ **Phase 30**: Enhanced Location UX Implementation - Completely overhauled
+location selection and error handling to provide seamless user experience:
+replaced silent Death Valley fallback with intuitive LocationPopover interface,
+implemented smart error differentiation between permission denied (Code 1) and
+technical issues (Code 2: dormant location services, Code 3: timeouts),
+enhanced LocationPopover with 3-attempt retry logic using adaptive timeouts
+(10-20 seconds) and progressive positioning methods (network → GPS), added
+detailed user feedback with loading states, retry counters, and helpful error
+messages including "wake up Maps app" guidance for dormant location services,
+implemented manual location bypass during initial loading with "Choose Manually"
+button, auto-opening LocationPopover on geolocation failure to eliminate
+intermediate error panels, centralized default location configuration in
+appConfig.ts with reusable utility functions, and streamlined UI by hiding
+calendar and weekly panels when location unavailable to prevent redundant
+loading messages, creating a polished location experience that handles edge
+cases gracefully and guides users toward solutions
+
 **Current state**: Feature-complete astronomy calendar with fully migrated
 time-integrated astronomical calculations, comprehensive date navigation via URL
 parameters allowing users to explore any date, sophisticated coordinate
 preservation system that maintains exact user locations while providing helpful
-context, automatic dark site suggestions for light-polluted locations, enhanced
-geolocation behavior that shows friendly location names while preserving precise
-coordinates, accurate timezone handling for international users, proper
-high-latitude handling, comprehensive dark sky site discovery with corrected
-coordinate mapping and optimal classification thresholds, educational FAQ system
-with modern navigation and anchor linking, full SEO optimization for search
-engine discoverability, robust test coverage (109 tests) ensuring calculation
-accuracy and preventing critical regressions, modern CSS Modules architecture
-for scalable styling, centralized color theming with CSS variables, enhanced
-typography with raised colons for optimal time readability, unified
+context, automatic dark site suggestions for light-polluted locations, **robust
+and intuitive location selection system with smart error handling, retry logic,
+and user-friendly guidance that eliminates confusion and provides clear paths
+forward when geolocation fails**, accurate timezone handling for international
+users, proper high-latitude handling, comprehensive dark sky site discovery with
+corrected coordinate mapping and optimal classification thresholds, educational
+FAQ system with modern navigation and anchor linking, full SEO optimization for
+search engine discoverability, robust test coverage (109 tests) ensuring
+calculation accuracy and preventing critical regressions, modern CSS Modules
+architecture for scalable styling, centralized color theming with CSS variables,
+enhanced typography with raised colons for optimal time readability, unified
 time-integrated observation windows providing honest quality expectations across
 all components, polished night-sky aesthetic with professional visual design and
 complete astronomical event coverage, corrected moon phase display with accurate
 waxing/waning determination, integrated Bortle rating display with educational
 FAQ linking, custom tooltip system providing consistent styling and better
-mobile support across all components, **production-ready 12-hour astronomical
+mobile support across all components, production-ready 12-hour astronomical
 clock with comprehensive accessibility, bidirectional interactive highlighting,
 touch-friendly design, intelligent event consolidation, and robust collision
-detection ensuring perfect label positioning**, and intelligent location
-guidance for optimal Milky Way photography.
+detection ensuring perfect label positioning, and intelligent location guidance
+for optimal Milky Way photography.
 
 ## Hosting
 

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Location } from "../types/astronomy";
 import { useLocation } from "../hooks/useLocation";
@@ -21,11 +21,18 @@ interface TonightCardProps {
 }
 
 export default function TonightCard({ currentDate }: TonightCardProps) {
-  const { location, updateLocation } = useLocation();
+  const { location, updateLocation, isLoading: locationLoading, geolocationFailed } = useLocation();
   const navigate = useNavigate();
   const { events, locationData, isLoading, error } = useTonightEvents(currentDate);
   const [showLocationPopover, setShowLocationPopover] = useState(false);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Auto-open LocationPopover when geolocation fails
+  useEffect(() => {
+    if (geolocationFailed && !showLocationPopover) {
+      setShowLocationPopover(true);
+    }
+  }, [geolocationFailed, showLocationPopover]);
 
   // Handle location changes with navigation
   const handleLocationChange = (newLocation: Location) => {
@@ -34,7 +41,67 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
     navigate(`/location/${slug}`, { replace: true });
   };
 
-  // Show loading if loading data
+  // Show loading if location is still being determined
+  if (locationLoading) {
+    return (
+      <div className={styles.container}>
+        <h2 className={styles.title}>Tonight</h2>
+        <div className={styles.locationRequired}>
+          <p className={styles.locationMessage}>
+            Determining your location...
+          </p>
+          <div className={styles.loadingActions}>
+            <div className={styles.spinner}></div>
+            <button
+              ref={locationButtonRef}
+              className={styles.manualLocationButton}
+              onClick={() => setShowLocationPopover(true)}
+            >
+              <Icon name="location" />
+              Choose Manually
+            </button>
+          </div>
+          {showLocationPopover && (
+            <LocationPopover
+              onClose={() => setShowLocationPopover(false)}
+              onLocationChange={handleLocationChange}
+              triggerRef={locationButtonRef}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Show location picker if geolocation failed or no location available
+  if (geolocationFailed || !location) {
+    return (
+      <div className={styles.container}>
+        <h2 className={styles.title}>Tonight</h2>
+        <div className={styles.locationRequired}>
+          <p className={styles.locationMessage}>
+            Please select your location to see tonight's Milky Way visibility.
+          </p>
+          {/* Hidden button just for popover positioning */}
+          <button
+            ref={locationButtonRef}
+            style={{ visibility: 'hidden', position: 'absolute' }}
+          >
+            Choose Location
+          </button>
+          {showLocationPopover && (
+            <LocationPopover
+              onClose={() => setShowLocationPopover(false)}
+              onLocationChange={handleLocationChange}
+              triggerRef={locationButtonRef}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading if loading astronomical data
   if (isLoading) {
     return (
       <div className={styles.container}>

@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState, useRef } from 'react';
-import { useLocation } from '../hooks/useLocation';
+import { useGuaranteedLocation } from '../hooks/useLocation';
 import { Icon } from './Icon';
 import { getMoonPhaseIcon } from '../utils/moonPhase';
 import ClockTooltip from './ClockTooltip';
@@ -33,7 +33,7 @@ export default function AstronomicalClock({
   currentDate,
   size = CLOCK_CONFIG.DEFAULT_SIZE 
 }: AstronomicalClockProps) {
-  const { location } = useLocation();
+  const { location } = useGuaranteedLocation();
   
   const [refreshTick, setRefreshTick] = useState(0);
   const [currentPanel, setCurrentPanel] = useState(0);
