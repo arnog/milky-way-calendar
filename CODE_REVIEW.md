@@ -261,16 +261,22 @@ experience smoother and more informative.
     - **Note:** The `ExplorePage` progress bar for dark site searches remains as it
       provides valuable feedback for genuinely long-running operations.
 
-2.  **Improve Error Handling**
+2.  **✅ COMPLETED - Improve Error Handling**
 
-    - **Suggestion:** The `ExplorePage` handles the "no dark sites found" case
-      well. This should be expanded. What happens if geolocation fails? The app
-      currently defaults to Los Angeles silently. Instead, show a toast or a
-      message like, "Could not determine your location. Please select one
-      manually."
-    - **Benefit:** Provides clear, actionable feedback to the user when
-      something goes wrong, reducing frustration.
-    - **Impact:** Medium. Creates a more robust and user-friendly experience.
+    - **Observation:** When geolocation failed, the app would initially show a
+      generic "Choose Manually" button without explaining why location was needed.
+    - **Implementation:** Enhanced the location permission flow:
+      - Updated TonightCard loading message to "Allow location access to display 
+        Milky Way rise and set times for your area" with "Waiting for location 
+        permission..." hint
+      - LocationPopover automatically opens when geolocation fails (already implemented)
+      - Calendar and DailyVisibilityTable properly hide during location loading
+    - **Results & Impact:**
+      - **User Guidance:** ✅ Clear messaging explains why location access is needed
+      - **Permission Flow:** ✅ Better context during browser permission dialog
+      - **Error Recovery:** ✅ Smooth transition to manual location selection on failure
+    - **Files Modified:** `src/components/TonightCard.tsx`, 
+      `src/components/TonightCard.module.css`
 
 3.  **Persist State on `ExplorePage`**
 

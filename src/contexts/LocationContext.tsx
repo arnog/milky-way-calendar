@@ -57,6 +57,10 @@ export function LocationProvider({
       return;
     }
 
+    // Check for simulated error
+    const urlParams = new URLSearchParams(window.location.search);
+    const simulatedError = urlParams.get('locerr');
+
     // Get current location if no saved location
     const requestLocation = () => {
       if (!navigator.geolocation) {
@@ -72,6 +76,29 @@ export function LocationProvider({
           timeout: 15000, // 15 second timeout
           maximumAge: 300000 // Accept cached location up to 5 minutes old
         };
+
+        // Handle simulated errors
+        if (simulatedError && ['1', '2', '3'].includes(simulatedError)) {
+          const errorCode = parseInt(simulatedError);
+          const errorMessages = {
+            1: 'Location permission denied by user', // PERMISSION_DENIED
+            2: 'Location information unavailable (GPS/network issue)', // POSITION_UNAVAILABLE  
+            3: 'Location request timed out' // TIMEOUT
+          };
+          
+          console.warn('Simulating geolocation error:', {
+            code: errorCode,
+            message: `Simulated error: ${errorMessages[errorCode as keyof typeof errorMessages]}`,
+            description: errorMessages[errorCode as keyof typeof errorMessages] || 'Unknown error'
+          });
+          
+          // Simulate async behavior
+          setTimeout(() => {
+            setGeolocationFailed(true);
+            setIsLoading(false);
+          }, 100);
+          return;
+        }
 
         geolocation.getCurrentPosition(
           (position: GeolocationPosition) => {
@@ -146,6 +173,33 @@ export function LocationProvider({
 
     setIsLoading(true);
     setGeolocationFailed(false);
+
+    // Check for simulated error
+    const urlParams = new URLSearchParams(window.location.search);
+    const simulatedError = urlParams.get('locerr');
+
+    // Handle simulated errors
+    if (simulatedError && ['1', '2', '3'].includes(simulatedError)) {
+      const errorCode = parseInt(simulatedError);
+      const errorMessages = {
+        1: 'Location permission denied by user',
+        2: 'Location information unavailable (GPS/network issue)',
+        3: 'Location request timed out'
+      };
+      
+      console.warn('Simulating geolocation error (retry):', {
+        code: errorCode,
+        message: `Simulated error: ${errorMessages[errorCode as keyof typeof errorMessages]}`,
+        description: errorMessages[errorCode as keyof typeof errorMessages] || 'Unknown error'
+      });
+      
+      // Simulate async behavior
+      setTimeout(() => {
+        setGeolocationFailed(true);
+        setIsLoading(false);
+      }, 100);
+      return;
+    }
 
     const geolocation = navigator.geolocation;
     

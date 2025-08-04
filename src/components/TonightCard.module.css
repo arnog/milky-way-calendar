@@ -349,6 +349,13 @@
   animation: spin 1s linear infinite;
 }
 
+.permissionHint {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  text-align: center;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

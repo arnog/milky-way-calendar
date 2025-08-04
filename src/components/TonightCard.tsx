@@ -53,18 +53,23 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
       <div className={styles.container}>
         <h2 className={styles.title}>Tonight</h2>
         <div className={styles.locationRequired}>
-          <p className={styles.locationMessage}>Determining your location...</p>
+          <p className={styles.locationMessage}>
+            Allow location access to display Milky Way rise and set times for your area
+          </p>
           <div className={styles.loadingActions}>
             <div className={styles.spinner}></div>
-            <button
-              ref={locationButtonRef}
-              className={styles.manualLocationButton}
-              onClick={() => setShowLocationPopover(true)}
-            >
-              <Icon name="location" />
-              Choose Manually
-            </button>
+            <p className={styles.permissionHint}>
+              Waiting for location permission...
+            </p>
           </div>
+          <button
+            ref={locationButtonRef}
+            className={styles.manualLocationButton}
+            onClick={() => setShowLocationPopover(true)}
+          >
+            <Icon name="location" />
+            Choose Manually
+          </button>
           {showLocationPopover && (
             <LocationPopover
               onClose={() => setShowLocationPopover(false)}

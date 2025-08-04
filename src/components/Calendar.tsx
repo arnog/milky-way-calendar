@@ -129,24 +129,7 @@ export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
     [weekData]
   );
 
-  // Show loading if location is not available yet
-  if (!location) {
-    return (
-      <div className={styles.container}>
-        <h2 className={styles.title}>
-          {currentYear} Milky Way Visibility Calendar
-        </h2>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingContent}>
-            <div className={styles.spinner}></div>
-            <p className={styles.loadingText}>Loading location...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Don't render anything if location is not available
+  // Don't render anything if location is loading or not available
   if (locationLoading || !location) {
     return null;
   }
