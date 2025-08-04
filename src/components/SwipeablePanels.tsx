@@ -1,4 +1,5 @@
-import { useState, useRef, useMemo, ReactNode } from 'react';
+import { useState, useRef, ReactNode } from 'react';
+import { useSwipe } from '../hooks/useSwipe';
 import styles from './SwipeablePanels.module.css';
 
 interface Panel {
@@ -21,84 +22,20 @@ export default function SwipeablePanels({
   onPanelChange
 }: SwipeablePanelsProps) {
   const [currentPanel, setCurrentPanel] = useState(initialPanel);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [translateX, setTranslateX] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Detect touch device for optimized interaction
-  const isTouchDevice = useMemo(() => {
-    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  }, []);
 
   const handlePanelChange = (newPanel: number) => {
     setCurrentPanel(newPanel);
     onPanelChange?.(newPanel);
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    
-    const currentX = e.touches[0].clientX;
-    const diffX = currentX - startX;
-    setTranslateX(diffX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!isDragging) return;
-    
-    // Adaptive threshold based on device - lower for touch devices
-    const threshold = isTouchDevice ? 30 : 50;
-    
-    if (Math.abs(translateX) > threshold) {
-      if (translateX > 0 && currentPanel > 0) {
-        // Swipe right - go to previous panel
-        handlePanelChange(currentPanel - 1);
-      } else if (translateX < 0 && currentPanel < panels.length - 1) {
-        // Swipe left - go to next panel
-        handlePanelChange(currentPanel + 1);
-      }
+  const { handlers, state } = useSwipe({
+    currentIndex: currentPanel,
+    totalItems: panels.length,
+    onSwipe: (_direction, newIndex) => {
+      handlePanelChange(newIndex);
     }
-    
-    setIsDragging(false);
-    setTranslateX(0);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.clientX);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    
-    const currentX = e.clientX;
-    const diffX = currentX - startX;
-    setTranslateX(diffX);
-  };
-
-  const handleMouseUp = () => {
-    if (!isDragging) return;
-    
-    // Use same adaptive threshold as touch for consistency
-    const threshold = isTouchDevice ? 30 : 50;
-    
-    if (Math.abs(translateX) > threshold) {
-      if (translateX > 0 && currentPanel > 0) {
-        handlePanelChange(currentPanel - 1);
-      } else if (translateX < 0 && currentPanel < panels.length - 1) {
-        handlePanelChange(currentPanel + 1);
-      }
-    }
-    
-    setIsDragging(false);
-    setTranslateX(0);
-  };
+  });
 
   return (
     <div className={`${styles.container} ${className}`}>
@@ -121,16 +58,10 @@ export default function SwipeablePanels({
       <div 
         ref={containerRef}
         className={styles.panelsContainer}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        {...handlers}
         style={{
-          transform: `translateX(calc(-${currentPanel * 100}% + ${isDragging ? translateX + 'px' : '0px'}))`,
-          transition: isDragging ? 'none' : 'transform 0.3s ease'
+          transform: `translateX(calc(-${currentPanel * 100}% + ${state.isDragging ? state.translateX + 'px' : '0px'}))`,
+          transition: state.isDragging ? 'none' : 'transform 0.3s ease'
         }}
         role="tabpanel"
         aria-label="Swipeable panel content"
