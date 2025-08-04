@@ -20,7 +20,10 @@ interface UseLocationManagerReturn {
   dragLocation: Location | null;
   setDragLocation: (location: Location | null) => void;
   handleInputChange: (value: string) => void;
-  handleMapClick: (newLocation: Location, isCurrentlyDragging?: boolean) => void;
+  handleMapClick: (
+    newLocation: Location,
+    isCurrentlyDragging?: boolean
+  ) => void;
   handleDragStart: () => void;
   handleDragEnd: () => void;
   getCurrentLocation: () => void;
@@ -36,25 +39,29 @@ export function useLocationManager({
   const { retryGeolocation } = useLocation();
   const [inputValue, setInputValue] = useState("");
   const [suggestion, setSuggestion] = useState<string | null>(null);
-  const [suggestedLocation, setSuggestedLocation] = useState<Location | null>(null);
+  const [suggestedLocation, setSuggestedLocation] = useState<Location | null>(
+    null
+  );
   const [isNearbyMatch, setIsNearbyMatch] = useState<boolean>(false);
   const [dragLocation, setDragLocation] = useState<Location | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load saved location from storage on mount
   useEffect(() => {
-    const savedLocationData = storageService.getHomeLocationData();
+    const savedLocationData = storageService.getLocation("home");
     if (savedLocationData && !initialLocation) {
       // Always use the exact saved coordinates, even if there's no matched name
       // The matched name is used for description purposes only
-      onLocationChange(savedLocationData.location);
+      onLocationChange(savedLocationData.latlong);
       if (savedLocationData.matchedName) {
         setInputValue(savedLocationData.matchedName);
         setSuggestion(null);
         setIsNearbyMatch(false);
       } else {
         setInputValue(
-          `${savedLocationData.location.lat.toFixed(1)}, ${savedLocationData.location.lng.toFixed(1)}`
+          `${savedLocationData.latlong.lat.toFixed(
+            1
+          )}, ${savedLocationData.latlong.lng.toFixed(1)}`
         );
         setSuggestion(null);
       }
@@ -66,7 +73,7 @@ export function useLocationManager({
   // Update input value when location changes externally
   useEffect(() => {
     if (initialLocation) {
-      const savedLocationData = storageService.getHomeLocationData();
+      const savedLocationData = storageService.getLocation("home");
       if (savedLocationData?.matchedName) {
         setInputValue(savedLocationData.matchedName);
         setSuggestion(null); // Clear suggestions since we have a confirmed location
@@ -82,7 +89,7 @@ export function useLocationManager({
   }, [initialLocation]);
 
   const saveLocation = useCallback((loc: Location, name: string | null) => {
-    storageService.setHomeLocationData(loc, name);
+    storageService.setLocation("home", loc, name);
   }, []);
 
   const getCurrentLocation = useCallback(() => {
@@ -115,7 +122,7 @@ export function useLocationManager({
         if (!parsed.matchedName) {
           const nearbyLocation = findNearestSpecialLocation(parsed.location);
           if (nearbyLocation) {
-            setSuggestion(nearbyLocation.matchedName || null);
+            setSuggestion(nearbyLocation.matchedName ?? null);
             setSuggestedLocation(nearbyLocation.location);
             setIsNearbyMatch(true);
             return;
@@ -123,7 +130,7 @@ export function useLocationManager({
         }
 
         // Store suggestion but don't change location yet
-        setSuggestion(parsed.matchedName || null);
+        setSuggestion(parsed.matchedName ?? null);
         setSuggestedLocation(parsed.location);
         setIsNearbyMatch(false);
       } else {
@@ -135,44 +142,49 @@ export function useLocationManager({
     }, 300);
   }, []);
 
-  const updateLocationState = useCallback((newLocation: Location, isFromGeolocation: boolean = false) => {
-    // Always use the exact location, but find nearby location for description
-    // For Find Me (geolocation), use stricter threshold (5km), otherwise use default (100km)
-    const distanceThreshold = isFromGeolocation ? 5 : 100;
-    const nearbyLocation = findNearestSpecialLocation(newLocation, distanceThreshold);
-    
-    // Show nearby location name if found, otherwise show coordinates
-    if (nearbyLocation?.matchedName) {
-      setInputValue(nearbyLocation.matchedName);
-    } else {
-      setInputValue(
-        `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
+  const updateLocationState = useCallback(
+    (newLocation: Location, isFromGeolocation: boolean = false) => {
+      // Always use the exact location, but find nearby location for description
+      // For Find Me (geolocation), use stricter threshold (5km), otherwise use default (100km)
+      const distanceThreshold = isFromGeolocation ? 5 : 100;
+      const nearbyLocation = findNearestSpecialLocation(
+        newLocation,
+        distanceThreshold
       );
-    }
-    setSuggestion(null);
-    setIsNearbyMatch(false);
-    // Save with nearby location name for description purposes, but keep exact coordinates
-    saveLocation(newLocation, nearbyLocation?.matchedName || null);
-  }, [saveLocation]);
 
+      // Show nearby location name if found, otherwise show coordinates
+      if (nearbyLocation?.matchedName) {
+        setInputValue(nearbyLocation.matchedName);
+      } else {
+        setInputValue(
+          `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
+        );
+      }
+      setSuggestion(null);
+      setIsNearbyMatch(false);
+      // Save with nearby location name for description purposes, but keep exact coordinates
+      saveLocation(newLocation, nearbyLocation?.matchedName ?? null);
+    },
+    [saveLocation]
+  );
 
-  const handleMapClick = useCallback((
-    newLocation: Location,
-    isCurrentlyDragging: boolean = false
-  ) => {
-    if (isCurrentlyDragging) {
-      // During drag, just update the visual state and store location
-      setDragLocation(newLocation);
-      // Update input value to show coordinates during drag
-      setInputValue(
-        `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
-      );
-    } else {
-      // Normal click or drag end - update everything
-      updateLocationState(newLocation, false); // Map clicks use regular distance threshold
-      onLocationChange(newLocation, true); // Close popover on map click
-    }
-  }, [updateLocationState, onLocationChange]);
+  const handleMapClick = useCallback(
+    (newLocation: Location, isCurrentlyDragging: boolean = false) => {
+      if (isCurrentlyDragging) {
+        // During drag, just update the visual state and store location
+        setDragLocation(newLocation);
+        // Update input value to show coordinates during drag
+        setInputValue(
+          `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
+        );
+      } else {
+        // Normal click or drag end - update everything
+        updateLocationState(newLocation, false); // Map clicks use regular distance threshold
+        onLocationChange(newLocation, true); // Close popover on map click
+      }
+    },
+    [updateLocationState, onLocationChange]
+  );
 
   const handleDragStart = useCallback(() => {
     // No need to track dragging state in the hook
@@ -188,14 +200,14 @@ export function useLocationManager({
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
-      
+
       // Update input with suggestion
       setInputValue(suggestion);
-      
+
       // Update location
       onLocationChange(suggestedLocation, true);
       saveLocation(suggestedLocation, suggestion);
-      
+
       // Clear suggestions
       setSuggestion(null);
       setSuggestedLocation(null);
@@ -228,11 +240,14 @@ export function useLocationManager({
     }
   }, [inputValue, onLocationChange, saveLocation]);
 
-  const handleGeolocationSuccess = useCallback((location: Location) => {
-    // For geolocation, update state with strict 5km threshold
-    updateLocationState(location, true);
-    onLocationChange(location, true); // Close popover
-  }, [onLocationChange, updateLocationState]);
+  const handleGeolocationSuccess = useCallback(
+    (location: Location) => {
+      // For geolocation, update state with strict 5km threshold
+      updateLocationState(location, true);
+      onLocationChange(location, true); // Close popover
+    },
+    [onLocationChange, updateLocationState]
+  );
 
   return {
     inputValue,

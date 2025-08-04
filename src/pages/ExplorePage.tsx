@@ -5,15 +5,14 @@ import WorldMap from "../components/WorldMap";
 import LocationPopover from "../components/LocationPopover";
 import ResultsMap from "../components/ResultsMap";
 import DarkSiteTooltip from "../components/DarkSiteTooltip";
-import SegmentedControl, { SegmentedControlOption } from "../components/SegmentedControl";
+import SegmentedControl, {
+  SegmentedControlOption,
+} from "../components/SegmentedControl";
 import { Icon } from "../components/Icon";
 import { Location } from "../types/astronomy";
-import { DARK_SITES } from "../utils/locations";
+import { DARK_SITES, SpecialLocation } from "../utils/locations";
 import { locationNameToSlug } from "../utils/urlHelpers";
-import {
-  MultipleDarkSitesResult,
-  coordToNormalized,
-} from "../utils/lightPollutionMap";
+import { MultipleDarkSitesResult } from "../utils/lightPollutionMap";
 import { useDarkSiteWorker } from "../hooks/useDarkSiteWorker";
 import { useExploreLocation } from "../hooks/useExploreLocation";
 import { APP_CONFIG, formatMessage } from "../config/appConfig";
@@ -35,17 +34,19 @@ const EXPLORE_SESSION_KEYS = {
 function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const navigate = useNavigate();
   const { findMultipleDarkSites } = useDarkSiteWorker();
-  const { 
-    location: userLocation, 
+  const {
+    location: userLocation,
     updateLocation: updateUserLocation,
-    initializeFromHomeLocation 
+    initializeFromHomeLocation,
   } = useExploreLocation();
   const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
-  const [hoveredCatalogLocation, setHoveredCatalogLocation] = useState<string | null>(null);
+  const [hoveredCatalogLocation, setHoveredCatalogLocation] = useState<
+    string | null
+  >(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
   );
-  
+
   // Bortle filter state
   type BortleFilter = "all" | "pristine" | "excellent" | "good";
   const [bortleFilter, setBortleFilter] = useState<BortleFilter>("all");
@@ -170,53 +171,108 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     return sites.filter((site) => {
       const slug = site[4] as string | undefined;
       const bortleRating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
-      
+
       switch (bortleFilter) {
-        case "pristine": return bortleRating <= 1.0;
-        case "excellent": return bortleRating <= 1.8;
-        case "good": return bortleRating <= 2.0;
+        case "pristine":
+          return bortleRating <= 1.0;
+        case "excellent":
+          return bortleRating <= 1.8;
+        case "good":
+          return bortleRating <= 2.0;
         case "all":
-        default: return true;
+        default:
+          return true;
       }
     });
   };
 
   const filteredDarkSites = filterSitesByBortle(DARK_SITES);
 
+  // Create markers for WorldMap
+  const worldMapMarkers = [
+    // Dark site markers
+    ...filteredDarkSites.map((loc, idx) => ({
+      id: `dark-site-${idx}`,
+      lat: loc[2] as number,
+      lng: loc[3] as number,
+      className: `${exploreStyles.darkSiteMarker}`,
+      onClick: () =>
+        handleLocationClick({
+          lat: loc[2] as number,
+          lng: loc[3] as number,
+          name: loc[1] as string,
+        }),
+      onMouseEnter: () => setHoveredLocation(loc[0] as string),
+      onMouseLeave: () => setHoveredLocation(null),
+    })),
+    // Found dark site markers
+    ...(darkSitesResult
+      ? [
+          // Primary dark site (red)
+          {
+            id: "primary-dark-site",
+            lat: darkSitesResult.primary.coordinate.lat,
+            lng: darkSitesResult.primary.coordinate.lng,
+            className: `${exploreStyles.darkSiteMarker} ${exploreStyles.nearestMarker}`,
+            onClick: () =>
+              handleDarkSiteClick(
+                darkSitesResult.primary.coordinate.lat,
+                darkSitesResult.primary.coordinate.lng
+              ),
+            title: `Primary Dark Site (${darkSitesResult.primary.distance.toFixed(
+              1
+            )}km away, Bortle ${darkSitesResult.primary.bortleScale})`,
+          },
+          // Alternative dark sites (orange)
+          ...darkSitesResult.alternatives.map((alt, idx) => ({
+            id: `alt-dark-site-${idx}`,
+            lat: alt.coordinate.lat,
+            lng: alt.coordinate.lng,
+            className: `${exploreStyles.darkSiteMarker} ${exploreStyles.alternativeMarker}`,
+            onClick: () =>
+              handleDarkSiteClick(alt.coordinate.lat, alt.coordinate.lng),
+            title: `Alternative Dark Site (${alt.distance.toFixed(
+              1
+            )}km away, Bortle ${alt.bortleScale})`,
+          })),
+        ]
+      : []),
+  ];
+
   // Create filter options with counts
   const bortleFilterOptions: SegmentedControlOption<BortleFilter>[] = [
     {
       value: "all",
       label: "All Sites",
-      count: DARK_SITES.length
+      count: DARK_SITES.length,
     },
     {
       value: "good",
       label: "≤2.0",
-      count: DARK_SITES.filter(site => {
+      count: DARK_SITES.filter((site) => {
         const slug = site[4] as string | undefined;
         const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
         return rating <= 2.0;
-      }).length
+      }).length,
     },
     {
-      value: "excellent", 
+      value: "excellent",
       label: "≤1.8",
-      count: DARK_SITES.filter(site => {
+      count: DARK_SITES.filter((site) => {
         const slug = site[4] as string | undefined;
         const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
         return rating <= 1.8;
-      }).length
+      }).length,
     },
     {
       value: "pristine",
-      label: "≤1.0", 
-      count: DARK_SITES.filter(site => {
+      label: "≤1.0",
+      count: DARK_SITES.filter((site) => {
         const slug = site[4] as string | undefined;
         const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
         return rating <= 1.0;
-      }).length
-    }
+      }).length,
+    },
   ];
 
   // Reset auto-search flag when user manually changes location
@@ -295,25 +351,25 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   };
 
   // Group locations by region for better organization
-  const groupedLocations = {
-    "Eastern North America": [] as typeof DARK_SITES,
-    "Central USA": [] as typeof DARK_SITES,
-    "Northern California": [] as typeof DARK_SITES,
-    "Bay Area & Central Coast": [] as typeof DARK_SITES,
-    "Sierra Nevada & Central Valley": [] as typeof DARK_SITES,
-    "Southern California Deserts": [] as typeof DARK_SITES,
-    "Southern California Coast": [] as typeof DARK_SITES,
-    Utah: [] as typeof DARK_SITES,
-    Colorado: [] as typeof DARK_SITES,
-    "New Mexico": [] as typeof DARK_SITES,
-    Arizona: [] as typeof DARK_SITES,
-    Texas: [] as typeof DARK_SITES,
-    "Mountain West": [] as typeof DARK_SITES,
-    "Pacific Northwest": [] as typeof DARK_SITES,
-    "Alaska & Hawaii": [] as typeof DARK_SITES,
-    "Africa and the Middle East": [] as typeof DARK_SITES,
-    Europe: [] as typeof DARK_SITES,
-    "Asia and Oceania": [] as typeof DARK_SITES,
+  const groupedLocations: Record<string, SpecialLocation[]> = {
+    "Eastern North America": [],
+    "Central USA": [],
+    "Northern California": [],
+    "Bay Area & Central Coast": [],
+    "Sierra Nevada & Central Valley": [],
+    "Southern California Deserts": [],
+    "Southern California Coast": [],
+    Utah: [],
+    Colorado: [],
+    "New Mexico": [],
+    Arizona: [],
+    Texas: [],
+    "Mountain West": [],
+    "Pacific Northwest": [],
+    "Alaska & Hawaii": [],
+    "Africa and the Middle East": [],
+    Europe: [],
+    "Asia and Oceania": [],
   };
 
   // More detailed region detection based on coordinates and names
@@ -400,7 +456,11 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
       groupedLocations["Texas"].push(loc);
     } else if (name.includes("Alaska") || name.includes("Hawaii")) {
       groupedLocations["Alaska & Hawaii"].push(loc);
-    } else if (name.includes("Montana") || name.includes("Wyoming") || name.includes("Idaho")) {
+    } else if (
+      name.includes("Montana") ||
+      name.includes("Wyoming") ||
+      name.includes("Idaho")
+    ) {
       groupedLocations["Mountain West"].push(loc);
     } else if (name.includes("Washington") || name.includes("Oregon")) {
       groupedLocations["Pacific Northwest"].push(loc);
@@ -482,124 +542,32 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                 <WorldMap
                   location={selectedLocation}
                   onLocationChange={handleMapLocationChange}
+                  markers={worldMapMarkers}
                 />
-                {/* Overlay markers for dark sites */}
-                <div className={exploreStyles.markersOverlay}>
-                  {filteredDarkSites.map((loc, idx) => {
-                    const fullName = loc[0] as string;
-                    const shortName = loc[1] as string;
-                    const lat = loc[2] as number;
-                    const lng = loc[3] as number;
-                    const slug = loc[4] as string | undefined;
+                {/* Tooltips overlay for hovered markers */}
+                {hoveredLocation && (
+                  <div className={exploreStyles.tooltipOverlay}>
+                    {filteredDarkSites.map((loc, idx) => {
+                      const fullName = loc[0] as string;
+                      const slug = loc[4] as string | undefined;
 
-                    // Get Bortle rating for this dark site
-                    const bortleRating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
+                      if (hoveredLocation !== fullName) return null;
 
-                    // Equirectangular projection transform (matching WorldMap component and light pollution map)
-                    const { x: normalizedX, y: normalizedY } =
-                      coordToNormalized(lat, lng);
-                    const x = normalizedX * 100;
-                    const y = normalizedY * 100;
+                      const bortleRating = slug
+                        ? getDarkSiteBortleWithFallback(slug)
+                        : 2.0;
 
-                    return (
-                      <div
-                        key={idx}
-                        className={exploreStyles.markerPosition}
-                        style={{ left: `${x}%`, top: `${y}%` }}
-                      >
-                        <div
-                          className={exploreStyles.darkSiteMarker}
-                          onMouseEnter={() => setHoveredLocation(fullName)}
-                          onMouseLeave={() => setHoveredLocation(null)}
-                          onClick={() =>
-                            handleLocationClick({ lat, lng, name: shortName })
-                          }
-                        />
-                        {hoveredLocation === fullName && (
-                          <DarkSiteTooltip 
-                            siteName={fullName}
-                            bortleRating={bortleRating}
-                            className={exploreStyles.mapTooltip}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {/* Found dark site markers */}
-                  {darkSitesResult && (
-                    <>
-                      {/* Primary dark site marker (red) */}
-                      <div
-                        className={exploreStyles.markerPosition}
-                        style={{
-                          left: `${
-                            coordToNormalized(
-                              darkSitesResult.primary.coordinate.lat,
-                              darkSitesResult.primary.coordinate.lng
-                            ).x * 100
-                          }%`,
-                          top: `${
-                            coordToNormalized(
-                              darkSitesResult.primary.coordinate.lat,
-                              darkSitesResult.primary.coordinate.lng
-                            ).y * 100
-                          }%`,
-                        }}
-                      >
-                        <div
-                          className={`${exploreStyles.darkSiteMarker} ${exploreStyles.nearestMarker}`}
-                          onClick={() =>
-                            handleDarkSiteClick(
-                              darkSitesResult.primary.coordinate.lat,
-                              darkSitesResult.primary.coordinate.lng
-                            )
-                          }
-                          title={`Primary Dark Site (${darkSitesResult.primary.distance.toFixed(
-                            1
-                          )}km away, Bortle ${
-                            darkSitesResult.primary.bortleScale
-                          })`}
-                        />
-                      </div>
-
-                      {/* Alternative dark site markers (orange) */}
-                      {darkSitesResult.alternatives.map((alt, idx) => (
-                        <div
+                      return (
+                        <DarkSiteTooltip
                           key={idx}
-                          className={exploreStyles.markerPosition}
-                          style={{
-                            left: `${
-                              coordToNormalized(
-                                alt.coordinate.lat,
-                                alt.coordinate.lng
-                              ).x * 100
-                            }%`,
-                            top: `${
-                              coordToNormalized(
-                                alt.coordinate.lat,
-                                alt.coordinate.lng
-                              ).y * 100
-                            }%`,
-                          }}
-                        >
-                          <div
-                            className={`${exploreStyles.darkSiteMarker} ${exploreStyles.alternativeMarker}`}
-                            onClick={() =>
-                              handleDarkSiteClick(
-                                alt.coordinate.lat,
-                                alt.coordinate.lng
-                              )
-                            }
-                            title={`Alternative Dark Site (${alt.distance.toFixed(
-                              1
-                            )}km away, Bortle ${alt.bortleScale})`}
-                          />
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
+                          siteName={fullName}
+                          bortleRating={bortleRating}
+                          className={exploreStyles.mapTooltip}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               <p className={exploreStyles.mapDescription}>
                 Click anywhere on the map to explore, or select a dark sky site
@@ -894,8 +862,18 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
 
             {/* Dark Sites List by Region */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h2 className={exploreStyles.sectionTitle} style={{ marginBottom: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "1rem",
+                }}
+              >
+                <h2
+                  className={exploreStyles.sectionTitle}
+                  style={{ marginBottom: 0 }}
+                >
                   Dark Sky Sites by Region
                 </h2>
                 <SegmentedControl
@@ -938,7 +916,9 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                           const slug = loc[4] as string | undefined;
 
                           // Get Bortle rating for this dark site
-                          const bortleRating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
+                          const bortleRating = slug
+                            ? getDarkSiteBortleWithFallback(slug)
+                            : 2.0;
 
                           return (
                             <li key={idx} className={exploreStyles.catalogItem}>
@@ -951,8 +931,12 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                   })
                                 }
                                 className={exploreStyles.locationButton}
-                                onMouseEnter={() => setHoveredCatalogLocation(fullName)}
-                                onMouseLeave={() => setHoveredCatalogLocation(null)}
+                                onMouseEnter={() =>
+                                  setHoveredCatalogLocation(fullName)
+                                }
+                                onMouseLeave={() =>
+                                  setHoveredCatalogLocation(null)
+                                }
                               >
                                 <span className={exploreStyles.locationName}>
                                   {shortName}
@@ -962,7 +946,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                 </span>
                               </button>
                               {hoveredCatalogLocation === fullName && (
-                                <DarkSiteTooltip 
+                                <DarkSiteTooltip
                                   siteName={fullName}
                                   bortleRating={bortleRating}
                                   className={exploreStyles.catalogTooltip}

@@ -19,7 +19,7 @@ export default function DarkSiteSuggestion({
       </p>
       <div className={styles.suggestionSite}>
         <strong>
-          {nearestDarkSite.nearestKnownSite?.name ||
+          {nearestDarkSite.nearestKnownSite?.name ??
             `Dark site ${nearestDarkSite.distance.toFixed(0)}km away`}
         </strong>
         {nearestDarkSite.nearestKnownSite && (

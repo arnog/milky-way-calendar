@@ -4,7 +4,10 @@ import { useLocation } from "./useLocation";
 import { calculateAstronomicalEvents } from "../utils/calculateAstronomicalEvents";
 import { DarkSiteResult } from "../utils/lightPollutionMap";
 import { useDarkSiteWorker } from "./useDarkSiteWorker";
-import { findNearestSpecialLocation, calculateDistance } from "../utils/locationParser";
+import {
+  findNearestSpecialLocation,
+  calculateDistance,
+} from "../utils/locationParser";
 import { getSpecialLocationDescription } from "../utils/locationParser";
 import { storageService } from "../services/storageService";
 import { APP_CONFIG } from "../config/appConfig";
@@ -27,28 +30,30 @@ export interface UseTonightEventsResult {
  * Custom hook to calculate tonight's astronomical events and location data
  * Extracts the data calculation logic from TonightCard component
  */
-export function useTonightEvents(
-  currentDate?: Date
-): UseTonightEventsResult {
+export function useTonightEvents(currentDate?: Date): UseTonightEventsResult {
   const { location } = useLocation();
-  const { getBortleRatingForLocation, findNearestDarkSky } = useDarkSiteWorker();
+  const { getBortleRatingForLocation, findNearestDarkSky } =
+    useDarkSiteWorker();
   const [events, setEvents] = useState<AstronomicalEvents | null>(null);
-  const [locationData, setLocationData] = useState<LocationDisplayData | null>(() => {
-    // Initialize with basic location data immediately if we have a location
-    if (!location) return null;
-    
-    const savedLocationData = storageService.getHomeLocationData();
-    const displayName = savedLocationData?.matchedName || 
-      `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`;
-    
-    return {
-      displayName,
-      description: null,
-      bortleRating: null,
-      nearestDarkSite: null,
-      nearestKnownLocation: null
-    };
-  });
+  const [locationData, setLocationData] = useState<LocationDisplayData | null>(
+    () => {
+      // Initialize with basic location data immediately if we have a location
+      if (!location) return null;
+
+      const savedLocationData = storageService.getLocation("home");
+      const displayName =
+        savedLocationData?.matchedName ??
+        `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`;
+
+      return {
+        displayName,
+        description: null,
+        bortleRating: null,
+        nearestDarkSite: null,
+        nearestKnownLocation: null,
+      };
+    }
+  );
   const [error, setError] = useState<string | null>(null);
 
   // Calculate location display data
@@ -57,58 +62,71 @@ export function useTonightEvents(
       setLocationData(null);
       return;
     }
-    
+
     // Immediately set basic location data to avoid "Loading location..." text
-    const savedLocationData = storageService.getHomeLocationData();
-    const immediateDisplayName = savedLocationData?.matchedName || 
+    const savedLocationData = storageService.getLocation("home");
+    const immediateDisplayName =
+      savedLocationData?.matchedName ??
       `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`;
-    
+
     setLocationData({
       displayName: immediateDisplayName,
       description: null,
       bortleRating: null,
       nearestDarkSite: null,
-      nearestKnownLocation: null
+      nearestKnownLocation: null,
     });
 
     const calculateLocationData = async () => {
       try {
-        const savedLocationData = storageService.getHomeLocationData();
-        
+        const savedLocationData = storageService.getLocation("home");
+
         // Set display name
         let displayName: string;
         if (savedLocationData?.matchedName) {
           displayName = savedLocationData.matchedName;
         } else {
-          displayName = `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`;
+          displayName = `${location.lat.toFixed(1)}, ${location.lng.toFixed(
+            1
+          )}`;
         }
 
         // Get special location description
         const matchedName = savedLocationData?.matchedName;
-        const description = getSpecialLocationDescription(location, matchedName);
-        
+        const description = getSpecialLocationDescription(
+          location,
+          matchedName
+        );
+
         // Find nearest known location for coordinates display
         const nearestSpecial = findNearestSpecialLocation(location);
         const hasMatchedName = !!savedLocationData?.matchedName;
-        
-        let nearestKnownLocation: { name: string; distance: number } | null = null;
+
+        let nearestKnownLocation: { name: string; distance: number } | null =
+          null;
         if (nearestSpecial && !hasMatchedName) {
           const distance = calculateDistance(location, nearestSpecial.location);
           nearestKnownLocation = {
-            name: nearestSpecial.matchedName || 'Nearby location',
-            distance: distance
+            name: nearestSpecial.matchedName ?? "Nearby location",
+            distance: distance,
           };
         }
-        
+
         // Fetch Bortle rating for the location
         let bortleRating: number | null = null;
         let nearestDarkSite: DarkSiteResult | null = null;
-        
+
         try {
-          bortleRating = await getBortleRatingForLocation({ lat: location.lat, lng: location.lng });
-          
+          bortleRating = await getBortleRatingForLocation({
+            lat: location.lat,
+            lng: location.lng,
+          });
+
           // If Bortle rating is 4 or higher (poor), find nearest dark site
-          if (bortleRating !== null && bortleRating >= APP_CONFIG.BORTLE.RECOMMEND_DARK_SITE_THRESHOLD) {
+          if (
+            bortleRating !== null &&
+            bortleRating >= APP_CONFIG.BORTLE.RECOMMEND_DARK_SITE_THRESHOLD
+          ) {
             nearestDarkSite = await findNearestDarkSky(
               { lat: location.lat, lng: location.lng },
               {
@@ -125,7 +143,7 @@ export function useTonightEvents(
           description,
           bortleRating,
           nearestDarkSite,
-          nearestKnownLocation
+          nearestKnownLocation,
         });
       } catch (error) {
         console.error("Error calculating location data:", error);
@@ -148,10 +166,10 @@ export function useTonightEvents(
 
       try {
         const now = currentDate || new Date();
-        
+
         // Calculate all astronomical events (this is synchronous and fast)
         const events = calculateAstronomicalEvents(now, location);
-        
+
         // Calculate tomorrow's events for sunrise if needed
         let tomorrowSunrise: Date | undefined;
         if (!events.sunRise || events.sunRise <= now) {
@@ -168,13 +186,27 @@ export function useTonightEvents(
 
         // Filter events to only show future or today's events
         const tonightEvents: AstronomicalEvents = {
-          sunRise: events.sunRise && events.sunRise > now ? events.sunRise : tomorrowSunrise,
-          sunSet: events.sunSet && events.sunSet > now ? events.sunSet : undefined,
-          nightStart: events.nightStart && events.nightStart > now ? events.nightStart : undefined,
+          sunRise:
+            events.sunRise && events.sunRise > now
+              ? events.sunRise
+              : tomorrowSunrise,
+          sunSet:
+            events.sunSet && events.sunSet > now ? events.sunSet : undefined,
+          nightStart:
+            events.nightStart && events.nightStart > now
+              ? events.nightStart
+              : undefined,
           nightEnd: events.nightEnd,
-          moonRise: events.moonRise && events.moonRise > now ? events.moonRise : undefined,
-          moonSet: events.moonSet && events.moonSet > now ? events.moonSet : undefined,
-          gcRise: events.gcRise && events.gcRise >= todayStart ? events.gcRise : undefined,
+          moonRise:
+            events.moonRise && events.moonRise > now
+              ? events.moonRise
+              : undefined,
+          moonSet:
+            events.moonSet && events.moonSet > now ? events.moonSet : undefined,
+          gcRise:
+            events.gcRise && events.gcRise >= todayStart
+              ? events.gcRise
+              : undefined,
           gcTransit: events.gcTransit,
           gcSet: events.gcSet && events.gcSet > now ? events.gcSet : undefined,
           maxGcAltitude: events.maxGcAltitude,
@@ -198,6 +230,6 @@ export function useTonightEvents(
   return {
     events,
     locationData,
-    error
+    error,
   };
 }

@@ -157,7 +157,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             className="global-icon-small color-accent"
             baselineOffset={4}
           />{" "}
-          {locationData?.displayName || "Loading location..."}
+          {locationData?.displayName ?? "Loading location..."}
         </button>
         {locationData?.bortleRating !== null && (
           <Link to="/faq#bortle-scale" className={styles.bortleRating}>

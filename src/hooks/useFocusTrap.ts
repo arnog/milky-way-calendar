@@ -101,7 +101,7 @@ export function useFocusTrap(
       document.removeEventListener('keydown', handleKeyDown);
       
       // Return focus to the previously focused element or the specified return element
-      const elementToFocus = returnFocusRef?.current || previouslyFocusedElementRef.current;
+      const elementToFocus = returnFocusRef?.current ?? previouslyFocusedElementRef.current;
       if (elementToFocus && document.contains(elementToFocus)) {
         // Small delay to ensure the popover is fully closed
         setTimeout(() => {

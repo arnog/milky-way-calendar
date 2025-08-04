@@ -5,7 +5,7 @@ export type SpecialLocation = [
   lng: number,
   areaId?: string
 ];
-export const LARGE_CITIES: SpecialLocation[] = [
+export const LARGE_CITIES: readonly SpecialLocation[] = [
   ["Tokyo, Japan", "Tokyo", 35.68972, 139.69222],
   ["Delhi, India", "Delhi", 28.61, 77.23],
   ["Shanghai, China", "Shanghai", 31.22861, 121.47472, "shanghai-suzhou"],
@@ -232,7 +232,7 @@ export const LARGE_CITIES: SpecialLocation[] = [
   ],
 ] as const;
 
-export const DARK_SITES: SpecialLocation[] = [
+export const DARK_SITES: readonly SpecialLocation[] = [
   /* Dark Sky Parks and Reserves and National Parks */
   [
     "Yellowstone National Park, Wyoming/Montana/Idaho",
@@ -2256,7 +2256,7 @@ export const DARK_SITES: SpecialLocation[] = [
   ["Seminoe State Park, Wyoming", "Seminoe", 42.0586, -106.872, "seminoe"],
 ] as const;
 
-export const SPECIAL_LOCATIONS: SpecialLocation[] = [
+export const SPECIAL_LOCATIONS: readonly SpecialLocation[] = [
   ...DARK_SITES,
   ...LARGE_CITIES,
 ] as const;

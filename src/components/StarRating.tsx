@@ -25,9 +25,9 @@ export default function StarRating({
         onTouchEnd={() => setTimeout(() => setShowTooltip(false), 2000)}
       >
         <span className={styles.dash}>—</span>
-        {showTooltip && (reason || "No visibility") && (
+        {showTooltip && (reason ?? "No visibility") && (
           <div className="global-tooltip">
-            {reason || "No visibility"}
+            {reason ?? "No visibility"}
             <div className="global-tooltip-arrow"></div>
           </div>
         )}

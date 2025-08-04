@@ -147,7 +147,7 @@
   }
   ```
 
-- If a method has an single optional argument, use both a getter and regular
+- If a method has a single optional argument, use both a getter and regular
   method:
 
   ```typescript
@@ -197,6 +197,21 @@
 
   ```typescript
   if (condition) doSomething();
+  ```
+
+- Use the nullish coalescing operator (`??`) to provide default values for
+  potentially `null` or `undefined` values:
+
+  ```typescript
+  const value = getData()?.property ?? "default value";
+  ```
+
+- Use nullish coalescing assignment (`??=`) to assign default values only if the
+  variable is `null` or `undefined`:
+
+  ```typescript
+  let value: string | undefined;
+  value ??= "default value"; // Assigns only if value is null or undefined
   ```
 
 - Avoid fallback code for situations that should not occur. If a situation is

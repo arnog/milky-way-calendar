@@ -6,21 +6,21 @@ import { storageService } from "../services/storageService";
 export interface StructuredEventData {
   "@context": string;
   "@type": string;
-  "name": string;
-  "startDate": string;
-  "endDate": string;
-  "eventAttendanceMode": string;
-  "eventStatus": string;
-  "location": {
+  name: string;
+  startDate: string;
+  endDate: string;
+  eventAttendanceMode: string;
+  eventStatus: string;
+  location: {
     "@type": string;
-    "name": string;
-    "geo": {
+    name: string;
+    geo: {
       "@type": string;
-      "latitude": string;
-      "longitude": string;
+      latitude: string;
+      longitude: string;
     };
   };
-  "description": string;
+  description: string;
 }
 
 function getVisibilityDescription(rating: number): string {
@@ -40,11 +40,13 @@ function getVisibilityDescription(rating: number): string {
 
 function getLocationName(location: Location): string {
   // First check if there's a saved location with a matched name from storage
-  const savedLocationData = storageService.getHomeLocationData();
-  if (savedLocationData?.matchedName && 
-      Math.abs(savedLocationData.location.lat - location.lat) < 0.01 && 
-      Math.abs(savedLocationData.location.lng - location.lng) < 0.01) {
-    return savedLocationData.matchedName;
+  const homeLocation = storageService.getLocation("home");
+  if (
+    homeLocation?.matchedName &&
+    Math.abs(homeLocation.latlong.lat - location.lat) < 0.01 &&
+    Math.abs(homeLocation.latlong.lng - location.lng) < 0.01
+  ) {
+    return homeLocation.matchedName;
   }
 
   // Try to find nearest special location
@@ -62,13 +64,17 @@ export function generateEventStructuredData(
   location: Location
 ): StructuredEventData | null {
   // Only generate structured data for weeks with optimal viewing windows
-  if (!weekData.optimalWindow.startTime || !weekData.optimalWindow.endTime || weekData.visibility === 0) {
+  if (
+    !weekData.optimalWindow.startTime ||
+    !weekData.optimalWindow.endTime ||
+    weekData.visibility === 0
+  ) {
     return null;
   }
 
   const startDate = weekData.optimalWindow.startTime;
   const endDate = weekData.optimalWindow.endTime;
-  
+
   // Format dates in ISO 8601 format with proper timezone handling
   const startDateISO = formatDateForStructuredData(startDate, location);
   const endDateISO = formatDateForStructuredData(endDate, location);
@@ -76,7 +82,7 @@ export function generateEventStructuredData(
   const visibilityDesc = getVisibilityDescription(weekData.visibility);
   const starRating = "★".repeat(weekData.visibility);
   const duration = weekData.gcDuration;
-  
+
   let moonDesc = "";
   if (weekData.moonIllumination > 0.05) {
     const moonPercent = Math.round(weekData.moonIllumination * 100);
@@ -90,21 +96,20 @@ export function generateEventStructuredData(
   return {
     "@context": "https://schema.org",
     "@type": "Event",
-    "name": `Optimal Milky Way Viewing at ${getLocationName(location)}`,
-    "startDate": startDateISO,
-    "endDate": endDateISO,
-    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-    "eventStatus": "https://schema.org/EventScheduled",
-    "location": {
+    name: `Optimal Milky Way Viewing at ${getLocationName(location)}`,
+    startDate: startDateISO,
+    endDate: endDateISO,
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    location: {
       "@type": "Place",
-      "name": getLocationName(location),
-      "geo": {
+      name: getLocationName(location),
+      geo: {
         "@type": "GeoCoordinates",
-        "latitude": location.lat.toString(),
-        "longitude": location.lng.toString()
-      }
+        latitude: location.lat.toString(),
+        longitude: location.lng.toString(),
+      },
     },
-    "description": description
+    description: description,
   };
 }
-
