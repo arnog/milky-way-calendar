@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "./useLocation";
 import { calculateAstronomicalEvents } from "../utils/calculateAstronomicalEvents";
 import { OptimalViewingWindow } from "../utils/integratedOptimalViewing";
+import { APP_CONFIG } from "../config/appConfig";
 
 export interface DayData {
   date: Date;
@@ -59,7 +60,7 @@ export function useWeeklyVisibility(
 
         // Calculate data for the specified number of days
         for (let i = 0; i < numberOfDays; i++) {
-          const date = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
+          const date = new Date(today.getTime() + i * APP_CONFIG.ASTRONOMY.MS_PER_DAY);
 
           // Calculate all astronomical events for this day
           const events = calculateAstronomicalEvents(date, location);

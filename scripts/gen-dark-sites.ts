@@ -15,7 +15,7 @@
 
 import fetch from "node-fetch";
 
-import { DARK_SITES } from "../utils/locations";
+import { DARK_SITES } from "../src/utils/locations";
 
 const existingJson = DARK_SITES;
 

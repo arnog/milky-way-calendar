@@ -13,6 +13,7 @@ import { calculateMoonData } from "./moonCalculations";
 import { calculateTwilightTimes } from "./twilightCalculations";
 import { calculateVisibilityRating } from "./visibilityRating";
 import { getOptimalViewingWindow } from "./integratedOptimalViewing";
+import { APP_CONFIG } from "../config/appConfig";
 
 /**
  * Calculate all astronomical events for a given date and location
@@ -39,7 +40,7 @@ export function calculateAstronomicalEvents(
     -1,
     date,
     1,
-    -18
+    APP_CONFIG.ASTRONOMY.ASTRONOMICAL_TWILIGHT_ANGLE
   );
   const astronomicalDawn = SearchAltitude(
     Body.Sun,
@@ -47,7 +48,7 @@ export function calculateAstronomicalEvents(
     +1,
     new Date(date.getTime() + 24 * 60 * 60 * 1000),
     1,
-    -18
+    APP_CONFIG.ASTRONOMY.ASTRONOMICAL_TWILIGHT_ANGLE
   );
 
   // Calculate moon data

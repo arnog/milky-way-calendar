@@ -5,6 +5,7 @@ import {
   TwilightData,
 } from "../types/astronomy";
 import { formatTimeInLocationTimezone } from "./timezoneUtils";
+import { APP_CONFIG } from "../config/appConfig";
 import {
   computeGCObservationScore,
   createGCAltitudeFunction,
@@ -339,7 +340,7 @@ export function getOptimalViewingWindow(
   twilightData: TwilightData,
   location: Location,
   date: Date,
-  qualityThreshold: number = 0.3 // Minimum score for decent viewing
+  qualityThreshold: number = APP_CONFIG.QUALITY.MIN_DECENT_VIEWING_SCORE // Minimum score for decent viewing
 ): OptimalViewingWindow {
   // First check basic requirements
   if (!gcData.riseTime) {

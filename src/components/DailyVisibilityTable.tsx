@@ -3,6 +3,7 @@ import { useLocation } from "../hooks/useLocation";
 import { useWeeklyVisibility } from "../hooks/useWeeklyVisibility";
 import StarRating from "./StarRating";
 import { Icon } from "./Icon";
+import { APP_CONFIG } from "../config/appConfig";
 import {
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
@@ -25,7 +26,7 @@ export default function DailyVisibilityTable({
 
   const formatDate = (date: Date) => {
     const today = currentDate || new Date();
-    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrow = new Date(today.getTime() + APP_CONFIG.ASTRONOMY.MS_PER_DAY);
 
     if (date.toDateString() === today.toDateString()) {
       return "Today";

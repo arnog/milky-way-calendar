@@ -161,30 +161,47 @@ readability, maintainability, and adherence to best practices.
     - **Impact:** Low. A nice-to-have for code cleanliness and potential future
       use.
 
-6.  **Move Scripts out of `src/utils` (Low Priority)**
+6.  **✅ COMPLETED - Move Scripts out of `src/utils` (Low Priority)**
 
     - **Observation:** The file `gen-dark-sites.ts` is a Node.js script for data
       generation, not a client-side utility that should be bundled with the
       application.
-    - **Suggestion:** Create a `scripts` directory in the project root
-      (alongside `src`) and move `gen-dark-sites.ts` there.
-    - **Benefits & Impact:**
-      - **Clarity:** Clearly separates build-time/development scripts from the
-        application's runtime source code.
-      - **Build Optimization:** Prevents bundlers from accidentally trying to
+    - **Implementation:** Created a `scripts` directory in the project root
+      and moved `gen-dark-sites.ts` there, updating its import path to reference
+      the relocated source files.
+    - **Results & Impact:**
+      - **Clarity:** ✅ Build-time scripts are now clearly separated from 
+        application runtime source code.
+      - **Build Optimization:** ✅ Prevents bundlers from accidentally trying to
         include Node-specific code in the client bundle.
+      - **Organization:** ✅ Consistent with other build scripts like 
+        `generate-sitemap.js` already in the scripts directory.
+    - **Files Modified:** Moved `src/utils/gen-dark-sites.ts` to `scripts/gen-dark-sites.ts`
+      and updated import path to reference `../src/utils/locations`.
 
-7.  **Centralize Constants (Low Priority)**
-    - **Observation:** Some "magic numbers" still exist outside the excellent
+7.  **✅ COMPLETED - Centralize Constants (Low Priority)**
+    - **Observation:** Some "magic numbers" existed outside the excellent
       `clockConfig.ts` file. For example, in `ExplorePage.tsx`, the search
-      radius `500` is hardcoded.
-    - **Suggestion:** Create a `config/appConfig.ts` file for application-wide
-      constants like `DEFAULT_SEARCH_RADIUS_KM = 500`.
-    - **Benefits & Impact:**
-      - **Maintainability:** Makes it easier to find and change key application
-        parameters.
-      - **Readability:** Gives context to what a number represents (e.g.,
-        `DEFAULT_SEARCH_RADIUS_KM` is clearer than `500`).
+      radius `500` was hardcoded, and similar constants were scattered throughout
+      the codebase.
+    - **Implementation:** Created comprehensive `src/config/appConfig.ts` file
+      that centralizes all application-wide constants and "magic numbers":
+      - **Search Configuration**: `DEFAULT_RADIUS_KM`, `PROGRESS_UPDATE_INTERVAL`
+      - **UI Layout**: Mobile breakpoints, screen dimensions, responsive sizing factors
+      - **Astronomical Constants**: `MIN_GC_ALTITUDE`, `ASTRONOMICAL_TWILIGHT_ANGLE`
+      - **Quality Thresholds**: Viewing scores, moon interference levels
+      - **Bortle Scale**: Dark sky classification thresholds
+      - **Error Messages**: Centralized user-facing messages with template formatting
+    - **Results & Impact:**
+      - **Maintainability:** ✅ All key application parameters centralized in one location
+      - **Readability:** ✅ Named constants provide clear context (e.g.,
+        `APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM` vs `500`)
+      - **Consistency:** ✅ Same constants used across multiple files stay synchronized
+      - **Configurability:** ✅ Easy to adjust application behavior without hunting
+        through multiple files
+    - **Files Modified:** `src/config/appConfig.ts` (new), `src/pages/ExplorePage.tsx`,
+      `src/hooks/useTonightEvents.ts`, `src/components/LocationPopover.tsx`,
+      `src/utils/lightPollutionMap.ts`, `src/utils/galacticCenter.ts`
 
 ---
 

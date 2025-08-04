@@ -6,6 +6,7 @@
  */
 
 import { type SpecialLocation } from "./locations";
+import { APP_CONFIG } from "../config/appConfig";
 
 export interface Coordinate {
   lat: number;
@@ -253,7 +254,7 @@ export function brightnessToBortleScale(brightness: number): number {
  * Bortle 1-3 are considered good for Milky Way photography
  */
 export function isDarkSky(bortleScale: number): boolean {
-  return bortleScale <= 3.0; // Pristine to good dark sky (Bortle 1-3)
+  return bortleScale <= APP_CONFIG.BORTLE.EXCELLENT_DARK_SKY_MAX; // Pristine to good dark sky (Bortle 1-3)
 }
 
 /**
@@ -433,7 +434,7 @@ export function calculateBearing(from: Coordinate, to: Coordinate): number {
  */
 export async function findNearestDarkSky(
   startCoord: Coordinate,
-  maxDistance: number = 500, // Maximum search distance in km
+  maxDistance: number = APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM, // Maximum search distance in km
   onProgress?: (progress: number) => void,
   knownSites?: ReadonlyArray<SpecialLocation> // Optional known sites for secondary location
 ): Promise<DarkSiteResult | null> {
@@ -606,7 +607,7 @@ export async function getBortleRatingForLocation(
  */
 export async function findMultipleDarkSites(
   startCoord: Coordinate,
-  maxDistance: number = 500,
+  maxDistance: number = APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
   onProgress?: (progress: number) => void,
   knownSites?: ReadonlyArray<SpecialLocation> // Optional known sites for secondary location>
 ): Promise<MultipleDarkSitesResult | null> {
@@ -754,7 +755,7 @@ async function findDarkSiteInDirection(
     visited.add(key);
 
     processedPixels++;
-    if (onProgress && processedPixels % 500 === 0) {
+    if (onProgress && processedPixels % APP_CONFIG.SEARCH.PROGRESS_UPDATE_INTERVAL === 0) {
       onProgress(Math.min(processedPixels / totalEstimatedPixels, 0.95));
     }
 

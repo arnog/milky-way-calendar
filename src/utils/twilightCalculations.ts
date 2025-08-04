@@ -1,5 +1,6 @@
 import * as Astronomy from "astronomy-engine";
 import { Location, TwilightData } from "../types/astronomy";
+import { APP_CONFIG } from "../config/appConfig";
 
 export function calculateTwilightTimes(
   date: Date,
@@ -61,7 +62,7 @@ export function calculateTwilightTimes(
       -1,
       baseLocal,
       1,
-      -18
+      APP_CONFIG.ASTRONOMY.ASTRONOMICAL_TWILIGHT_ANGLE
     );
     
     // For astronomical dawn, search from the next day
@@ -74,7 +75,7 @@ export function calculateTwilightTimes(
       +1,
       nextDay,
       1,
-      -18
+      APP_CONFIG.ASTRONOMY.ASTRONOMICAL_TWILIGHT_ANGLE
     );
 
     // Handle edge cases for high latitudes

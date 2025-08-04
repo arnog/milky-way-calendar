@@ -14,6 +14,7 @@ import {
   coordToNormalized,
 } from "../utils/lightPollutionMap";
 import { storageService } from "../services/storageService";
+import { APP_CONFIG, formatMessage } from "../config/appConfig";
 import styles from "../App.module.css";
 import exploreStyles from "./ExplorePage.module.css";
 
@@ -62,7 +63,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
         try {
           const result = await findMultipleDarkSites(
             userLocation,
-            500, // 500km max search radius
+            APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
             (progress) => setSearchProgress(progress),
             DARK_SITES // Pass known sites for secondary location matching
           );
@@ -71,12 +72,14 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
             setDarkSitesResult(result);
           } else {
             setSearchError(
-              "No dark sky sites found within 500km of your location."
+              formatMessage(APP_CONFIG.MESSAGES.NO_DARK_SITES_FOUND, {
+                radius: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM
+              })
             );
           }
         } catch (error) {
           console.error("Error finding dark sites:", error);
-          setSearchError("Failed to find dark sites. Please try again.");
+          setSearchError(APP_CONFIG.MESSAGES.SEARCH_ERROR);
         } finally {
           setIsSearching(false);
           setSearchProgress(0);
@@ -146,7 +149,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     try {
       const result = await findMultipleDarkSites(
         userLocation,
-        500, // 500km max search radius
+        APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
         (progress) => setSearchProgress(progress),
         DARK_SITES // Pass known sites for secondary location matching
       );
@@ -155,12 +158,14 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
         setDarkSitesResult(result);
       } else {
         setSearchError(
-          "No dark sky sites found within 500km of your location."
+          formatMessage(APP_CONFIG.MESSAGES.NO_DARK_SITES_FOUND, {
+            radius: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM
+          })
         );
       }
     } catch (error) {
       console.error("Error finding dark sites:", error);
-      setSearchError("Failed to find dark sites. Please try again.");
+      setSearchError(APP_CONFIG.MESSAGES.SEARCH_ERROR);
     } finally {
       setIsSearching(false);
       setSearchProgress(0);

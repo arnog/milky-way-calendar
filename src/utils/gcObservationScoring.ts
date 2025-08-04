@@ -1,5 +1,6 @@
 import * as Astronomy from "astronomy-engine";
 import { Location } from "../types/astronomy";
+import { APP_CONFIG } from "../config/appConfig";
 
 // Galactic Core coordinates (J2000)
 const GALACTIC_CENTER_RA = 17.759; // hours (17h 45m 36s)
@@ -135,7 +136,7 @@ export function computeGCObservationScore(
       if (moonAlt <= 0) {
         score = 1.0; // perfect: moon not visible
       } else {
-        if (moonIllumination > 0.6) {
+        if (moonIllumination > APP_CONFIG.QUALITY.BRIGHT_MOON_THRESHOLD) {
           score = (1 - moonIllumination) * 0.2;
         } else {
           const angleFactor = Math.min(angle / 90, 1.0);
@@ -178,7 +179,13 @@ export function computeGCObservationScore(
   const maxWindow = 120; // 2 hours for full multiplier  
   const minWindow = 30; // 30 minutes minimum
   // Scale from 0.7 to 1.0 (instead of 0.5 to 1.0) to be less punitive
-  const lengthMultiplier = Math.max(0.7, Math.min((windowLengthMin - minWindow) / (maxWindow - minWindow) * 0.3 + 0.7, 1));
+  const lengthMultiplier = Math.max(
+    APP_CONFIG.QUALITY.LENGTH_MULTIPLIER_MIN, 
+    Math.min(
+      (windowLengthMin - minWindow) / (maxWindow - minWindow) * APP_CONFIG.QUALITY.LENGTH_MULTIPLIER_SCALE + APP_CONFIG.QUALITY.LENGTH_MULTIPLIER_MIN, 
+      1
+    )
+  );
   const finalScore = avgScore * lengthMultiplier;
 
   // Map to rating and determine reason
@@ -191,39 +198,39 @@ export function computeGCObservationScore(
   } else if (finalScore < 0.25) {
     rating = 1;
     // Determine primary cause of poor visibility
-    if (moonIllumination > 0.6 && avgScore < 0.5) {
+    if (moonIllumination > APP_CONFIG.QUALITY.BRIGHT_MOON_THRESHOLD && avgScore < APP_CONFIG.QUALITY.MIN_QUALITY_VIEWING_SCORE) {
       reason = `Severe moon interference (${Math.round(moonIllumination * 100)}% illuminated)`;
-    } else if (windowLengthMin < 60) {
+    } else if (windowLengthMin < APP_CONFIG.QUALITY.MIN_OBSERVATION_WINDOW_MINUTES) {
       reason = `Very short observation window (${Math.round(windowLengthMin)} minutes)`;
     } else {
       reason = "Poor viewing conditions";
     }
-  } else if (finalScore < 0.5) {
+  } else if (finalScore < APP_CONFIG.QUALITY.MIN_QUALITY_VIEWING_SCORE) {
     rating = 2;
-    if (moonIllumination > 0.5 && avgScore < 0.5) {
+    if (moonIllumination > APP_CONFIG.QUALITY.MOON_INTERFERENCE_THRESHOLD && avgScore < APP_CONFIG.QUALITY.MIN_QUALITY_VIEWING_SCORE) {
       reason = `Significant moon interference (${Math.round(moonIllumination * 100)}% illuminated)`;
     } else if (windowLengthMin < 90) {
-      reason = `Limited observation window (${(windowLengthMin / 60).toFixed(1)} hours)`;
+      reason = `Limited observation window (${(windowLengthMin / APP_CONFIG.ASTRONOMY.MINUTES_PER_HOUR).toFixed(1)} hours)`;
     } else {
       reason = "Fair viewing conditions";
     }
   } else if (finalScore < 0.75) {
     rating = 3;
-    if (moonIllumination > 0.3) {
+    if (moonIllumination > APP_CONFIG.QUALITY.MIN_DECENT_VIEWING_SCORE) {
       reason = `Good conditions with some moon (${Math.round(moonIllumination * 100)}% illuminated)`;
     } else if (windowLengthMin >= 120) {
-      reason = `Good conditions with ${(windowLengthMin / 60).toFixed(1)} hour window`;
+      reason = `Good conditions with ${(windowLengthMin / APP_CONFIG.ASTRONOMY.MINUTES_PER_HOUR).toFixed(1)} hour window`;
     } else {
       reason = "Good viewing conditions";
     }
   } else {
     rating = 4;
     if (moonIllumination < 0.1 && windowLengthMin >= 120) {
-      reason = `Excellent dark sky conditions (${(windowLengthMin / 60).toFixed(1)} hours)`;
+      reason = `Excellent dark sky conditions (${(windowLengthMin / APP_CONFIG.ASTRONOMY.MINUTES_PER_HOUR).toFixed(1)} hours)`;
     } else if (avgScore > 0.9) {
       reason = "Perfect viewing conditions - moon below horizon";
     } else {
-      reason = `Excellent conditions (${(windowLengthMin / 60).toFixed(1)} hour window)`;
+      reason = `Excellent conditions (${(windowLengthMin / APP_CONFIG.ASTRONOMY.MINUTES_PER_HOUR).toFixed(1)} hour window)`;
     }
   }
 

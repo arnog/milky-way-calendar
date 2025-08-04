@@ -4,6 +4,7 @@ import { useLocation } from "../hooks/useLocation";
 import { getVisibilityDescription } from "../utils/visibilityRating";
 import StarRating from "./StarRating";
 import { calculateAstronomicalEvents } from "../utils/calculateAstronomicalEvents";
+import { APP_CONFIG } from "../config/appConfig";
 import {
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
@@ -36,7 +37,7 @@ export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
       const currentWeekNumber =
         Math.floor(
           (today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) /
-            (7 * 24 * 60 * 60 * 1000)
+            (7 * APP_CONFIG.ASTRONOMY.MS_PER_DAY)
         ) + 1;
 
       for (let i = 0; i < numWeeks; i++) {

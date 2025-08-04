@@ -1,5 +1,6 @@
 import * as Astronomy from "astronomy-engine";
 import { Location, GalacticCenterData } from "../types/astronomy";
+import { APP_CONFIG } from "../config/appConfig";
 
 // Galactic Core coordinates (J2000)
 const GALACTIC_CENTER_RA = 17.759; // hours (17h 45m 36s)
@@ -49,7 +50,7 @@ export function calculateGalacticCenterData(
     //   • Aug - Sep -> 15°
     //   • Oct - Dec -> 10°
     const month = date.getMonth(); // 0 = January
-    const targetAltitude = month < 7 ? 20 : month < 9 ? 15 : 10;
+    const targetAltitude = month < 7 ? 20 : month < 9 ? 15 : APP_CONFIG.ASTRONOMY.MIN_GC_ALTITUDE;
 
     try {
       // Search from 6 h before the given date to 36 h after,

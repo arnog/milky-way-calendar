@@ -6,6 +6,7 @@ import { getBortleRatingForLocation, findNearestDarkSky, DarkSiteResult } from "
 import { findNearestSpecialLocation, calculateDistance } from "../utils/locationParser";
 import { getSpecialLocationDescription } from "../utils/locationParser";
 import { storageService } from "../services/storageService";
+import { APP_CONFIG } from "../config/appConfig";
 
 export interface LocationDisplayData {
   displayName: string;
@@ -79,10 +80,10 @@ export function useTonightEvents(
           bortleRating = await getBortleRatingForLocation({ lat: location.lat, lng: location.lng });
           
           // If Bortle rating is 4 or higher (poor), find nearest dark site
-          if (bortleRating !== null && bortleRating >= 4) {
+          if (bortleRating !== null && bortleRating >= APP_CONFIG.BORTLE.RECOMMEND_DARK_SITE_THRESHOLD) {
             nearestDarkSite = await findNearestDarkSky(
               { lat: location.lat, lng: location.lng },
-              500 // 500km search radius
+              APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM
             );
           }
         } catch (error) {
@@ -127,7 +128,7 @@ export function useTonightEvents(
         let tomorrowSunrise: Date | undefined;
         if (!events.sunRise || events.sunRise <= now) {
           const tomorrowEvents = calculateAstronomicalEvents(
-            new Date(now.getTime() + 24 * 60 * 60 * 1000),
+            new Date(now.getTime() + APP_CONFIG.ASTRONOMY.MS_PER_DAY),
             location
           );
           tomorrowSunrise = tomorrowEvents.sunRise;

@@ -5,6 +5,7 @@ import { useLocation } from "../hooks/useLocation";
 import WorldMap from "./WorldMap";
 import { useLocationManager } from "../hooks/useLocationManager";
 import { Icon } from "./Icon";
+import { APP_CONFIG } from "../config/appConfig";
 import styles from "./LocationPopover.module.css";
 
 interface LocationPopoverProps {
@@ -47,9 +48,9 @@ export default function LocationPopover({
       if (triggerRef.current) {
         const triggerRect = triggerRef.current.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
-        const desiredWidth = viewportWidth < 480 
-          ? Math.min(viewportWidth - 32, 350) // Small screens: viewport width minus 32px padding, max 350px
-          : Math.min(Math.max(viewportWidth * 0.5, 500), 800);
+        const desiredWidth = viewportWidth < APP_CONFIG.LAYOUT.MOBILE_BREAKPOINT 
+          ? Math.min(viewportWidth - APP_CONFIG.LAYOUT.SMALL_SCREEN_PADDING, APP_CONFIG.LAYOUT.SMALL_SCREEN_MAX_WIDTH)
+          : Math.min(Math.max(viewportWidth * APP_CONFIG.LAYOUT.LARGE_SCREEN_MIN_WIDTH_FACTOR, APP_CONFIG.LAYOUT.LARGE_SCREEN_MIN_WIDTH), APP_CONFIG.LAYOUT.LARGE_SCREEN_MAX_WIDTH);
 
         // Center the popover horizontally on the page
         const left = (viewportWidth - desiredWidth) / 2;
