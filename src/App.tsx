@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import Header from "./components/Header";
@@ -6,12 +6,28 @@ import TonightCard from "./components/TonightCard";
 import DailyVisibilityTable from "./components/DailyVisibilityTable";
 import Calendar from "./components/Calendar";
 import LocationPage from "./pages/LocationPage";
-import ExplorePage from "./pages/ExplorePage";
-import FAQPage from "./pages/FAQPage";
 import { LocationProvider } from "./contexts/LocationContext";
 import LocationErrorBoundary from "./components/LocationErrorBoundary";
 import { useDateFromQuery } from "./hooks/useDateFromQuery";
 import styles from "./App.module.css";
+
+// Lazy load pages that are not needed for initial home page experience
+const ExplorePage = lazy(() => import("./pages/ExplorePage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
+
+// Loading component for code splitting
+function PageLoader() {
+  return (
+    <div className={styles.container}>
+      <div className={styles.content}>
+        <div className={styles.loading}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface HomePageProps {
   isDarkroomMode: boolean;
@@ -91,9 +107,20 @@ function App() {
         />
         <Route
           path="/explore"
-          element={<ExplorePage isDarkroomMode={isDarkroomMode} />}
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <ExplorePage isDarkroomMode={isDarkroomMode} />
+            </Suspense>
+          }
         />
-        <Route path="/faq" element={<FAQPage />} />
+        <Route 
+          path="/faq" 
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <FAQPage />
+            </Suspense>
+          } 
+        />
       </Routes>
     </div>
   );
