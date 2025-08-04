@@ -9,10 +9,10 @@ import { Location } from "../types/astronomy";
 import { DARK_SITES } from "../utils/locations";
 import { locationNameToSlug } from "../utils/urlHelpers";
 import {
-  findMultipleDarkSites,
   MultipleDarkSitesResult,
   coordToNormalized,
 } from "../utils/lightPollutionMap";
+import { useDarkSiteWorker } from "../hooks/useDarkSiteWorker";
 import { storageService } from "../services/storageService";
 import { APP_CONFIG, formatMessage } from "../config/appConfig";
 import styles from "../App.module.css";
@@ -25,6 +25,7 @@ interface ExplorePageProps {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const navigate = useNavigate();
+  const { findMultipleDarkSites } = useDarkSiteWorker();
   const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
@@ -63,9 +64,11 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
         try {
           const result = await findMultipleDarkSites(
             userLocation,
-            APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
-            (progress) => setSearchProgress(progress),
-            DARK_SITES // Pass known sites for secondary location matching
+            {
+              maxDistance: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
+              knownSites: DARK_SITES, // Pass known sites for secondary location matching
+              onProgress: (progress) => setSearchProgress(progress),
+            }
           );
 
           if (result) {
@@ -86,7 +89,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
         }
       })();
     }
-  }, [userLocation, hasAutoSearched, isSearching]);
+  }, [userLocation, hasAutoSearched, isSearching, findMultipleDarkSites]);
 
   // Reset auto-search flag when user manually changes location
   const handleUserLocationChangeWrapper = (
@@ -149,9 +152,11 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     try {
       const result = await findMultipleDarkSites(
         userLocation,
-        APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
-        (progress) => setSearchProgress(progress),
-        DARK_SITES // Pass known sites for secondary location matching
+        {
+          maxDistance: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
+          knownSites: DARK_SITES, // Pass known sites for secondary location matching
+          onProgress: (progress) => setSearchProgress(progress),
+        }
       );
 
       if (result) {

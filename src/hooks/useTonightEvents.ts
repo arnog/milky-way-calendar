@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { AstronomicalEvents } from "../types/astronomy";
 import { useLocation } from "./useLocation";
 import { calculateAstronomicalEvents } from "../utils/calculateAstronomicalEvents";
-import { getBortleRatingForLocation, findNearestDarkSky, DarkSiteResult } from "../utils/lightPollutionMap";
+import { DarkSiteResult } from "../utils/lightPollutionMap";
+import { useDarkSiteWorker } from "./useDarkSiteWorker";
 import { findNearestSpecialLocation, calculateDistance } from "../utils/locationParser";
 import { getSpecialLocationDescription } from "../utils/locationParser";
 import { storageService } from "../services/storageService";
@@ -31,6 +32,7 @@ export function useTonightEvents(
   currentDate?: Date
 ): UseTonightEventsResult {
   const { location } = useLocation();
+  const { getBortleRatingForLocation, findNearestDarkSky } = useDarkSiteWorker();
   const [events, setEvents] = useState<AstronomicalEvents | null>(null);
   const [locationData, setLocationData] = useState<LocationDisplayData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +85,9 @@ export function useTonightEvents(
           if (bortleRating !== null && bortleRating >= APP_CONFIG.BORTLE.RECOMMEND_DARK_SITE_THRESHOLD) {
             nearestDarkSite = await findNearestDarkSky(
               { lat: location.lat, lng: location.lng },
-              APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM
+              {
+                maxDistance: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
+              }
             );
           }
         } catch (error) {
@@ -104,7 +108,7 @@ export function useTonightEvents(
     };
 
     calculateLocationData();
-  }, [location]);
+  }, [location, getBortleRatingForLocation, findNearestDarkSky]);
 
   // Calculate tonight's events
   useEffect(() => {
