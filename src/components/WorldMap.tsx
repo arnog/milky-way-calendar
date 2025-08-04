@@ -31,7 +31,6 @@ export default function WorldMap({
   markers = [],
 }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [imageSrc, setImageSrc] = useState<string>("/world2024B-sm.jpg");
@@ -116,19 +115,12 @@ export default function WorldMap({
     return { x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) };
   };
   
-  // Use the corrected coordinate mapping that matches the light pollution map coverage (-65° to +75°)
-  const equirectangularUnproject = (
-    x: number,
-    y: number
-  ): { lat: number; lng: number } => {
-    return normalizedToCoord(x, y);
-  };
 
   const getLocationFromEvent = (
     event: React.MouseEvent<HTMLDivElement> | MouseEvent | Touch
   ): Location => {
     const normalized = screenToNormalized(event.clientX, event.clientY);
-    return equirectangularUnproject(normalized.x, normalized.y);
+    return normalizedToCoord(normalized.x, normalized.y);
   };
 
   // Zoom functions
@@ -154,12 +146,6 @@ export default function WorldMap({
     });
   }, []);
   
-  // Mouse wheel handler
-  const handleWheel = useCallback((event: React.WheelEvent) => {
-    event.preventDefault();
-    const delta = -event.deltaY * ZOOM_SPEED * 0.01;
-    handleZoom(delta, event.clientX, event.clientY);
-  }, [handleZoom]);
   
   // Touch handlers
   const handleTouchStart = (event: React.TouchEvent) => {
@@ -285,24 +271,24 @@ export default function WorldMap({
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  // Use the corrected coordinate mapping that matches the light pollution map coverage (-65° to +75°)
-  const equirectangularProject = (
-    lat: number,
-    lng: number
-  ): { x: number; y: number } => {
-    return coordToNormalized(lat, lng);
-  };
   
   // Convert normalized coordinates to screen coordinates (accounting for zoom/pan)
+  // This matches the CSS transform order: scale() then translate()
   const normalizedToScreen = (normalizedX: number, normalizedY: number): { x: number; y: number } => {
-    const x = (normalizedX - 0.5 + panX / zoom) * zoom + 0.5;
-    const y = (normalizedY - 0.5 + panY / zoom) * zoom + 0.5;
-    return { x: x * 100, y: y * 100 }; // Convert to percentages
+    // First apply zoom (scale) around center (0.5, 0.5)
+    const scaledX = (normalizedX - 0.5) * zoom + 0.5;
+    const scaledY = (normalizedY - 0.5) * zoom + 0.5;
+    
+    // Then apply pan (translate)
+    const x = scaledX + panX;
+    const y = scaledY + panY;
+    
+    return { x: x * 100, y: y * 100 }; // Convert to percentages for CSS positioning
   };
 
   const markerPosition = location
     ? (() => {
-        const normalized = equirectangularProject(location.lat, location.lng);
+        const normalized = coordToNormalized(location.lat, location.lng);
         return normalizedToScreen(normalized.x, normalized.y);
       })()
     : null;
@@ -328,6 +314,26 @@ export default function WorldMap({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [imageSrc]);
+
+  // Add native wheel event listener to prevent page scrolling
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleNativeWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const delta = -event.deltaY * ZOOM_SPEED * 0.01;
+      handleZoom(delta, event.clientX, event.clientY);
+    };
+
+    container.addEventListener('wheel', handleNativeWheel, { passive: false });
+    
+    return () => {
+      container.removeEventListener('wheel', handleNativeWheel);
+    };
+  }, [handleZoom]);
 
 
   return (
@@ -378,7 +384,6 @@ export default function WorldMap({
       )}
 
       <img
-        ref={imageRef}
         src={imageSrc}
         alt="World map showing light pollution"
         className={`${styles.mapImage} ${
@@ -390,13 +395,12 @@ export default function WorldMap({
           isImageLoading ? styles.mapImageLoading : styles.mapImageLoaded
         }`}
         onMouseDown={handleMouseDown}
-        onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onLoad={() => setIsImageLoading(false)}
         style={{
-          transform: `scale(${zoom}) translate(${panX * 100}px, ${panY * 100}px)`,
+          transform: `scale(${zoom}) translate(${(panX * (containerRef.current?.clientWidth || 1)) / zoom}px, ${(panY * (containerRef.current?.clientHeight || 1)) / zoom}px)`,
           transformOrigin: 'center',
           transition: isPanning || isDragging ? 'none' : 'transform 0.1s ease-out'
         }}
