@@ -108,9 +108,11 @@ function App() {
         <Route
           path="/explore"
           element={
-            <Suspense fallback={<PageLoader />}>
-              <ExplorePage isDarkroomMode={isDarkroomMode} />
-            </Suspense>
+            <LocationProvider>
+              <Suspense fallback={<PageLoader />}>
+                <ExplorePage isDarkroomMode={isDarkroomMode} />
+              </Suspense>
+            </LocationProvider>
           }
         />
         <Route 

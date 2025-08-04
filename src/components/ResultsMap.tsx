@@ -183,14 +183,6 @@ export default function ResultsMap({
             return order[a.type] - order[b.type];
           })
           .map((marker, index) => {
-            if (import.meta.env.DEV) {
-              console.log(
-                "Rendering marker:",
-                marker.type,
-                marker.lat,
-                marker.lng
-              );
-            }
             return (
               <Marker
                 key={`${marker.type}-${index}`}
