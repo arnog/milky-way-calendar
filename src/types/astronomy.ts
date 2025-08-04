@@ -9,14 +9,8 @@ export interface WeekData {
   weekNumber: number;
   startDate: Date;
   visibility: number; // 1-4 stars
-  moonPhase: number; // 0-7 for different moon phases
-  moonIllumination: number; // 0-1
-  gcTime: string; // Optimal viewing start time
   gcDuration: string; // Duration of optimal viewing
-  gcAltitude: number; // Maximum altitude of GC
-  twilightEnd: Date | null; // When astronomical twilight ends
-  twilightStart: Date | null; // When astronomical twilight starts
-  optimalConditions: string; // Description of viewing conditions
+  moonIllumination: number; // 0-1
   optimalWindow: OptimalViewingWindow; // Optimal viewing window data
   visibilityReason?: string; // Explanation for visibility rating
 }
@@ -24,7 +18,6 @@ export interface WeekData {
 export interface GalacticCenterData {
   altitude: number;
   azimuth: number;
-  isVisible: boolean; // Above 20° horizon
   riseTime: Date | null;
   setTime: Date | null;
   transitTime: Date | null;
@@ -40,8 +33,42 @@ export interface MoonData {
 }
 
 export interface TwilightData {
-  dawn: number; // ms since epoch (astronomical dawn)
+  dawn: number; // ms since epoch (civil dawn)
   dusk: number; // civil dusk (sun –6°)
-  night: number; // astronomical dusk (sun –18°)
-  dayEnd: number; // astronomical dawn (sun –18°)
+  nightStart: number; // astronomical dusk (sun –18°) - when night begins
+  nightEnd: number; // astronomical dawn (sun –18°) - when night ends
+}
+
+// Complete astronomical events including visibility rating
+export interface AstronomicalEvents {
+  /** Sunrise time */
+  sunRise?: Date;
+  /** Sunset time */
+  sunSet?: Date;
+  /** Start of astronomical night */
+  nightStart?: Date;
+  /** End of astronomical night */
+  nightEnd?: Date;
+  /** Moonrise time */
+  moonRise?: Date;
+  /** Moonset time */
+  moonSet?: Date;
+  /** Moon illumination percentage (0-100) */
+  moonIllumination: number;
+  /** Moon phase value (0-1) */
+  moonPhase: number;
+  /** Galactic Center rise time (when it reaches ≥10° altitude) */
+  gcRise?: Date;
+  /** Galactic Center set time (when it drops to ≤10° altitude) */
+  gcSet?: Date;
+  /** Galactic Center transit time (highest point in sky) */
+  gcTransit?: Date;
+  /** Maximum Galactic Center altitude in degrees */
+  maxGcAltitude: number;
+  /** Optimal viewing window with quality metrics */
+  optimalWindow: OptimalViewingWindow;
+  /** Visibility rating (0-4 stars) */
+  visibility: number;
+  /** Optional reason for the visibility rating */
+  visibilityReason?: string;
 }

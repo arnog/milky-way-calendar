@@ -1,31 +1,11 @@
 import { useState, useEffect } from "react";
-import { Location } from "../types/astronomy";
-import { type AstronomicalEvents } from "../types/astronomicalClock";
-import {
-  Observer,
-  SearchRiseSet,
-  Body,
-  SearchAltitude,
-} from "astronomy-engine";
-import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
-import { calculateMoonData } from "../utils/moonCalculations";
-import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import {
-  calculateVisibilityRating,
-  getVisibilityRatingNumber,
-} from "../utils/visibilityRating";
-import {
-  getOptimalViewingWindow,
-} from "../utils/integratedOptimalViewing";
+import { AstronomicalEvents } from "../types/astronomy";
+import { useLocation } from "./useLocation";
+import { calculateAstronomicalEvents } from "../utils/calculateAstronomicalEvents";
 import { getBortleRatingForLocation, findNearestDarkSky, DarkSiteResult } from "../utils/lightPollutionMap";
 import { findNearestSpecialLocation, calculateDistance } from "../utils/locationParser";
 import { getSpecialLocationDescription } from "../utils/locationParser";
 import { storageService } from "../services/storageService";
-
-export interface TonightEvents extends AstronomicalEvents {
-  visibility: number;
-  visibilityReason?: string;
-}
 
 export interface LocationDisplayData {
   displayName: string;
@@ -36,7 +16,7 @@ export interface LocationDisplayData {
 }
 
 export interface UseTonightEventsResult {
-  events: TonightEvents | null;
+  events: AstronomicalEvents | null;
   locationData: LocationDisplayData | null;
   isLoading: boolean;
   error: string | null;
@@ -47,10 +27,10 @@ export interface UseTonightEventsResult {
  * Extracts the data calculation logic from TonightCard component
  */
 export function useTonightEvents(
-  location: Location | null,
   currentDate?: Date
 ): UseTonightEventsResult {
-  const [events, setEvents] = useState<TonightEvents | null>(null);
+  const { location } = useLocation();
+  const [events, setEvents] = useState<AstronomicalEvents | null>(null);
   const [locationData, setLocationData] = useState<LocationDisplayData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -139,112 +119,41 @@ export function useTonightEvents(
 
       try {
         const now = currentDate || new Date();
-        const observer = new Observer(location.lat, location.lng, 0);
-
-        // Calculate sun times using astronomy-engine
-        const sunset = SearchRiseSet(Body.Sun, observer, -1, now, 1);
-        const sunrise = SearchRiseSet(Body.Sun, observer, +1, now, 1);
-        const tomorrowSunrise = SearchRiseSet(
-          Body.Sun,
-          observer,
-          +1,
-          new Date(now.getTime() + 24 * 60 * 60 * 1000),
-          1
-        );
-
-        // Calculate astronomical twilight times
-        const astronomicalDusk = SearchAltitude(
-          Body.Sun,
-          observer,
-          -1,
-          now,
-          1,
-          -18
-        );
-        const astronomicalDawn = SearchAltitude(
-          Body.Sun,
-          observer,
-          +1,
-          new Date(now.getTime() + 24 * 60 * 60 * 1000),
-          1,
-          -18
-        );
-
-        // Use existing calculateMoonData function instead of duplicating calculations
-        const moonData = calculateMoonData(now, location);
-
-        // Calculate Galactic Core times using the existing utility
-        const gcData = calculateGalacticCenterPosition(now, location);
-
-        // Use the calculated GC data which already includes rise/set times
-        const gcRise = gcData.riseTime;
-        const gcSet = gcData.setTime;
-        const gcTransit = gcData.transitTime;
-        const maxAltitude = gcData.altitude;
-
-        // Calculate optimal viewing window using integrated time-based analysis
-        const twilightData = calculateTwilightTimes(now, location);
-        const optimalWindow = getOptimalViewingWindow(
-          gcData,
-          moonData,
-          twilightData,
-          location,
-          now,
-          0.3 // Decent viewing threshold
-        );
-
-        // Calculate visibility rating for tonight using the consistent method
-        // Recalculate GC data at the optimal viewing time for accurate visibility rating
-        let gcDataForRating = gcData;
-        if (optimalWindow.startTime) {
-          gcDataForRating = calculateGalacticCenterPosition(
-            optimalWindow.startTime,
+        
+        // Calculate all astronomical events
+        const events = calculateAstronomicalEvents(now, location);
+        
+        // Calculate tomorrow's events for sunrise if needed
+        let tomorrowSunrise: Date | undefined;
+        if (!events.sunRise || events.sunRise <= now) {
+          const tomorrowEvents = calculateAstronomicalEvents(
+            new Date(now.getTime() + 24 * 60 * 60 * 1000),
             location
           );
+          tomorrowSunrise = tomorrowEvents.sunRise;
         }
-
-        const visibilityResult = calculateVisibilityRating(
-          gcDataForRating,
-          moonData,
-          twilightData,
-          optimalWindow,
-          location,
-          now
-        );
-        const visibility = getVisibilityRatingNumber(visibilityResult);
-        const visibilityReason =
-          typeof visibilityResult === "object"
-            ? visibilityResult.reason
-            : undefined;
 
         // For "Tonight" viewing, show events from today onwards
         const todayStart = new Date(now);
         todayStart.setHours(0, 0, 0, 0); // Start of today
 
-        const tonightEvents: TonightEvents = {
-          sunRise:
-            sunrise && sunrise.date > now
-              ? sunrise.date
-              : tomorrowSunrise?.date,
-          sunSet: sunset && sunset.date > now ? sunset.date : undefined,
-          astronomicalTwilightEnd:
-            astronomicalDusk && astronomicalDusk.date > now
-              ? astronomicalDusk.date
-              : undefined,
-          astronomicalTwilightStart: astronomicalDawn?.date,
-          moonRise:
-            moonData.rise && moonData.rise > now ? moonData.rise : undefined,
-          moonSet:
-            moonData.set && moonData.set > now ? moonData.set : undefined,
-          gcRise: gcRise && gcRise >= todayStart ? gcRise : undefined,
-          gcTransit: gcTransit || undefined,
-          gcSet: gcSet && gcSet > now ? gcSet : undefined,
-          maxGcAltitude: maxAltitude,
-          moonPhase: moonData.phase,
-          moonIllumination: moonData.illumination * 100,
-          visibility,
-          visibilityReason,
-          optimalWindow,
+        // Filter events to only show future or today's events
+        const tonightEvents: AstronomicalEvents = {
+          sunRise: events.sunRise && events.sunRise > now ? events.sunRise : tomorrowSunrise,
+          sunSet: events.sunSet && events.sunSet > now ? events.sunSet : undefined,
+          nightStart: events.nightStart && events.nightStart > now ? events.nightStart : undefined,
+          nightEnd: events.nightEnd,
+          moonRise: events.moonRise && events.moonRise > now ? events.moonRise : undefined,
+          moonSet: events.moonSet && events.moonSet > now ? events.moonSet : undefined,
+          gcRise: events.gcRise && events.gcRise >= todayStart ? events.gcRise : undefined,
+          gcTransit: events.gcTransit,
+          gcSet: events.gcSet && events.gcSet > now ? events.gcSet : undefined,
+          maxGcAltitude: events.maxGcAltitude,
+          moonPhase: events.moonPhase,
+          moonIllumination: events.moonIllumination,
+          visibility: events.visibility,
+          visibilityReason: events.visibilityReason,
+          optimalWindow: events.optimalWindow,
         };
 
         setEvents(tonightEvents);

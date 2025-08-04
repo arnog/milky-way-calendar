@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { calculateGalacticCenterPosition } from '../utils/galacticCenter'
+import { calculateGalacticCenterData } from '../utils/galacticCenter'
 import { Location } from '../types/astronomy'
 
 describe('galacticCenter', () => {
-  describe('calculateGalacticCenterPosition', () => {
+  describe('calculateGalacticCenterData', () => {
     // Test locations
     const yellowstone: Location = { lat: 44.6, lng: -110.5 }
     const sydney: Location = { lat: -33.9, lng: 151.2 }
@@ -11,12 +11,11 @@ describe('galacticCenter', () => {
 
     it('should return valid position data structure', () => {
       const date = new Date('2024-07-15T00:00:00Z')
-      const result = calculateGalacticCenterPosition(date, yellowstone)
+      const result = calculateGalacticCenterData(date, yellowstone)
 
       // Check return structure
       expect(result).toHaveProperty('altitude')
       expect(result).toHaveProperty('azimuth')
-      expect(result).toHaveProperty('isVisible')
       expect(result).toHaveProperty('riseTime')
       expect(result).toHaveProperty('setTime')
       expect(result).toHaveProperty('transitTime')
@@ -24,12 +23,11 @@ describe('galacticCenter', () => {
       // Check data types
       expect(typeof result.altitude).toBe('number')
       expect(typeof result.azimuth).toBe('number')
-      expect(typeof result.isVisible).toBe('boolean')
     })
 
     it('should calculate reasonable altitude values', () => {
       const date = new Date('2024-07-15T12:00:00Z') // Noon UTC
-      const result = calculateGalacticCenterPosition(date, yellowstone)
+      const result = calculateGalacticCenterData(date, yellowstone)
 
       // Altitude should be between -90 and 90 degrees
       expect(result.altitude).toBeGreaterThanOrEqual(-90)
@@ -38,7 +36,7 @@ describe('galacticCenter', () => {
 
     it('should calculate reasonable azimuth values', () => {
       const date = new Date('2024-07-15T12:00:00Z')
-      const result = calculateGalacticCenterPosition(date, yellowstone)
+      const result = calculateGalacticCenterData(date, yellowstone)
 
       // Azimuth should be between 0 and 360 degrees
       expect(result.azimuth).toBeGreaterThanOrEqual(0)
@@ -47,23 +45,22 @@ describe('galacticCenter', () => {
 
     it('should mark GC as visible for mid-latitude locations in summer', () => {
       const summerDate = new Date('2024-07-15T00:00:00Z')
-      const result = calculateGalacticCenterPosition(summerDate, yellowstone)
+      const result = calculateGalacticCenterData(summerDate, yellowstone)
 
-      // In July at mid-latitude, GC should be visible, but let's be more flexible
-      // as visibility depends on the exact altitude threshold calculation
-      expect(typeof result.isVisible).toBe('boolean')
-      if (result.isVisible) {
-        expect(result.riseTime).not.toBeNull()
+      // In July at mid-latitude, GC should be visible and have rise/set times
+      // Rise and set times should either both be null or both be dates
+      if (result.riseTime !== null) {
         expect(result.setTime).not.toBeNull()
+        expect(result.riseTime).toBeInstanceOf(Date)
+        expect(result.setTime).toBeInstanceOf(Date)
       }
     })
 
     it('should mark GC as not visible for very high latitude locations', () => {
       const summerDate = new Date('2024-07-15T00:00:00Z')
-      const result = calculateGalacticCenterPosition(summerDate, northernAlaska)
+      const result = calculateGalacticCenterData(summerDate, northernAlaska)
 
       // At 70°N, the Galactic Center should never reach 10° altitude
-      expect(result.isVisible).toBe(false)
       expect(result.riseTime).toBeNull()
       expect(result.setTime).toBeNull()
     })
@@ -71,8 +68,8 @@ describe('galacticCenter', () => {
     it('should calculate transit time for all locations', () => {
       const date = new Date('2024-07-15T00:00:00Z')
       
-      const yellowstoneResult = calculateGalacticCenterPosition(date, yellowstone)
-      const sydneyResult = calculateGalacticCenterPosition(date, sydney)
+      const yellowstoneResult = calculateGalacticCenterData(date, yellowstone)
+      const sydneyResult = calculateGalacticCenterData(date, sydney)
       
       // Transit time should exist even if GC is not visible
       expect(yellowstoneResult.transitTime).not.toBeNull()
@@ -93,29 +90,29 @@ describe('galacticCenter', () => {
       const summerDate = new Date('2024-08-15T00:00:00Z') // 15° threshold
 
       locations.forEach(location => {
-        const winterResult = calculateGalacticCenterPosition(winterDate, location)
-        const fallResult = calculateGalacticCenterPosition(fallDate, location)
-        const summerResult = calculateGalacticCenterPosition(summerDate, location)
+        const winterResult = calculateGalacticCenterData(winterDate, location)
+        const fallResult = calculateGalacticCenterData(fallDate, location)
+        const summerResult = calculateGalacticCenterData(summerDate, location)
 
         // Results should be consistent (not throw errors)
-        expect(typeof winterResult.isVisible).toBe('boolean')
-        expect(typeof fallResult.isVisible).toBe('boolean')
-        expect(typeof summerResult.isVisible).toBe('boolean')
+        expect(typeof winterResult.altitude).toBe('number')
+        expect(typeof fallResult.altitude).toBe('number')
+        expect(typeof summerResult.altitude).toBe('number')
       })
     })
 
     it('should handle different hemispheres correctly', () => {
       const date = new Date('2024-07-15T00:00:00Z')
       
-      const northernResult = calculateGalacticCenterPosition(date, yellowstone)
-      const southernResult = calculateGalacticCenterPosition(date, sydney)
+      const northernResult = calculateGalacticCenterData(date, yellowstone)
+      const southernResult = calculateGalacticCenterData(date, sydney)
 
       // Both should have valid results
       expect(typeof northernResult.altitude).toBe('number')
       expect(typeof southernResult.altitude).toBe('number')
       
       // Southern hemisphere should generally have better GC visibility
-      if (southernResult.isVisible && northernResult.isVisible) {
+      if (southernResult.riseTime !== null && northernResult.riseTime !== null) {
         // In July, Sydney should generally have higher GC altitude than Yellowstone
         expect(southernResult.altitude).toBeGreaterThan(northernResult.altitude)
       }
@@ -124,12 +121,13 @@ describe('galacticCenter', () => {
     it('should return consistent results for the same input', () => {
       const date = new Date('2024-07-15T12:00:00Z')
       
-      const result1 = calculateGalacticCenterPosition(date, yellowstone)
-      const result2 = calculateGalacticCenterPosition(date, yellowstone)
+      const result1 = calculateGalacticCenterData(date, yellowstone)
+      const result2 = calculateGalacticCenterData(date, yellowstone)
 
       expect(result1.altitude).toBe(result2.altitude)
       expect(result1.azimuth).toBe(result2.azimuth)
-      expect(result1.isVisible).toBe(result2.isVisible)
+      expect(result1.riseTime?.getTime()).toBe(result2.riseTime?.getTime())
+      expect(result1.setTime?.getTime()).toBe(result2.setTime?.getTime())
     })
 
     it('should handle edge cases gracefully', () => {
@@ -138,11 +136,11 @@ describe('galacticCenter', () => {
       const veryLateDate = new Date('2100-12-31T23:59:59Z')
 
       expect(() => {
-        calculateGalacticCenterPosition(veryEarlyDate, yellowstone)
+        calculateGalacticCenterData(veryEarlyDate, yellowstone)
       }).not.toThrow()
 
       expect(() => {
-        calculateGalacticCenterPosition(veryLateDate, yellowstone)
+        calculateGalacticCenterData(veryLateDate, yellowstone)
       }).not.toThrow()
 
       // Test with extreme locations
@@ -150,17 +148,17 @@ describe('galacticCenter', () => {
       const extremeSouth: Location = { lat: -89, lng: 0 }
 
       expect(() => {
-        calculateGalacticCenterPosition(new Date(), extremeNorth)
+        calculateGalacticCenterData(new Date(), extremeNorth)
       }).not.toThrow()
 
       expect(() => {
-        calculateGalacticCenterPosition(new Date(), extremeSouth)
+        calculateGalacticCenterData(new Date(), extremeSouth)
       }).not.toThrow()
     })
 
     it('should have rise time before set time when both exist', () => {
       const date = new Date('2024-07-15T00:00:00Z')
-      const result = calculateGalacticCenterPosition(date, yellowstone)
+      const result = calculateGalacticCenterData(date, yellowstone)
 
       if (result.riseTime && result.setTime) {
         // Handle day boundary crossing - set time might be next day

@@ -12,13 +12,13 @@ describe('twilightCalculations', () => {
 
       expect(result).toHaveProperty('dawn')
       expect(result).toHaveProperty('dusk')
-      expect(result).toHaveProperty('night')
-      expect(result).toHaveProperty('dayEnd')
+      expect(result).toHaveProperty('nightStart')
+      expect(result).toHaveProperty('nightEnd')
 
       expect(typeof result.dawn).toBe('number')
       expect(typeof result.dusk).toBe('number')
-      expect(typeof result.night).toBe('number')
-      expect(typeof result.dayEnd).toBe('number')
+      expect(typeof result.nightStart).toBe('number')
+      expect(typeof result.nightEnd).toBe('number')
     })
 
     it('should have logical time ordering for normal latitudes', () => {
@@ -27,8 +27,8 @@ describe('twilightCalculations', () => {
 
       // Convert timestamps to dates for comparison
       const dusk = new Date(result.dusk)
-      const night = new Date(result.night)
-      const dayEnd = new Date(result.dayEnd)
+      const night = new Date(result.nightStart)
+      const dayEnd = new Date(result.nightEnd)
 
       // Dusk should come before night (astronomical twilight)
       expect(dusk.getTime()).toBeLessThan(night.getTime())
@@ -60,8 +60,8 @@ describe('twilightCalculations', () => {
           const result = calculateTwilightTimes(date, location)
           expect(typeof result.dawn).toBe('number')
           expect(typeof result.dusk).toBe('number')
-          expect(typeof result.night).toBe('number')
-          expect(typeof result.dayEnd).toBe('number')
+          expect(typeof result.nightStart).toBe('number')
+          expect(typeof result.nightEnd).toBe('number')
         })
       })
     })
@@ -82,8 +82,8 @@ describe('twilightCalculations', () => {
         const result = calculateTwilightTimes(date, location)
         expect(result.dawn).toBeGreaterThan(0)
         expect(result.dusk).toBeGreaterThan(0)
-        expect(result.night).toBeGreaterThan(0)
-        expect(result.dayEnd).toBeGreaterThan(0)
+        expect(result.nightStart).toBeGreaterThan(0)
+        expect(result.nightEnd).toBeGreaterThan(0)
       })
     })
 
@@ -100,8 +100,8 @@ describe('twilightCalculations', () => {
       // Should return valid timestamps even if sun doesn't set
       expect(typeof result.dawn).toBe('number')
       expect(typeof result.dusk).toBe('number')
-      expect(typeof result.night).toBe('number')
-      expect(typeof result.dayEnd).toBe('number')
+      expect(typeof result.nightStart).toBe('number')
+      expect(typeof result.nightEnd).toBe('number')
     })
 
     it('should return consistent results for the same input', () => {
@@ -112,8 +112,8 @@ describe('twilightCalculations', () => {
 
       expect(result1.dawn).toBe(result2.dawn)
       expect(result1.dusk).toBe(result2.dusk)
-      expect(result1.night).toBe(result2.night)
-      expect(result1.dayEnd).toBe(result2.dayEnd)
+      expect(result1.nightStart).toBe(result2.nightStart)
+      expect(result1.nightEnd).toBe(result2.nightEnd)
     })
 
     it('should handle edge cases gracefully', () => {
@@ -148,8 +148,8 @@ describe('twilightCalculations', () => {
       const twilightData = {
         dawn: new Date('2024-07-16T05:30:00Z').getTime(),
         dusk: new Date('2024-07-15T20:30:00Z').getTime(),
-        night: new Date('2024-07-15T22:00:00Z').getTime(), // 10 PM
-        dayEnd: new Date('2024-07-16T04:00:00Z').getTime() // 4 AM next day
+        nightStart: new Date('2024-07-15T22:00:00Z').getTime(), // 10 PM
+        nightEnd: new Date('2024-07-16T04:00:00Z').getTime() // 4 AM next day
       }
 
       const duration = calculateDarkDuration(twilightData)
@@ -163,8 +163,8 @@ describe('twilightCalculations', () => {
       const twilightData = {
         dawn: new Date('2024-07-16T05:30:00Z').getTime(),
         dusk: new Date('2024-07-15T20:30:00Z').getTime(),
-        night: new Date('2024-07-15T23:00:00Z').getTime(), // 11 PM
-        dayEnd: new Date('2024-07-16T02:00:00Z').getTime() // 2 AM next day
+        nightStart: new Date('2024-07-15T23:00:00Z').getTime(), // 11 PM
+        nightEnd: new Date('2024-07-16T02:00:00Z').getTime() // 2 AM next day
       }
 
       const duration = calculateDarkDuration(twilightData)
@@ -179,8 +179,8 @@ describe('twilightCalculations', () => {
       const twilightData = {
         dawn: sameDay.getTime() + 6 * 3600000, // 6 AM
         dusk: sameDay.getTime() + 18 * 3600000, // 6 PM
-        night: sameDay.getTime() + 20 * 3600000, // 8 PM
-        dayEnd: sameDay.getTime() + 22 * 3600000 // 10 PM same day
+        nightStart: sameDay.getTime() + 20 * 3600000, // 8 PM
+        nightEnd: sameDay.getTime() + 22 * 3600000 // 10 PM same day
       }
 
       const duration = calculateDarkDuration(twilightData)
@@ -193,8 +193,8 @@ describe('twilightCalculations', () => {
       const twilightData = {
         dawn: new Date('2024-06-21T03:00:00Z').getTime(),
         dusk: new Date('2024-06-20T21:00:00Z').getTime(),
-        night: new Date('2024-06-20T23:30:00Z').getTime(), // 11:30 PM
-        dayEnd: new Date('2024-06-21T00:30:00Z').getTime() // 12:30 AM (1 hour later)
+        nightStart: new Date('2024-06-20T23:30:00Z').getTime(), // 11:30 PM
+        nightEnd: new Date('2024-06-21T00:30:00Z').getTime() // 12:30 AM (1 hour later)
       }
 
       const duration = calculateDarkDuration(twilightData)
@@ -207,8 +207,8 @@ describe('twilightCalculations', () => {
       const twilightData = {
         dawn: new Date('2024-12-21T08:00:00Z').getTime(),
         dusk: new Date('2024-12-20T16:00:00Z').getTime(),
-        night: new Date('2024-12-20T18:00:00Z').getTime(), // 6 PM
-        dayEnd: new Date('2024-12-21T06:00:00Z').getTime() // 6 AM next day (12 hours)
+        nightStart: new Date('2024-12-20T18:00:00Z').getTime(), // 6 PM
+        nightEnd: new Date('2024-12-21T06:00:00Z').getTime() // 6 AM next day (12 hours)
       }
 
       const duration = calculateDarkDuration(twilightData)
@@ -220,25 +220,25 @@ describe('twilightCalculations', () => {
     it('should return positive duration for valid input', () => {
       const testCases = [
         {
-          night: new Date('2024-07-15T20:00:00Z').getTime(),
-          dayEnd: new Date('2024-07-16T04:00:00Z').getTime()
+          nightStart: new Date('2024-07-15T20:00:00Z').getTime(),
+          nightEnd: new Date('2024-07-16T04:00:00Z').getTime()
         },
         {
-          night: new Date('2024-07-15T22:00:00Z').getTime(),
-          dayEnd: new Date('2024-07-16T02:00:00Z').getTime()
+          nightStart: new Date('2024-07-15T22:00:00Z').getTime(),
+          nightEnd: new Date('2024-07-16T02:00:00Z').getTime()
         },
         {
-          night: new Date('2024-07-15T21:00:00Z').getTime(),
-          dayEnd: new Date('2024-07-16T05:00:00Z').getTime()
+          nightStart: new Date('2024-07-15T21:00:00Z').getTime(),
+          nightEnd: new Date('2024-07-16T05:00:00Z').getTime()
         }
       ]
 
-      testCases.forEach(({ night, dayEnd }) => {
+      testCases.forEach(({ nightStart, nightEnd }) => {
         const twilightData = {
           dawn: 0, // Not used in calculation
           dusk: 0, // Not used in calculation
-          night,
-          dayEnd
+          nightStart,
+          nightEnd
         }
 
         const duration = calculateDarkDuration(twilightData)

@@ -23,10 +23,7 @@ interface TonightCardProps {
 export default function TonightCard({ currentDate }: TonightCardProps) {
   const { location, updateLocation } = useLocation();
   const navigate = useNavigate();
-  const { events, locationData, isLoading, error } = useTonightEvents(
-    location,
-    currentDate
-  );
+  const { events, locationData, isLoading, error } = useTonightEvents(currentDate);
   const [showLocationPopover, setShowLocationPopover] = useState(false);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -146,21 +143,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
 
       {/* Astronomical Clock Visualization */}
       <AstronomicalClock
-        events={{
-          sunRise: events.sunRise,
-          sunSet: events.sunSet,
-          astronomicalTwilightEnd: events.astronomicalTwilightEnd,
-          astronomicalTwilightStart: events.astronomicalTwilightStart,
-          moonRise: events.moonRise,
-          moonSet: events.moonSet,
-          moonIllumination: events.moonIllumination,
-          moonPhase: events.moonPhase,
-          gcRise: events.gcRise,
-          gcSet: events.gcSet,
-          gcTransit: events.gcTransit,
-          maxGcAltitude: events.maxGcAltitude,
-          optimalWindow: events.optimalWindow,
-        }}
+        events={events}
         currentDate={currentDate}
         size={600}
       />
@@ -169,7 +152,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
         {/* Sun Events */}
         <div className={styles.eventSection}>
           <h3 className={styles.sectionTitle}>Sun</h3>
-          {(events.sunSet || events.astronomicalTwilightEnd) && (
+          {(events.sunSet || events.nightStart) && (
             <div className={styles.eventRow}>
               {events.sunSet && (
                 <>
@@ -181,7 +164,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                   <FormattedTime date={events.sunSet} />
                 </>
               )}
-              {events.astronomicalTwilightEnd && (
+              {events.nightStart && (
                 <>
                   <Icon
                     name="night-rise"
@@ -189,15 +172,15 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                     className={`global-icon-medium`}
                   />
                   <FormattedTime
-                    date={events.astronomicalTwilightEnd}
+                    date={events.nightStart}
                   />
                 </>
               )}
             </div>
           )}
-          {(events.astronomicalTwilightStart || events.sunRise) && (
+          {(events.nightEnd || events.sunRise) && (
             <div className={styles.eventRow}>
-              {events.astronomicalTwilightStart && (
+              {events.nightEnd && (
                 <>
                   <Icon
                     name="night-set"
@@ -205,7 +188,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                     className={`global-icon-medium`}
                   />
                   <FormattedTime
-                    date={events.astronomicalTwilightStart}
+                    date={events.nightEnd}
                   />
                 </>
               )}

@@ -12,7 +12,6 @@ describe('optimalViewing', () => {
     const createMockGCData = (overrides: Partial<GalacticCenterData> = {}): GalacticCenterData => ({
       altitude: 25,
       azimuth: 180,
-      isVisible: true,
       riseTime: new Date('2024-07-15T21:00:00Z'),
       setTime: new Date('2024-07-16T05:00:00Z'),
       transitTime: new Date('2024-07-16T01:00:00Z'),
@@ -32,13 +31,13 @@ describe('optimalViewing', () => {
     const createMockTwilightData = (overrides: Partial<TwilightData> = {}): TwilightData => ({
       dawn: new Date('2024-07-16T05:30:00Z').getTime(),
       dusk: new Date('2024-07-15T20:30:00Z').getTime(),
-      night: new Date('2024-07-15T22:00:00Z').getTime(), // Astronomical darkness starts
-      dayEnd: new Date('2024-07-16T04:00:00Z').getTime(), // Astronomical darkness ends
+      nightStart: new Date('2024-07-15T22:00:00Z').getTime(), // Astronomical darkness starts
+      nightEnd: new Date('2024-07-16T04:00:00Z').getTime(), // Astronomical darkness ends
       ...overrides
     })
 
     it('should return empty window when GC is not visible', () => {
-      const gcData = createMockGCData({ isVisible: false, riseTime: null, setTime: null })
+      const gcData = createMockGCData({ riseTime: null, setTime: null })
       const moonData = createMockMoonData()
       const twilightData = createMockTwilightData()
 
@@ -84,7 +83,7 @@ describe('optimalViewing', () => {
       expect(result.endTime).not.toBeNull()
       
       // Start time should be when darkness begins (GC already up)
-      expect(result.startTime?.getTime()).toBe(twilightData.night)
+      expect(result.startTime?.getTime()).toBe(twilightData.nightStart)
       // End time should be when GC sets
       expect(result.endTime?.getTime()).toBe(new Date('2024-07-16T03:00:00Z').getTime())
     })
@@ -103,7 +102,7 @@ describe('optimalViewing', () => {
       expect(result.endTime).not.toBeNull()
       
       // End time should be dawn (not GC set)
-      expect(result.endTime?.getTime()).toBe(twilightData.dayEnd)
+      expect(result.endTime?.getTime()).toBe(twilightData.nightEnd)
     })
 
     it('should return empty window when no overlap between GC and darkness', () => {
@@ -164,8 +163,8 @@ describe('optimalViewing', () => {
       })
       const moonData = createMockMoonData()
       const twilightData = createMockTwilightData({
-        night: new Date('2024-07-15T22:00:00Z').getTime(),
-        dayEnd: new Date('2024-07-16T04:00:00Z').getTime()
+        nightStart: new Date('2024-07-15T22:00:00Z').getTime(),
+        nightEnd: new Date('2024-07-16T04:00:00Z').getTime()
       })
 
       const result = getOptimalViewingWindow(gcData, moonData, twilightData, mockLocation, mockDate)
@@ -182,8 +181,8 @@ describe('optimalViewing', () => {
       const gcData = createMockGCData()
       const moonData = createMockMoonData()
       const incompleteTwilightData = createMockTwilightData({
-        night: 0, // Missing night time
-        dayEnd: 0  // Missing day end time
+        nightStart: 0, // Missing night time
+        nightEnd: 0  // Missing day end time
       })
 
       const result = getOptimalViewingWindow(gcData, moonData, incompleteTwilightData, mockLocation, mockDate)
@@ -192,7 +191,7 @@ describe('optimalViewing', () => {
       expect(result.startTime).toBeNull()
       expect(result.endTime).toBeNull()
       expect(result.duration).toBe(0)
-      expect(result.description).toContain('No viewing opportunity available')
+      expect(result.description).toContain('No viable observation time')
     })
 
     it('should calculate duration correctly', () => {

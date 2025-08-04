@@ -19,7 +19,7 @@ export default function DailyVisibilityTable({
   currentDate,
 }: DailyVisibilityTableProps) {
   const { location } = useLocation();
-  const { dailyData, isLoading, error } = useWeeklyVisibility(location, currentDate);
+  const { dailyData, isLoading, error } = useWeeklyVisibility(currentDate);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
 
@@ -133,7 +133,7 @@ export default function DailyVisibilityTable({
                                   </span>
                                 </div>
                               )}
-                              {day.astronomicalTwilightEnd && (
+                              {day.nightStart && (
                                 <div className={styles.eventRow}>
                                   <Icon
                                     name="night-rise"
@@ -142,12 +142,12 @@ export default function DailyVisibilityTable({
                                   />
                                   <span>
                                     <FormattedTime 
-                                      date={day.astronomicalTwilightEnd}
+                                      date={day.nightStart}
                                     />
                                   </span>
                                 </div>
                               )}
-                              {day.astronomicalTwilightStart && (
+                              {day.nightEnd && (
                                 <div className={styles.eventRow}>
                                   <Icon
                                     name="night-set"
@@ -156,7 +156,7 @@ export default function DailyVisibilityTable({
                                   />
                                   <span>
                                     <FormattedTime 
-                                      date={day.astronomicalTwilightStart}
+                                      date={day.nightEnd}
                                     />
                                   </span>
                                 </div>

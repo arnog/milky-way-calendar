@@ -342,7 +342,7 @@ export function getOptimalViewingWindow(
   qualityThreshold: number = 0.3 // Minimum score for decent viewing
 ): OptimalViewingWindow {
   // First check basic requirements
-  if (!gcData.riseTime || !twilightData.night || !twilightData.dayEnd) {
+  if (!gcData.riseTime) {
     return emptyWindow("No viewing opportunity available");
   }
 
@@ -350,8 +350,8 @@ export function getOptimalViewingWindow(
   const integratedResult = calculateIntegratedOptimalWindow(
     location,
     date,
-    twilightData.night ? new Date(twilightData.night) : null,
-    twilightData.dayEnd ? new Date(twilightData.dayEnd) : null,
+    new Date(twilightData.nightStart),
+    new Date(twilightData.nightEnd),
     moonData.rise,
     moonData.set,
     moonData.illumination,
@@ -368,8 +368,8 @@ export function getOptimalViewingWindow(
   // No quality periods found - check if there's at least basic GC/darkness overlap
   const gcStart = gcData.riseTime;
   const gcEnd = gcData.setTime;
-  const darkStart = new Date(twilightData.night);
-  const darkEnd = new Date(twilightData.dayEnd);
+  const darkStart = new Date(twilightData.nightStart);
+  const darkEnd = new Date(twilightData.nightEnd);
 
   // Calculate simple intersection
   const windowStart = new Date(Math.max(gcStart.getTime(), darkStart.getTime()));

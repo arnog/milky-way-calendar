@@ -1,9 +1,9 @@
 import { Location } from '../types/astronomy';
 import { timeToAngle, isEventDistant } from './timeConversion';
 import { 
-  type AstronomicalEvents, 
   type ClockEvent 
 } from '../types/astronomicalClock';
+import { type AstronomicalEvents } from '../types/astronomy';
 import { EVENT_LABEL_CONFIG } from '../config/clockConfig';
 
 /**
@@ -176,29 +176,29 @@ export function processAstronomicalEvents(
     });
   }
   
-  if (events.astronomicalTwilightEnd) {
+  if (events.nightStart) {
     eventList.push({
       id: 'twilight-end',
-      time: events.astronomicalTwilightEnd,
-      angle: timeToAngle(events.astronomicalTwilightEnd, location),
+      time: events.nightStart,
+      angle: timeToAngle(events.nightStart, location),
       icon: 'night-rise',
       title: 'Astronomical Night Start',
       tooltip: 'True darkness begins - sun reaches -18° below horizon, ideal for deep sky photography',
-      isDistant: isEventDistant(events.astronomicalTwilightEnd, now),
+      isDistant: isEventDistant(events.nightStart, now),
       eventClass: 'nightEvent',
       adjustedRadius: sunRadius
     });
   }
   
-  if (events.astronomicalTwilightStart) {
+  if (events.nightEnd) {
     eventList.push({
       id: 'twilight-start',
-      time: events.astronomicalTwilightStart,
-      angle: timeToAngle(events.astronomicalTwilightStart, location),
+      time: events.nightEnd,
+      angle: timeToAngle(events.nightEnd, location),
       icon: 'night-set',
       title: 'Astronomical Night End',
       tooltip: 'Darkness ends - sun reaches -18° below horizon, sky begins to brighten',
-      isDistant: isEventDistant(events.astronomicalTwilightStart, now),
+      isDistant: isEventDistant(events.nightEnd, now),
       eventClass: 'nightEvent',
       adjustedRadius: sunRadius
     });

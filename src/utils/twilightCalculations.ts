@@ -100,8 +100,8 @@ export function calculateTwilightTimes(
     return {
       dawn: civilDawn ? civilDawn.date.getTime() : baseLocal.getTime() + 6 * 3600000,
       dusk: civilDusk ? civilDusk.date.getTime() : baseLocal.getTime() + 18 * 3600000,
-      night: nightStart.getTime(),
-      dayEnd: dayEnd.getTime(),
+      nightStart: nightStart.getTime(),
+      nightEnd: dayEnd.getTime(),
     };
   } catch (error) {
     console.error("Error calculating twilight times with astronomy-engine:", error);
@@ -111,8 +111,8 @@ export function calculateTwilightTimes(
     return {
       dawn: new Date(fallback.setHours(6, 0, 0, 0)).getTime(),
       dusk: new Date(fallback.setHours(18, 0, 0, 0)).getTime(),
-      night: new Date(fallback.setHours(20, 0, 0, 0)).getTime(),
-      dayEnd: new Date(fallback.setHours(4, 0, 0, 0)).getTime(),
+      nightStart: new Date(fallback.setHours(20, 0, 0, 0)).getTime(),
+      nightEnd: new Date(fallback.setHours(4, 0, 0, 0)).getTime(),
     };
   }
 }
@@ -120,8 +120,8 @@ export function calculateTwilightTimes(
 
 export function calculateDarkDuration(tw: TwilightData): number {
   const ms =
-    tw.dayEnd > tw.night
-      ? tw.dayEnd - tw.night
-      : 86_400_000 - (tw.night - tw.dayEnd); // 24 h in ms
+    tw.nightEnd > tw.nightStart
+      ? tw.nightEnd - tw.nightStart
+      : 86_400_000 - (tw.nightStart - tw.nightEnd); // 24 h in ms
   return ms / 3.6e6; // hours
 }

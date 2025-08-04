@@ -3,40 +3,7 @@
  * Centralizes all clock-related interfaces and types for better maintainability
  */
 
-import { OptimalViewingWindow } from '../utils/integratedOptimalViewing';
-
-/**
- * Complete set of astronomical events for a given date and location
- * Used to provide all necessary data for clock visualization
- */
-export interface AstronomicalEvents {
-  /** Sunrise time */
-  sunRise?: Date;
-  /** Sunset time */
-  sunSet?: Date;
-  /** End of astronomical twilight (start of night) */
-  astronomicalTwilightEnd?: Date;
-  /** Start of astronomical twilight (end of night) */
-  astronomicalTwilightStart?: Date;
-  /** Moonrise time */
-  moonRise?: Date;
-  /** Moonset time */
-  moonSet?: Date;
-  /** Moon illumination percentage (0-100) */
-  moonIllumination: number;
-  /** Moon phase value (0-1) */
-  moonPhase: number;
-  /** Galactic Center rise time (when it reaches ≥10° altitude) */
-  gcRise?: Date;
-  /** Galactic Center set time (when it drops to ≤10° altitude) */
-  gcSet?: Date;
-  /** Galactic Center transit time (highest point in sky) */
-  gcTransit?: Date;
-  /** Maximum Galactic Center altitude in degrees */
-  maxGcAltitude: number;
-  /** Optimal viewing window with quality metrics */
-  optimalWindow: OptimalViewingWindow;
-}
+import { AstronomicalEvents } from "../types/astronomy";
 
 /**
  * Individual event displayed on the clock face
@@ -65,31 +32,6 @@ export interface ClockEvent {
   icons?: string[];
   /** Additional titles for consolidated events */
   titles?: string[];
-}
-
-/**
- * Parameters for generating SVG arc paths
- * Used by arc calculation utilities to create consistent arc rendering
- */
-export interface ArcParams {
-  /** Start angle in degrees (0 = 12 o'clock) */
-  startAngle: number;
-  /** End angle in degrees */
-  endAngle: number;
-  /** Arc radius from center */
-  radius: number;
-  /** Center X coordinate */
-  centerX: number;
-  /** Center Y coordinate */
-  centerY: number;
-  /** Arc color */
-  color: string;
-  /** CSS class name for styling */
-  className: string;
-  /** Arc opacity (0-1) */
-  opacity?: number;
-  /** Stroke width override */
-  strokeWidth?: number;
 }
 
 /**
@@ -127,31 +69,6 @@ export interface HourMarkerConfig {
 }
 
 /**
- * Clock positioning and sizing configuration
- * Centralizes layout calculations for consistent spacing
- */
-export interface ClockDimensions {
-  /** Total clock size (width/height) */
-  size: number;
-  /** Center X coordinate */
-  centerX: number;
-  /** Center Y coordinate */
-  centerY: number;
-  /** Base radius for arc calculations */
-  baseRadius: number;
-  /** Step size between arc layers */
-  radiusStep: number;
-  /** Sun arc radius */
-  sunRadius: number;
-  /** Moon arc radius */
-  moonRadius: number;
-  /** Galactic Center arc radius */
-  gcRadius: number;
-  /** Label positioning radius */
-  labelRadius: number;
-}
-
-/**
  * Props for the main AstronomicalClock component
  */
 export interface AstronomicalClockProps {
@@ -167,17 +84,17 @@ export interface AstronomicalClockProps {
  * Event types for categorizing astronomical events
  * Used for styling and tooltip generation
  */
-export type EventType = 
-  | 'sunset'
-  | 'sunrise'
-  | 'twilightEnd'
-  | 'twilightStart'
-  | 'moonrise'
-  | 'moonset'
-  | 'gcRise'
-  | 'gcSet'
-  | 'gcTransit'
-  | 'optimalViewing';
+export type EventType =
+  | "sunset"
+  | "sunrise"
+  | "twilightEnd"
+  | "twilightStart"
+  | "moonrise"
+  | "moonset"
+  | "gcRise"
+  | "gcSet"
+  | "gcTransit"
+  | "optimalViewing";
 
 /**
  * Event styling configuration
@@ -194,30 +111,4 @@ export interface EventStyleConfig {
   color: string;
   /** Tooltip template */
   tooltipTemplate: string;
-}
-
-/**
- * Time range for event visibility calculations
- * Defines when events should be displayed with full vs reduced opacity
- */
-export interface VisibilityTimeRange {
-  /** Start of relevant time period (e.g., 6pm same day) */
-  startTime: Date;
-  /** End of relevant time period (e.g., 6am next day) */
-  endTime: Date;
-}
-
-/**
- * Label positioning result
- * Contains calculated position for event labels around clock perimeter
- */
-export interface LabelPosition {
-  /** X coordinate */
-  x: number;
-  /** Y coordinate */
-  y: number;
-  /** Angle in degrees */
-  angle: number;
-  /** Distance from center */
-  radius: number;
 }

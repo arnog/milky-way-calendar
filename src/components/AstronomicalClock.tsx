@@ -84,15 +84,15 @@ export default function AstronomicalClock({
   
   // Generate arc data
   const sunArcs = useMemo(() => {
-    if (!events.sunSet || !events.astronomicalTwilightEnd || 
-        !events.astronomicalTwilightStart || !events.sunRise) {
+    if (!events.sunSet || !events.nightStart || 
+        !events.nightEnd || !events.sunRise) {
       return [];
     }
     
     return createSunArc(
       timeToAngle(events.sunSet, location),
-      timeToAngle(events.astronomicalTwilightEnd, location),
-      timeToAngle(events.astronomicalTwilightStart, location),
+      timeToAngle(events.nightStart, location),
+      timeToAngle(events.nightEnd, location),
       timeToAngle(events.sunRise, location),
       sunRadius,
       centerX,

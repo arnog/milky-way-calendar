@@ -3,12 +3,8 @@ import { WeekData } from "../types/astronomy";
 import { useLocation } from "../hooks/useLocation";
 import { getVisibilityDescription } from "../utils/visibilityRating";
 import StarRating from "./StarRating";
-import { calculateGalacticCenterPosition } from "../utils/galacticCenter";
-import { calculateMoonData } from "../utils/moonCalculations";
-import { calculateTwilightTimes } from "../utils/twilightCalculations";
-import { calculateVisibilityRating, getVisibilityRatingNumber } from "../utils/visibilityRating";
+import { calculateAstronomicalEvents } from "../utils/calculateAstronomicalEvents";
 import {
-  getOptimalViewingWindow,
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
 } from "../utils/integratedOptimalViewing";
@@ -52,55 +48,17 @@ export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
         midWeek.setDate(startDate.getDate() + 3);
 
         try {
-          const gcData = calculateGalacticCenterPosition(midWeek, location);
-          const moonData = calculateMoonData(midWeek, location);
-          const twilightData = calculateTwilightTimes(midWeek, location);
-          const optimalWindow = getOptimalViewingWindow(
-            gcData,
-            moonData,
-            twilightData,
-            location,
-            midWeek,
-            0.3   // Decent viewing threshold
-          );
-
-          let gcDataForRating = gcData;
-          if (optimalWindow.startTime) {
-            gcDataForRating = calculateGalacticCenterPosition(
-              optimalWindow.startTime,
-              location
-            );
-          }
-
-          const visibilityResult = calculateVisibilityRating(
-            gcDataForRating,
-            moonData,
-            twilightData,
-            optimalWindow,
-            location,
-            midWeek
-          );
-          const visibility = getVisibilityRatingNumber(visibilityResult);
-          const visibilityReason = typeof visibilityResult === 'object' ? visibilityResult.reason : undefined;
+          // Calculate all astronomical events for the mid-week date
+          const events = calculateAstronomicalEvents(midWeek, location);
 
           weeks.push({
             weekNumber: currentWeekNumber + weekOffset,
             startDate,
-            visibility,
-            moonPhase: moonData.phase,
-            moonIllumination: moonData.illumination,
-            gcTime: formatOptimalViewingTime(optimalWindow, location),
-            gcDuration: formatOptimalViewingDuration(optimalWindow),
-            gcAltitude: gcData.altitude,
-            twilightEnd: twilightData.night
-              ? new Date(twilightData.night)
-              : null,
-            twilightStart: twilightData.dayEnd
-              ? new Date(twilightData.dayEnd)
-              : null,
-            optimalConditions: optimalWindow.description,
-            optimalWindow: optimalWindow,
-            visibilityReason: visibilityReason,
+            visibility: events.visibility,
+            gcDuration: formatOptimalViewingDuration(events.optimalWindow),
+            moonIllumination: events.moonIllumination / 100, // Convert to 0-1 range
+            optimalWindow: events.optimalWindow,
+            visibilityReason: events.visibilityReason,
           });
         } catch (error) {
           console.error(

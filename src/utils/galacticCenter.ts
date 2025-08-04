@@ -6,7 +6,7 @@ const GALACTIC_CENTER_RA = 17.759; // hours (17h 45m 36s)
 const GALACTIC_CENTER_DEC = -29.007; // degrees (-29° 0' 25")
 
 
-export function calculateGalacticCenterPosition(
+export function calculateGalacticCenterData(
   date: Date,
   location: Location
 ): GalacticCenterData {
@@ -189,13 +189,9 @@ export function calculateGalacticCenterPosition(
       // Fallback to null times
     }
 
-    // Determine visibility based on whether GC can reach 10°
-    const isVisible = riseTime !== null;
-
     return {
       altitude: horizontal.altitude,
       azimuth: horizontal.azimuth,
-      isVisible,
       riseTime, // Use 10° rise time as primary rise time
       setTime, // Set time when GC descends through 10°
       transitTime,
@@ -205,7 +201,6 @@ export function calculateGalacticCenterPosition(
     return {
       altitude: 0,
       azimuth: 0,
-      isVisible: false,
       riseTime: null,
       setTime: null,
       transitTime: null,
