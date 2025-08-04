@@ -935,7 +935,7 @@ export const SPECIAL_LOCATION_DESCRIPTIONS: Record<string, string> = {
     <p><a href="https://www.nps.gov/cavo/">Official Capulin Volcano NM Website</a></p>
   `,
 
-  florissantfossilbeds: `
+  florissant: `
     <h2>Florissant Fossil Beds National Monument</h2>
     <p>Florissant offers Bortle 3 skies with wide meadows and ancient petrified redwood stumps as unique astrophotography subjects.</p>
     <p>Light domes from Colorado Springs are visible to the east but can be avoided by shooting westward.</p>
@@ -1004,7 +1004,7 @@ export const SPECIAL_LOCATION_DESCRIPTIONS: Record<string, string> = {
     <p><a href="https://www.nps.gov/hove/">Official Hovenweep NM Website</a></p>
   `,
 
-  salinaspueblomissions: `
+  salinaspueblo: `
     <h2>Salinas Pueblo Missions National Monument</h2>
     <p>Three separate sites with Bortle 2–3 skies and preserved Spanish mission ruins make for unique astrophotography subjects.</p>
     <p>Light domes from Albuquerque are faint in the distance.</p>
@@ -1399,7 +1399,7 @@ export const SPECIAL_LOCATION_DESCRIPTIONS: Record<string, string> = {
     <p><a href="https://namibrand.org/">Official NamibRand Reserve Website</a></p>
   `,
 
-  bukkzselic: `
+  bukk: `
     <h2>Bükk National Park (Zselic) IDSR</h2>
     <p>Hungary’s Bükk National Park, including the Zselic Starry Sky Park, offers Bortle 3 skies in rolling hills and dense forests.</p>
     <p>Light domes from nearby towns are small and low on the horizon.</p>

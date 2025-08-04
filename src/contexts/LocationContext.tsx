@@ -22,7 +22,7 @@ export function LocationProvider({
     if (initialLocation) return initialLocation;
     if (skipGeolocaton) return null;
     
-    const savedLocationData = storageService.getLocationData();
+    const savedLocationData = storageService.getHomeLocationData();
     if (savedLocationData?.location) {
       return savedLocationData.location;
     }
@@ -46,7 +46,7 @@ export function LocationProvider({
     }
 
     // Update storage
-    storageService.setLocationData(newLocation, finalMatchedName);
+    storageService.setHomeLocationData(newLocation, finalMatchedName);
   };
 
   // Initialize location from geolocation if needed

@@ -37,7 +37,7 @@ export function useTonightEvents(
     // Initialize with basic location data immediately if we have a location
     if (!location) return null;
     
-    const savedLocationData = storageService.getLocationData();
+    const savedLocationData = storageService.getHomeLocationData();
     const displayName = savedLocationData?.matchedName || 
       `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`;
     
@@ -59,7 +59,7 @@ export function useTonightEvents(
     }
     
     // Immediately set basic location data to avoid "Loading location..." text
-    const savedLocationData = storageService.getLocationData();
+    const savedLocationData = storageService.getHomeLocationData();
     const immediateDisplayName = savedLocationData?.matchedName || 
       `${location.lat.toFixed(1)}, ${location.lng.toFixed(1)}`;
     
@@ -73,7 +73,7 @@ export function useTonightEvents(
 
     const calculateLocationData = async () => {
       try {
-        const savedLocationData = storageService.getLocationData();
+        const savedLocationData = storageService.getHomeLocationData();
         
         // Set display name
         let displayName: string;

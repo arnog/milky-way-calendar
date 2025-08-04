@@ -15,7 +15,7 @@ import {
   coordToNormalized,
 } from "../utils/lightPollutionMap";
 import { useDarkSiteWorker } from "../hooks/useDarkSiteWorker";
-import { storageService } from "../services/storageService";
+import { useExploreLocation } from "../hooks/useExploreLocation";
 import { APP_CONFIG, formatMessage } from "../config/appConfig";
 import { getDarkSiteBortleWithFallback } from "../data/darkSiteBortle";
 import styles from "../App.module.css";
@@ -27,7 +27,6 @@ interface ExplorePageProps {
 
 // Session storage keys for ExplorePage state persistence
 const EXPLORE_SESSION_KEYS = {
-  USER_LOCATION: "explore_user_location",
   DARK_SITES_RESULT: "explore_dark_sites_result",
   HAS_AUTO_SEARCHED: "explore_has_auto_searched",
 } as const;
@@ -36,6 +35,11 @@ const EXPLORE_SESSION_KEYS = {
 function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const navigate = useNavigate();
   const { findMultipleDarkSites } = useDarkSiteWorker();
+  const { 
+    location: userLocation, 
+    updateLocation: updateUserLocation,
+    initializeFromHomeLocation 
+  } = useExploreLocation();
   const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
   const [hoveredCatalogLocation, setHoveredCatalogLocation] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
@@ -46,8 +50,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   type BortleFilter = "all" | "pristine" | "excellent" | "good";
   const [bortleFilter, setBortleFilter] = useState<BortleFilter>("all");
 
-  // Nearest dark site finder state
-  const [userLocation, setUserLocation] = useState<Location | null>(null);
+  // Nearest dark site finder state (userLocation now comes from useExploreLocation)
   const [darkSitesResult, setDarkSitesResult] =
     useState<MultipleDarkSitesResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -57,23 +60,14 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [hasAutoSearched, setHasAutoSearched] = useState(false);
 
-  // Load persisted state from sessionStorage on page load
+  // Initialize location from home location if explore location doesn't exist
+  useEffect(() => {
+    initializeFromHomeLocation();
+  }, [initializeFromHomeLocation]);
+
+  // Load persisted dark sites results from sessionStorage on page load
   useEffect(() => {
     try {
-      // Load user location (prioritize sessionStorage over localStorage)
-      const sessionUserLocation = sessionStorage.getItem(
-        EXPLORE_SESSION_KEYS.USER_LOCATION
-      );
-      if (sessionUserLocation) {
-        setUserLocation(JSON.parse(sessionUserLocation));
-      } else {
-        // Fallback to saved location from localStorage
-        const savedLocationData = storageService.getLocationData();
-        if (savedLocationData?.location) {
-          setUserLocation(savedLocationData.location);
-        }
-      }
-
       // Load dark sites search results
       const sessionDarkSitesResult = sessionStorage.getItem(
         EXPLORE_SESSION_KEYS.DARK_SITES_RESULT
@@ -97,21 +91,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     }
   }, []);
 
-  // Persist userLocation to sessionStorage when it changes
-  useEffect(() => {
-    try {
-      if (userLocation) {
-        sessionStorage.setItem(
-          EXPLORE_SESSION_KEYS.USER_LOCATION,
-          JSON.stringify(userLocation)
-        );
-      } else {
-        sessionStorage.removeItem(EXPLORE_SESSION_KEYS.USER_LOCATION);
-      }
-    } catch (error) {
-      console.warn("Failed to persist user location to sessionStorage:", error);
-    }
-  }, [userLocation]);
+  // Location is now persisted automatically by useExploreLocation hook
 
   // Persist darkSitesResult to sessionStorage when it changes
   useEffect(() => {
@@ -244,7 +224,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     location: Location,
     shouldClose = true
   ) => {
-    setUserLocation(location);
+    updateUserLocation(location); // Use the hook's update function
     if (shouldClose) {
       setShowLocationPopover(false);
     }

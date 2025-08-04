@@ -1,8 +1,9 @@
-import { Location } from '../types/astronomy';
+import { Location } from "../types/astronomy";
 
 // Storage keys - centralized for easy maintenance
 const STORAGE_KEYS = {
-  LOCATION: 'milkyway-location',
+  HOME_LOCATION: "milkyway-home-location",
+  EXPLORE_LOCATION: "milkyway-explore-location",
 } as const;
 
 // Type definitions for stored data
@@ -15,7 +16,7 @@ export interface StoredLocationData {
 class StorageService {
   private isAvailable(): boolean {
     try {
-      const test = '__storage_test__';
+      const test = "__storage_test__";
       localStorage.setItem(test, test);
       localStorage.removeItem(test);
       return true;
@@ -28,7 +29,7 @@ class StorageService {
     if (!this.isAvailable()) {
       return null;
     }
-    
+
     try {
       return localStorage.getItem(key);
     } catch {
@@ -40,7 +41,7 @@ class StorageService {
     if (!this.isAvailable()) {
       return false;
     }
-    
+
     try {
       localStorage.setItem(key, value);
       return true;
@@ -53,7 +54,7 @@ class StorageService {
     if (!this.isAvailable()) {
       return false;
     }
-    
+
     try {
       localStorage.removeItem(key);
       return true;
@@ -62,9 +63,9 @@ class StorageService {
     }
   }
 
-  // Location-specific operations
-  getLocationData(): StoredLocationData | null {
-    const data = this.getItem(STORAGE_KEYS.LOCATION);
+  // Home location operations (Tonight card, calendar, etc.)
+  getHomeLocationData(): StoredLocationData | null {
+    const data = this.getItem(STORAGE_KEYS.HOME_LOCATION);
     if (!data) {
       return null;
     }
@@ -72,7 +73,10 @@ class StorageService {
     try {
       const parsed = JSON.parse(data);
       // Validate the structure
-      if (parsed.location?.lat !== undefined && parsed.location?.lng !== undefined) {
+      if (
+        parsed.location?.lat !== undefined &&
+        parsed.location?.lng !== undefined
+      ) {
         return {
           location: {
             lat: parsed.location.lat,
@@ -83,13 +87,16 @@ class StorageService {
       }
     } catch {
       // Invalid data, clean it up
-      this.removeLocationData();
+      this.removeHomeLocationData();
     }
 
     return null;
   }
 
-  setLocationData(location: Location, matchedName?: string | null): boolean {
+  setHomeLocationData(
+    location: Location,
+    matchedName?: string | null
+  ): boolean {
     const data: StoredLocationData = {
       location,
       matchedName: matchedName || null,
@@ -97,25 +104,96 @@ class StorageService {
 
     try {
       const serialized = JSON.stringify(data);
-      return this.setItem(STORAGE_KEYS.LOCATION, serialized);
+      return this.setItem(STORAGE_KEYS.HOME_LOCATION, serialized);
     } catch {
       return false;
     }
   }
 
-  removeLocationData(): boolean {
-    return this.removeItem(STORAGE_KEYS.LOCATION);
+  removeHomeLocationData(): boolean {
+    return this.removeItem(STORAGE_KEYS.HOME_LOCATION);
   }
 
-  // Utility method to get just the location without metadata
-  getLocation(): Location | null {
-    const data = this.getLocationData();
+  // Explore location operations (Explore page only)
+  getExploreLocationData(): StoredLocationData | null {
+    const data = this.getItem(STORAGE_KEYS.EXPLORE_LOCATION);
+    if (!data) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(data);
+      // Validate the structure
+      if (
+        parsed.location?.lat !== undefined &&
+        parsed.location?.lng !== undefined
+      ) {
+        return {
+          location: {
+            lat: parsed.location.lat,
+            lng: parsed.location.lng,
+          },
+          matchedName: parsed.matchedName || null,
+        };
+      }
+    } catch {
+      // Invalid data, clean it up
+      this.removeExploreLocationData();
+    }
+
+    return null;
+  }
+
+  setExploreLocationData(
+    location: Location,
+    matchedName?: string | null
+  ): boolean {
+    const data: StoredLocationData = {
+      location,
+      matchedName: matchedName || null,
+    };
+
+    try {
+      const serialized = JSON.stringify(data);
+      return this.setItem(STORAGE_KEYS.EXPLORE_LOCATION, serialized);
+    } catch {
+      return false;
+    }
+  }
+
+  removeExploreLocationData(): boolean {
+    return this.removeItem(STORAGE_KEYS.EXPLORE_LOCATION);
+  }
+
+
+  // Utility methods for home location
+  getHomeLocation(): Location | null {
+    const data = this.getHomeLocationData();
     return data?.location || null;
   }
 
-  // Utility method to get just the matched name
+  getHomeMatchedName(): string | null {
+    const data = this.getHomeLocationData();
+    return data?.matchedName || null;
+  }
+
+  // Legacy utility methods (for compatibility)
+  getLocation(): Location | null {
+    return this.getHomeLocation();
+  }
+
   getMatchedName(): string | null {
-    const data = this.getLocationData();
+    return this.getHomeMatchedName();
+  }
+
+  // Utility methods for explore location
+  getExploreLocation(): Location | null {
+    const data = this.getExploreLocationData();
+    return data?.location || null;
+  }
+
+  getExploreMatchedName(): string | null {
+    const data = this.getExploreLocationData();
     return data?.matchedName || null;
   }
 }

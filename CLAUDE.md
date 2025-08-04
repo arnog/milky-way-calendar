@@ -46,7 +46,7 @@ npm run test:run     # Run tests once (non-watch mode)
 - **Location parsing** supporting coordinates, city names, and special astronomy
   locations
 - **Explore page** (`/explore`) showcasing world's best dark sky sites with
-  interactive map
+  interactive map and independent location management
 - **FAQ page** (`/faq`) with comprehensive Milky Way information and
   astrophotography guidance
 - **Centered navigation bar** with Home, Explore, and FAQ sections
@@ -61,7 +61,7 @@ npm run test:run     # Run tests once (non-watch mode)
   WorldMap, StarRating) with corresponding `.module.css` files
 - `src/pages/` - Page components (HomePage, LocationPage, ExplorePage, FAQPage)
 - `src/hooks/` - Custom React hooks (`useDateFromQuery` for URL date state
-  management)
+  management, `useLocation` for home location, `useExploreLocation` for explore page)
 - `src/utils/` - Utility functions for astronomical calculations and location
   parsing
 - `src/types/` - TypeScript type definitions
@@ -93,6 +93,37 @@ ensure consistency and accuracy:
   interference, and darkness duration
 - **Timezone Conversion**: All times displayed in location's local timezone
   using proper IANA timezone lookup with `tz-lookup` library
+
+## Location Management Architecture
+
+The app implements a **dual-location system** that separates the home "Tonight" 
+location from the exploration location, providing optimal user experience:
+
+### **Home Location System**
+- **Purpose**: Used for Tonight card, calendar, and all `/location/` routes
+- **Management**: `useLocation` hook with `LocationContext`
+- **Storage**: `milkyway-home-location` in localStorage
+- **Geolocation**: Automatic detection with retry logic and user-friendly error handling
+- **Persistence**: Maintained across app sessions and page navigation
+
+### **Explore Location System**  
+- **Purpose**: Independent location state for `/explore` page only
+- **Management**: `useExploreLocation` hook (standalone)
+- **Storage**: `milkyway-explore-location` in localStorage  
+- **Initialization**: Starts with home location on first visit if no explore location exists
+- **Independence**: Changes only affect explore page, never impact home/calendar locations
+
+### **User Experience Benefits**
+- **Seamless exploration**: Users can browse different locations without losing their home base
+- **Persistent exploration**: Returning to explore page preserves last explored location
+- **Context preservation**: Home location remains stable for astronomy planning
+- **Clean separation**: Independent location contexts prevent accidental interference
+
+### **Storage Service Architecture**
+- **Unified interface**: Single `storageService` handles both location types
+- **Dedicated storage keys**: `milkyway-home-location` and `milkyway-explore-location`
+- **Type safety**: Full TypeScript support with `StoredLocationData` interface
+- **Error handling**: Graceful fallbacks for localStorage unavailability
 
 ## Astronomical Observation Notes
 

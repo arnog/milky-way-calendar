@@ -10,6 +10,15 @@ and this project adheres to
 
 ### Added
 
+- **Dual-location system** separating Home/Tonight location from Explore page location
+  for independent location management without disrupting astronomy planning context
+- **useExploreLocation hook** providing dedicated location state management for
+  Explore page with automatic initialization from home location on first visit
+- **Enhanced storage service** with separate localStorage keys for home
+  (`milkyway-home-location`) and explore (`milkyway-explore-location`) locations
+- **Find Me button improvement** showing actual user coordinates unless within 5km
+  of special locations (cities/dark sites), providing more accurate location display
+
 - **Production-ready AstronomicalClock component** with comprehensive accessibility,
   interactive features, and robust collision handling
 - **Centralized TypeScript type system** with `src/types/astronomicalClock.ts`

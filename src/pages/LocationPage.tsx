@@ -42,7 +42,7 @@ function LocationPageWrapper({ isDarkroomMode: _isDarkroomMode }: LocationPagePr
       }
       
       // Save to storage for future visits
-      storageService.setLocationData(parsedLocation, matchedName)
+      storageService.setHomeLocationData(parsedLocation, matchedName)
     }
   }, [parsedLocation, locationSlug])
 

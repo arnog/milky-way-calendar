@@ -40,7 +40,7 @@ function getVisibilityDescription(rating: number): string {
 
 function getLocationName(location: Location): string {
   // First check if there's a saved location with a matched name from storage
-  const savedLocationData = storageService.getLocationData();
+  const savedLocationData = storageService.getHomeLocationData();
   if (savedLocationData?.matchedName && 
       Math.abs(savedLocationData.location.lat - location.lat) < 0.01 && 
       Math.abs(savedLocationData.location.lng - location.lng) < 0.01) {

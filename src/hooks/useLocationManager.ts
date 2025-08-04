@@ -43,7 +43,7 @@ export function useLocationManager({
 
   // Load saved location from storage on mount
   useEffect(() => {
-    const savedLocationData = storageService.getLocationData();
+    const savedLocationData = storageService.getHomeLocationData();
     if (savedLocationData && !initialLocation) {
       // Always use the exact saved coordinates, even if there's no matched name
       // The matched name is used for description purposes only
@@ -66,7 +66,7 @@ export function useLocationManager({
   // Update input value when location changes externally
   useEffect(() => {
     if (initialLocation) {
-      const savedLocationData = storageService.getLocationData();
+      const savedLocationData = storageService.getHomeLocationData();
       if (savedLocationData?.matchedName) {
         setInputValue(savedLocationData.matchedName);
         setSuggestion(null); // Clear suggestions since we have a confirmed location
@@ -82,7 +82,7 @@ export function useLocationManager({
   }, [initialLocation]);
 
   const saveLocation = useCallback((loc: Location, name: string | null) => {
-    storageService.setLocationData(loc, name);
+    storageService.setHomeLocationData(loc, name);
   }, []);
 
   const getCurrentLocation = useCallback(() => {
