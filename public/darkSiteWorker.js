@@ -207,39 +207,199 @@ function calculateBearing(from, to) {
   return (bearingDeg + 360) % 360;
 }
 
+// Cache configuration
+const CACHE_CONFIG = {
+  NAME: 'light-pollution-map-v1',
+  MAX_AGE_MS: 7 * 24 * 60 * 60 * 1000, // 7 days
+  IMAGE_OPTIONS: [
+    { path: '/world2024B-lg.png', size: 'large', priority: 1 },
+    { path: '/world2024B-md.jpg', size: 'medium', priority: 2 },
+    { path: '/world2024B-sm.jpg', size: 'small', priority: 3 },
+  ],
+  DEFAULT_IMAGE: '/world2024B-lg.png',
+};
+
+// In-memory cache for processed image data to avoid re-processing
+let imageDataCache = null;
+let cacheTimestamp = null;
+
 /**
- * Load the light pollution map image
+ * Open or create the cache
  */
-async function loadLightPollutionMap() {
-  return new Promise((resolve, reject) => {
-    const canvas = new OffscreenCanvas(1, 1);
-    const ctx = canvas.getContext('2d');
+async function openCache() {
+  try {
+    return await caches.open(CACHE_CONFIG.NAME);
+  } catch (error) {
+    console.warn('Cache API not available, falling back to direct fetch');
+    return null;
+  }
+}
 
-    if (!ctx) {
-      reject(new Error('Failed to get canvas context'));
-      return;
+/**
+ * Get cached response or fetch from network
+ */
+async function getCachedResponse(url) {
+  const cache = await openCache();
+  
+  if (cache) {
+    try {
+      const cachedResponse = await cache.match(url);
+      
+      if (cachedResponse) {
+        // Check if cache is still valid
+        const cachedDate = cachedResponse.headers.get('cached-date');
+        if (cachedDate) {
+          const age = Date.now() - parseInt(cachedDate);
+          if (age < CACHE_CONFIG.MAX_AGE_MS) {
+            return cachedResponse;
+          } else {
+            // Cache expired, remove it
+            await cache.delete(url);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Error reading from cache:', error);
     }
-
-    // Create image bitmap from URL
-    fetch('/world2024B-lg.png')
-      .then(response => response.blob())
-      .then(blob => createImageBitmap(blob))
-      .then(imageBitmap => {
-        canvas.width = imageBitmap.width;
-        canvas.height = imageBitmap.height;
-        ctx.drawImage(imageBitmap, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
-
-        resolve({
-          imageData,
-          width: imageBitmap.width,
-          height: imageBitmap.height,
-        });
-      })
-      .catch(error => {
-        reject(new Error(`Failed to load light pollution map: ${error.message}`));
+  }
+  
+  // Fetch from network
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  // Store in cache if available
+  if (cache) {
+    try {
+      // Clone response and add cache timestamp
+      const responseToCache = response.clone();
+      const headers = new Headers(responseToCache.headers);
+      headers.set('cached-date', Date.now().toString());
+      
+      const cachedResponse = new Response(responseToCache.body, {
+        status: responseToCache.status,
+        statusText: responseToCache.statusText,
+        headers: headers,
       });
+      
+      await cache.put(url, cachedResponse);
+    } catch (error) {
+      console.warn('Error storing in cache:', error);
+    }
+  }
+  
+  return response;
+}
+
+/**
+ * Clear all cached light pollution map images
+ */
+async function clearImageCache() {
+  try {
+    const cache = await openCache();
+    if (cache) {
+      for (const option of CACHE_CONFIG.IMAGE_OPTIONS) {
+        await cache.delete(option.path);
+      }
+    }
+    
+    // Clear in-memory cache
+    imageDataCache = null;
+    cacheTimestamp = null;
+    
+    return true;
+  } catch (error) {
+    console.warn('Error clearing image cache:', error);
+    return false;
+  }
+}
+
+
+/**
+ * Get the best available image format based on cache and network conditions
+ */
+async function getBestImagePath() {
+  const cache = await openCache();
+  
+  if (cache) {
+    // Check which images are already cached (prefer cached over network)
+    for (const option of CACHE_CONFIG.IMAGE_OPTIONS) {
+      try {
+        const cachedResponse = await cache.match(option.path);
+        if (cachedResponse) {
+          const cachedDate = cachedResponse.headers.get('cached-date');
+          if (cachedDate && (Date.now() - parseInt(cachedDate)) < CACHE_CONFIG.MAX_AGE_MS) {
+            return option.path;
+          }
+        }
+      } catch (error) {
+        console.warn(`Error checking cache for ${option.path}:`, error);
+      }
+    }
+  }
+  
+  // No cached version available, use default
+  return CACHE_CONFIG.DEFAULT_IMAGE;
+}
+
+/**
+ * Load the light pollution map image with caching and format selection
+ */
+async function loadLightPollutionMap(preferredSize = 'large') {
+  // Check in-memory cache first
+  if (imageDataCache && cacheTimestamp && 
+      (Date.now() - cacheTimestamp) < CACHE_CONFIG.MAX_AGE_MS) {
+    return imageDataCache;
+  }
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      const canvas = new OffscreenCanvas(1, 1);
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+
+      // Determine which image to load
+      let imagePath;
+      if (preferredSize && preferredSize !== 'large') {
+        // Find preferred size image
+        const preferred = CACHE_CONFIG.IMAGE_OPTIONS.find(opt => opt.size === preferredSize);
+        imagePath = preferred ? preferred.path : await getBestImagePath();
+      } else {
+        imagePath = await getBestImagePath();
+      }
+
+      // Get cached or fresh response
+      const response = await getCachedResponse(imagePath);
+      const blob = await response.blob();
+      const imageBitmap = await createImageBitmap(blob);
+      
+      canvas.width = imageBitmap.width;
+      canvas.height = imageBitmap.height;
+      ctx.drawImage(imageBitmap, 0, 0);
+
+      const imageData = ctx.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
+
+      const result = {
+        imageData,
+        width: imageBitmap.width,
+        height: imageBitmap.height,
+        source: imagePath,
+      };
+
+      // Store in in-memory cache
+      imageDataCache = result;
+      cacheTimestamp = Date.now();
+
+      resolve(result);
+    } catch (error) {
+      reject(new Error(`Failed to load light pollution map: ${error.message}`));
+    }
   });
 }
 
@@ -609,6 +769,10 @@ self.addEventListener('message', async (event) => {
 
       case 'getBortleRatingForLocation':
         result = await getBortleRatingForLocation(data.coord);
+        break;
+
+      case 'clearImageCache':
+        result = await clearImageCache();
         break;
 
       default:

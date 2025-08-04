@@ -28,6 +28,8 @@ export interface UseDarkSiteWorkerReturn {
   
   getBortleRatingForLocation: (coord: Coordinate) => Promise<number | null>;
   
+  clearImageCache: () => Promise<boolean>;
+  
   isWorkerSupported: boolean;
 }
 
@@ -202,10 +204,20 @@ export function useDarkSiteWorker(): UseDarkSiteWorkerReturn {
     );
   }, [isWorkerSupported, sendWorkerMessage]);
 
+  const clearImageCache = useCallback(async (): Promise<boolean> => {
+    if (!isWorkerSupported) {
+      // For main thread execution, there's no cache to clear
+      return true;
+    }
+
+    return sendWorkerMessage<boolean>('clearImageCache', {});
+  }, [isWorkerSupported, sendWorkerMessage]);
+
   return {
     findNearestDarkSky,
     findMultipleDarkSites,
     getBortleRatingForLocation,
+    clearImageCache,
     isWorkerSupported,
   };
 }
