@@ -278,16 +278,23 @@ experience smoother and more informative.
     - **Files Modified:** `src/components/TonightCard.tsx`, 
       `src/components/TonightCard.module.css`
 
-3.  **Persist State on `ExplorePage`**
+3.  **✅ COMPLETED - Persist State on `ExplorePage`**
 
-    - **Suggestion:** If a user runs a dark site search on the `ExplorePage` and
-      then refreshes the page, the results are lost. Persist the search results
-      in `sessionStorage` or by updating URL query parameters so the state can
-      be restored on reload.
-    - **Benefit:** Prevents data loss and frustration for the user, making the
-      tool feel more stable and reliable.
-    - **Impact:** Medium. A quality-of-life improvement that power users will
-      appreciate.
+    - **Observation:** When users ran dark site searches on the ExplorePage and
+      refreshed the page, all search results and selected locations were lost,
+      causing frustration and forcing users to repeat their searches.
+    - **Implementation:** Added comprehensive sessionStorage persistence system:
+      - `EXPLORE_SESSION_KEYS` constants for consistent storage key management
+      - Automatic loading of persisted state on page load with fallback to localStorage
+      - Real-time persistence of `userLocation`, `darkSitesResult`, and `hasAutoSearched` state
+      - Smart cache invalidation when users manually change locations
+      - Robust error handling for sessionStorage operations with console warnings
+    - **Results & Impact:**
+      - **User Experience:** ✅ Search results and location selections survive page refreshes
+      - **Data Integrity:** ✅ State is properly cleared when users start new searches
+      - **Performance:** ✅ No unnecessary re-searches after page reload
+      - **Reliability:** ✅ Graceful fallback when sessionStorage is unavailable
+    - **Files Modified:** `src/pages/ExplorePage.tsx` (added 5 useEffect hooks for state persistence)
 
 4.  **Refine Tooltip Interaction on Touch Devices**
     - **Suggestion:** The tooltips are currently set to disappear after a

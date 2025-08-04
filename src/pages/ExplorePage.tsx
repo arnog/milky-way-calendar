@@ -22,6 +22,13 @@ interface ExplorePageProps {
   isDarkroomMode: boolean;
 }
 
+// Session storage keys for ExplorePage state persistence
+const EXPLORE_SESSION_KEYS = {
+  USER_LOCATION: 'explore_user_location',
+  DARK_SITES_RESULT: 'explore_dark_sites_result',
+  HAS_AUTO_SEARCHED: 'explore_has_auto_searched',
+} as const;
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const navigate = useNavigate();
@@ -42,13 +49,71 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [hasAutoSearched, setHasAutoSearched] = useState(false);
 
-  // Auto-load user's previous location on page visit
+  // Load persisted state from sessionStorage on page load
   useEffect(() => {
-    const savedLocationData = storageService.getLocationData();
-    if (savedLocationData?.location) {
-      setUserLocation(savedLocationData.location);
+    try {
+      // Load user location (prioritize sessionStorage over localStorage)
+      const sessionUserLocation = sessionStorage.getItem(EXPLORE_SESSION_KEYS.USER_LOCATION);
+      if (sessionUserLocation) {
+        setUserLocation(JSON.parse(sessionUserLocation));
+      } else {
+        // Fallback to saved location from localStorage
+        const savedLocationData = storageService.getLocationData();
+        if (savedLocationData?.location) {
+          setUserLocation(savedLocationData.location);
+        }
+      }
+
+      // Load dark sites search results
+      const sessionDarkSitesResult = sessionStorage.getItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT);
+      if (sessionDarkSitesResult) {
+        setDarkSitesResult(JSON.parse(sessionDarkSitesResult));
+      }
+
+      // Load auto-search flag
+      const sessionHasAutoSearched = sessionStorage.getItem(EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED);
+      if (sessionHasAutoSearched) {
+        setHasAutoSearched(JSON.parse(sessionHasAutoSearched));
+      }
+    } catch (error) {
+      console.warn('Failed to load ExplorePage state from sessionStorage:', error);
     }
   }, []);
+
+  // Persist userLocation to sessionStorage when it changes
+  useEffect(() => {
+    try {
+      if (userLocation) {
+        sessionStorage.setItem(EXPLORE_SESSION_KEYS.USER_LOCATION, JSON.stringify(userLocation));
+      } else {
+        sessionStorage.removeItem(EXPLORE_SESSION_KEYS.USER_LOCATION);
+      }
+    } catch (error) {
+      console.warn('Failed to persist user location to sessionStorage:', error);
+    }
+  }, [userLocation]);
+
+  // Persist darkSitesResult to sessionStorage when it changes
+  useEffect(() => {
+    try {
+      if (darkSitesResult) {
+        sessionStorage.setItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT, JSON.stringify(darkSitesResult));
+      } else {
+        sessionStorage.removeItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT);
+      }
+    } catch (error) {
+      console.warn('Failed to persist dark sites result to sessionStorage:', error);
+    }
+  }, [darkSitesResult]);
+
+  // Persist hasAutoSearched to sessionStorage when it changes
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED, JSON.stringify(hasAutoSearched));
+    } catch (error) {
+      console.warn('Failed to persist auto-search flag to sessionStorage:', error);
+    }
+  }, [hasAutoSearched]);
 
   // Auto-search for nearest dark site when location is loaded
   useEffect(() => {
@@ -104,6 +169,14 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     setDarkSitesResult(null);
     setSearchError(null);
     setHasAutoSearched(false);
+    
+    // Clear session storage for search results since we're starting fresh
+    try {
+      sessionStorage.removeItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT);
+      sessionStorage.removeItem(EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED);
+    } catch (error) {
+      console.warn('Failed to clear search results from sessionStorage:', error);
+    }
   };
 
   const handleLocationClick = (location: {
