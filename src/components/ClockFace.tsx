@@ -286,7 +286,7 @@ export default function ClockFace({
           <div className={styles.moonPhaseCenterContent}>
             <Icon
               name={getMoonPhaseIcon(moonPhase, location.lat)}
-              className="global-icon-small"
+              size="md"
             />
             <span className={`${styles.moonIlluminationText} data-time`}>
               {moonIllumination.toFixed(0)}%
@@ -341,7 +341,7 @@ export default function ClockFace({
                           <Icon
                             key={iconIndex}
                             name={iconName}
-                            className="global-icon-small"
+                            size="md"
                             aria-hidden="true"
                           />
                         ))}
@@ -349,7 +349,7 @@ export default function ClockFace({
                     ) : (
                       <Icon
                         name={event.icon}
-                        className="global-icon-small"
+                        size="md"
                         aria-hidden="true"
                       />
                     )}

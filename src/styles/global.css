@@ -56,6 +56,32 @@
 
 
 /* Common icon sizes */
+.global-icon-xs {
+  width: 1rem;
+  height: 1rem;
+}
+
+.global-icon-sm {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.global-icon-md {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.global-icon-lg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.global-icon-xl {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+/* Legacy icon size classes - maintained for backward compatibility */
 .global-icon-small {
   width: 1.5rem;
   height: 1.5rem;

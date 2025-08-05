@@ -70,8 +70,10 @@ npm run test:run     # Run tests once (non-watch mode)
 - `src/test/` - Comprehensive unit test suite (109 tests across 8 files)
 - `public/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set,
   transit)
-- `public/world2024B-*.{webp,jpg,png}` - Light pollution maps in multiple
-  resolutions
+- `public/world2024B-lg-grayscale.png` - Optimized grayscale light pollution
+  map (2.25MB, 9.1% smaller than RGB version)
+- `public/world2024B-*.{webp,jpg,png}` - Legacy light pollution maps in
+  multiple resolutions
 - `public/sitemap.xml` - XML sitemap for search engine optimization
 - `public/robots.txt` - Search engine crawler instructions
 - `scripts/generate-sitemap.js` - Dynamic sitemap generation script
@@ -342,6 +344,37 @@ calendar and weekly panels when location unavailable to prevent redundant
 loading messages, creating a polished location experience that handles edge
 cases gracefully and guides users toward solutions
 
+✅ **Phase 31**: Light Pollution Map Optimization - Implemented comprehensive
+performance optimization by converting RGB light pollution map to optimized
+grayscale format: analyzed current 2.47MB RGB map with only 15 unique colors
+and determined single-channel grayscale would be more efficient, created exact
+RGB-to-Bortle-to-grayscale mapping preserving 100% calculation accuracy using
+direct lookup table with 16 discrete values (0, 10, 20, 30, 40, 50, 70, 90,
+110, 130, 150, 170, 190, 210, 230, 240), updated `lightPollutionMap.ts` with
+new `grayscaleToBortleScale()` and `getGrayscalePixelData()` functions while
+maintaining backward compatibility, updated `darkSiteWorker.js` to use
+optimized grayscale processing throughout, replaced image file with compressed
+2.25MB grayscale version achieving 9.1% file size reduction, eliminated runtime
+RGB-to-Bortle conversion overhead for significant CPU performance gains, and
+verified implementation with all 130 tests passing, resulting in faster
+downloads, reduced memory usage, and improved processing performance while
+maintaining perfect accuracy for all dark sky calculations
+
+✅ **Phase 32**: Unified Cache API Implementation - Implemented comprehensive
+caching architecture unifying image storage across WorldMap component and
+darkSiteWorker: created centralized `MapImageCacheService` managing both
+grayscale (Bortle calculations) and color (visual display) map images with
+automatic format selection based on screen size and WebP support, implemented
+shared Cache API storage with 7-day expiration and intelligent cache-first
+loading strategies, added memory management with object URL cleanup to prevent
+memory leaks, enhanced WorldMap component with cached image loading and
+debounced resize handling, updated darkSiteWorker to use unified cache
+configuration while maintaining backward compatibility, eliminated duplicate
+caching code between components, added comprehensive test coverage (12 new
+tests) validating cache behavior, format selection, and error handling, and
+achieved seamless image sharing between main thread and worker context with
+consistent performance optimization across all map-related functionality
+
 **Current state**: Feature-complete astronomy calendar with fully migrated
 time-integrated astronomical calculations, comprehensive date navigation via URL
 parameters allowing users to explore any date, sophisticated coordinate
@@ -349,11 +382,16 @@ preservation system that maintains exact user locations while providing helpful
 context, automatic dark site suggestions for light-polluted locations, **robust
 and intuitive location selection system with smart error handling, retry logic,
 and user-friendly guidance that eliminates confusion and provides clear paths
-forward when geolocation fails**, accurate timezone handling for international
+forward when geolocation fails**, **optimized light pollution map processing
+with 9.1% file size reduction and eliminated runtime conversion overhead while
+maintaining perfect accuracy**, **unified Cache API implementation sharing map
+images between WorldMap component and darkSiteWorker with automatic format
+selection, intelligent caching strategies, and memory management**, accurate
+timezone handling for international
 users, proper high-latitude handling, comprehensive dark sky site discovery with
 corrected coordinate mapping and optimal classification thresholds, educational
 FAQ system with modern navigation and anchor linking, full SEO optimization for
-search engine discoverability, robust test coverage (109 tests) ensuring
+search engine discoverability, robust test coverage (142 tests) ensuring
 calculation accuracy and preventing critical regressions, modern CSS Modules
 architecture for scalable styling, centralized color theming with CSS variables,
 enhanced typography with raised colons for optimal time readability, unified

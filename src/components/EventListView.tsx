@@ -56,7 +56,7 @@ export default function EventListView({
               >
                 <Icon
                   name={event.icon}
-                  className="global-icon-medium"
+                  size="lg"
                   aria-hidden="true"
                 />
                 <div className={styles.listEventContent}>
@@ -69,7 +69,7 @@ export default function EventListView({
                       <div className={styles.listEventExtra}>
                         <Icon
                           name={getMoonPhaseIcon(moonPhase, location.lat)}
-                          className="global-icon-small"
+                          size="md"
                         />
                         <span className="data-time">{moonIllumination.toFixed(0)}% illuminated</span>
                       </div>

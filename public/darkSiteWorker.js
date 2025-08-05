@@ -19,7 +19,27 @@ const APP_CONFIG = {
 // Earth's radius in kilometers
 const EARTH_RADIUS_KM = 6371;
 
-// Light pollution colormap (mirrored from lightPollutionMap.ts)
+// Grayscale to Bortle scale lookup for the optimized grayscale format
+const GRAYSCALE_TO_BORTLE = new Map([
+  [0, 9],     // Black (water/no-data)
+  [10, 1],    // Pristine dark sky
+  [20, 1.5],  // Excellent dark sky
+  [30, 2],    // Typical dark sky
+  [40, 2.5],  // Rural sky
+  [50, 3],    // Rural/suburban transition
+  [70, 3.5],  // Suburban sky
+  [90, 4],    // Suburban/urban transition
+  [110, 4.5], // Light suburban sky
+  [130, 5],   // Suburban sky
+  [150, 5.5], // Bright suburban sky
+  [170, 6],   // Bright suburban sky
+  [190, 6.5], // Suburban/urban transition
+  [210, 7],   // Urban sky
+  [230, 7.5], // City sky
+  [240, 8],   // Inner city sky
+]);
+
+// Legacy RGB colormap (kept for reference)
 const LIGHT_POLLUTION_COLORMAP = [
   [8, 8, 8, 22.0, 21.99, 1],
   [16, 16, 16, 21.99, 21.95, 1.5],
@@ -114,7 +134,14 @@ function haversineDistance(coord1, coord2) {
 }
 
 /**
- * Convert RGB values to Bortle scale using colormap
+ * Convert grayscale value to Bortle scale using the optimized lookup
+ */
+function grayscaleToBortleScale(grayValue) {
+  return GRAYSCALE_TO_BORTLE.get(grayValue) || 9; // Default to worst case if not found
+}
+
+/**
+ * Convert RGB values to Bortle scale using colormap (legacy)
  */
 function rgbToBortleScale(r, g, b) {
   // Pure black represents water/no-data areas
@@ -148,7 +175,16 @@ function isDarkSky(bortleScale) {
 }
 
 /**
- * Get pixel data at specific coordinates
+ * Get grayscale pixel data at specific coordinates
+ */
+function getGrayscalePixelData(imageData, pixel) {
+  const index = (pixel.y * imageData.width + pixel.x) * 4;
+  // For grayscale images, R, G, B channels are identical, so we just read R
+  return imageData.data[index];
+}
+
+/**
+ * Get pixel data at specific coordinates (legacy)
  */
 function getPixelData(imageData, pixel) {
   const index = (pixel.y * imageData.width + pixel.x) * 4;
@@ -207,16 +243,27 @@ function calculateBearing(from, to) {
   return (bearingDeg + 360) % 360;
 }
 
-// Cache configuration
+// Unified cache configuration (shared with main thread)
 const CACHE_CONFIG = {
-  NAME: 'light-pollution-map-v1',
+  NAME: 'milky-way-map-images-v1', // Updated to match unified cache service
   MAX_AGE_MS: 7 * 24 * 60 * 60 * 1000, // 7 days
+  
+  // All available map image formats in order of preference
   IMAGE_OPTIONS: [
-    { path: '/world2024B-lg.png', size: 'large', priority: 1 },
-    { path: '/world2024B-md.jpg', size: 'medium', priority: 2 },
-    { path: '/world2024B-sm.jpg', size: 'small', priority: 3 },
+    // Grayscale version for Bortle calculations (optimized, smallest size)
+    { path: '/world2024B-lg-grayscale.png', format: 'grayscale', size: 'large', priority: 1 },
+    
+    // Color versions for visual display (fallbacks for grayscale calculations)
+    { path: '/world2024B-lg.png', format: 'color', size: 'large', priority: 2 },
+    { path: '/world2024B-md.webp', format: 'color', size: 'medium', priority: 3 },
+    { path: '/world2024B-md.jpg', format: 'color', size: 'medium', priority: 4 },
+    { path: '/world2024B-sm.webp', format: 'color', size: 'small', priority: 5 },
+    { path: '/world2024B-sm.jpg', format: 'color', size: 'small', priority: 6 },
   ],
-  DEFAULT_IMAGE: '/world2024B-lg.png',
+  
+  // Default fallbacks
+  DEFAULT_GRAYSCALE: '/world2024B-lg-grayscale.png',
+  DEFAULT_COLOR: '/world2024B-md.jpg',
 };
 
 // In-memory cache for processed image data to avoid re-processing
@@ -300,6 +347,7 @@ async function clearImageCache() {
   try {
     const cache = await openCache();
     if (cache) {
+      // Clear all image formats
       for (const option of CACHE_CONFIG.IMAGE_OPTIONS) {
         await cache.delete(option.path);
       }
@@ -319,13 +367,28 @@ async function clearImageCache() {
 
 /**
  * Get the best available image format based on cache and network conditions
+ * Prioritizes grayscale format for Bortle calculations in worker context
  */
-async function getBestImagePath() {
+async function getBestImagePath(format = 'grayscale', preferredSize = 'large') {
   const cache = await openCache();
+  
+  // Filter images by format
+  let candidates = CACHE_CONFIG.IMAGE_OPTIONS.filter(opt => opt.format === format);
+  
+  // Filter by preferred size if specified
+  if (preferredSize) {
+    const sizeFiltered = candidates.filter(opt => opt.size === preferredSize);
+    if (sizeFiltered.length > 0) {
+      candidates = sizeFiltered;
+    }
+  }
+  
+  // Sort by priority
+  candidates.sort((a, b) => a.priority - b.priority);
   
   if (cache) {
     // Check which images are already cached (prefer cached over network)
-    for (const option of CACHE_CONFIG.IMAGE_OPTIONS) {
+    for (const option of candidates) {
       try {
         const cachedResponse = await cache.match(option.path);
         if (cachedResponse) {
@@ -340,8 +403,13 @@ async function getBestImagePath() {
     }
   }
   
-  // No cached version available, use default
-  return CACHE_CONFIG.DEFAULT_IMAGE;
+  // No cached version available, use best candidate or fallback
+  if (candidates.length > 0) {
+    return candidates[0].path;
+  }
+  
+  // Fallback to defaults
+  return format === 'grayscale' ? CACHE_CONFIG.DEFAULT_GRAYSCALE : CACHE_CONFIG.DEFAULT_COLOR;
 }
 
 /**
@@ -364,15 +432,8 @@ async function loadLightPollutionMap(preferredSize = 'large') {
         return;
       }
 
-      // Determine which image to load
-      let imagePath;
-      if (preferredSize && preferredSize !== 'large') {
-        // Find preferred size image
-        const preferred = CACHE_CONFIG.IMAGE_OPTIONS.find(opt => opt.size === preferredSize);
-        imagePath = preferred ? preferred.path : await getBestImagePath();
-      } else {
-        imagePath = await getBestImagePath();
-      }
+      // Determine which image to load (prioritize grayscale for worker calculations)
+      const imagePath = await getBestImagePath('grayscale', preferredSize || 'large');
 
       // Get cached or fresh response
       const response = await getCachedResponse(imagePath);
@@ -443,16 +504,12 @@ async function findNearestDarkSky(startCoord, maxDistance, knownSites) {
       }
 
       // Check if current pixel represents dark sky
-      const pixelData = getPixelData(imageData, pixel);
-      const bortleScale = rgbToBortleScale(
-        pixelData.r,
-        pixelData.g,
-        pixelData.b
-      );
+      const grayValue = getGrayscalePixelData(imageData, pixel);
+      const bortleScale = grayscaleToBortleScale(grayValue);
       const coord = pixelToCoord(pixel, width, height);
 
       // Skip pure black pixels (water/no-data areas)
-      if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
+      if (grayValue === 0) {
         continue;
       }
 
@@ -602,14 +659,14 @@ async function findDarkSiteInDirection(
 
     if (tooClose) continue;
 
-    const pixelData = getPixelData(imageData, pixel);
+    const grayValue = getGrayscalePixelData(imageData, pixel);
 
     // Skip pure black pixels
-    if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
+    if (grayValue === 0) {
       continue;
     }
 
-    const bortleScale = rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
+    const bortleScale = grayscaleToBortleScale(grayValue);
 
     if (isDarkSky(bortleScale)) {
       const actualDistance = haversineDistance(startCoord, coord);
@@ -730,14 +787,14 @@ async function getBortleRatingForLocation(coord) {
   try {
     const { imageData, width, height } = await loadLightPollutionMap();
     const pixel = coordToPixel(coord, width, height);
-    const pixelData = getPixelData(imageData, pixel);
+    const grayValue = getGrayscalePixelData(imageData, pixel);
     
     // Skip pure black pixels (water/no-data areas)
-    if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
+    if (grayValue === 0) {
       return null;
     }
     
-    return rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
+    return grayscaleToBortleScale(grayValue);
   } catch (error) {
     throw new Error(`Error getting Bortle rating: ${error.message}`);
   }

@@ -7,6 +7,7 @@ import { locationToSlug } from "../utils/urlHelpers";
 import LocationPopover from "./LocationPopover";
 import StarRating from "./StarRating";
 import { Icon } from "./Icon";
+import SegmentedControl, { SegmentedControlOption } from "./SegmentedControl";
 import {
   formatOptimalViewingTime,
   formatOptimalViewingDuration,
@@ -33,6 +34,10 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
   const { events, locationData, error } = useTonightEvents(currentDate);
   const [showLocationPopover, setShowLocationPopover] = useState(false);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
+
+  // View toggle state - clock or list view
+  type ViewMode = "clock" | "list";
+  const [viewMode, setViewMode] = useState<ViewMode>("clock");
 
   // Auto-open LocationPopover when geolocation fails
   useEffect(() => {
@@ -126,21 +131,45 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
 
   if (!events) return null;
 
+  // Create view toggle options
+  const viewToggleOptions: SegmentedControlOption<ViewMode>[] = [
+    {
+      value: "clock",
+      label: "",
+      icon: <Icon name="clock-view" size="md" />,
+    },
+    {
+      value: "list", 
+      label: "",
+      icon: <Icon name="list-view" size="md" />,
+    },
+  ];
+
   return (
     <div className={styles.container}>
       <div className={styles.centerColumn}>
-        <h2 className={styles.title}>
-          Tonight
-          <div>
-            {events && events.visibility > 0 && (
-              <StarRating
-                rating={events.visibility}
-                size="lg"
-                reason={events.visibilityReason}
-              />
-            )}
-          </div>
-        </h2>
+        <div className={styles.headerRow}>
+          <h2 className={styles.title}>
+            Tonight
+            <div>
+              {events && events.visibility > 0 && (
+                <StarRating
+                  rating={events.visibility}
+                  size="lg"
+                  reason={events.visibilityReason}
+                />
+              )}
+            </div>
+          </h2>
+          
+          <SegmentedControl
+            options={viewToggleOptions}
+            value={viewMode}
+            onChange={setViewMode}
+            size="sm"
+            showCounts={false}
+          />
+        </div>
       </div>
 
       <div className={styles.locationSection}>
@@ -152,7 +181,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           >
             <Icon
               name="location"
-              className="global-icon-small color-accent"
+              size="md"
+              className="color-accent"
               baselineOffset={4}
             />{" "}
             {locationData?.displayName ?? "Loading location..."}
@@ -190,10 +220,13 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             */}
       </div>
 
-      {/* Astronomical Clock Visualization- For now, we're going to keep it EXPERIMENTAL and hide it.*/}
-      <AstronomicalClock events={events} currentDate={currentDate} size={600} />
-
-      <div className={styles.eventGrid}>
+      {/* Conditional rendering based on view mode */}
+      {viewMode === "clock" ? (
+        /* Astronomical Clock View */
+        <AstronomicalClock events={events} currentDate={currentDate} size={600} />
+      ) : (
+        /* Event List View */
+        <div className={styles.eventGrid}>
         {/* Sun Events */}
         <div className={styles.eventSection}>
           <h3 className={styles.sectionTitle}>Sun</h3>
@@ -204,7 +237,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                   <Tooltip content="Sunset (Civil Twilight)">
                     <Icon
                       name="sunset"
-                      className={`global-icon-medium color-orange-400`}
+                      size="lg"
+                      className="color-orange-400"
                     />
                   </Tooltip>
                   <FormattedTime date={events.sunSet} />
@@ -215,7 +249,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                   <Tooltip content="Astronomical Night Start">
                     <Icon
                       name="night-rise"
-                      className={`global-icon-medium`}
+                      size="lg"
                     />
                   </Tooltip>
                   <FormattedTime date={events.nightStart} />
@@ -230,7 +264,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                   <Tooltip content="Astronomical Night End">
                     <Icon
                       name="night-set"
-                      className={`global-icon-medium`}
+                      size="lg"
                     />
                   </Tooltip>
                   <FormattedTime date={events.nightEnd} />
@@ -241,7 +275,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                   <Tooltip content="Sunrise (Civil Dawn)">
                     <Icon
                       name="sunrise"
-                      className={`global-icon-medium color-yellow-200`}
+                      size="lg"
+                      className="color-yellow-200"
                     />
                   </Tooltip>
                   <FormattedTime date={events.sunRise} />
@@ -258,7 +293,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             <Tooltip content={getMoonPhaseName(events.moonPhase)}>
               <Icon
                 name={getMoonPhaseIcon(events.moonPhase, location.lat)}
-                className={`global-icon-small color-gray-300`}
+                size="md"
+                className="color-gray-300"
                 baselineOffset={2}
               />
             </Tooltip>{" "}
@@ -271,7 +307,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
               <Tooltip content="Moonrise">
                 <Icon
                   name="moonrise"
-                  className={`global-icon-medium color-gray-300`}
+                  size="lg"
+                  className="color-gray-300"
                   baselineOffset={-2}
                 />
               </Tooltip>
@@ -283,7 +320,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
               <Tooltip content="Moonset">
                 <Icon
                   name="moonset"
-                  className={`global-icon-medium color-gray-300`}
+                  size="lg"
+                  className="color-gray-300"
                   baselineOffset={-2}
                 />
               </Tooltip>
@@ -305,7 +343,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                 <Tooltip content="Galactic Core Rise (≥10°)">
                   <Icon
                     name="galaxy-rise"
-                    className={`global-icon-medium color-gray-300`}
+                    size="lg"
+                    className="color-gray-300"
                   />
                 </Tooltip>
                 <FormattedTime date={events.gcRise} />
@@ -316,7 +355,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                 <Tooltip content="Optimal Viewing Window">
                   <Icon
                     name="telescope"
-                    className={`global-icon-medium color-gray-300`}
+                    size="lg"
+                    className="color-gray-300"
                   />
                 </Tooltip>
                 <span className="data-time">
@@ -344,7 +384,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                 <Tooltip content="Galactic Core Transit">
                   <Icon
                     name="apex"
-                    className={`global-icon-medium color-gray-300`}
+                    size="lg"
+                    className="color-gray-300"
                   />
                 </Tooltip>
                 <span className="data-time">
@@ -359,7 +400,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
                 <Tooltip content="Galactic Core Set (≤10°)">
                   <Icon
                     name="galaxy-set"
-                    className={`global-icon-medium color-gray-300`}
+                    size="lg"
+                    className="color-gray-300"
                   />
                 </Tooltip>
                 <FormattedTime date={events.gcSet} />
@@ -368,6 +410,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           </div>
         )}
       </div>
+      )}
+
       <div className={styles.footerSection}>
         {locationData?.description && (
           <div

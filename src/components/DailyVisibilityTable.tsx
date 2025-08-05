@@ -121,7 +121,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Sunset">
                                     <Icon
                                       name="sunset"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>
@@ -136,7 +136,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Astronomical Night Start">
                                     <Icon
                                       name="night-rise"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>
@@ -151,7 +151,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Astronomical Night End">
                                     <Icon
                                       name="night-set"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>
@@ -166,7 +166,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Sunrise">
                                     <Icon
                                       name="sunrise"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>
@@ -190,7 +190,7 @@ export default function DailyVisibilityTable({
                                       day.moonPhase,
                                       location.lat
                                     )}
-                                    className={styles.icon}
+                                    size="sm"
                                     baselineOffset={2}
                                   />
                                 </Tooltip>
@@ -204,7 +204,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Moonrise">
                                     <Icon
                                       name="moonrise"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>
@@ -219,7 +219,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Moonset">
                                     <Icon
                                       name="moonset"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>
@@ -243,7 +243,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Galactic Core Rise (≥10°)">
                                     <Icon
                                       name="galaxy-rise"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>
@@ -258,7 +258,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Optimal Observation Time">
                                     <Icon
                                       name="telescope"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>
@@ -280,7 +280,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Galactic Core Transit">
                                     <Icon
                                       name="apex"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>
@@ -299,7 +299,7 @@ export default function DailyVisibilityTable({
                                   <Tooltip content="Galactic Core Set (≤10°)">
                                     <Icon
                                       name="galaxy-set"
-                                      className={styles.icon}
+                                      size="sm"
                                     />
                                   </Tooltip>
                                   <span>

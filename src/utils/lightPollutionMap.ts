@@ -149,49 +149,77 @@ export function normalizedToCoord(
 
 
 /**
- * Color mapping based on the actual colorbar from the light pollution map
- * Colors are mapped to magnitude per square arcsecond values, then converted to Bortle scale
+ * Grayscale to Bortle scale lookup for the optimized grayscale format
+ * This replaces the RGB colormap with a direct grayscale-to-Bortle mapping
+ * for better performance and smaller file size.
+ */
+const GRAYSCALE_TO_BORTLE = new Map([
+  [0, 9],     // Black (water/no-data)
+  [10, 1],    // Pristine dark sky
+  [20, 1.5],  // Excellent dark sky
+  [30, 2],    // Typical dark sky
+  [40, 2.5],  // Rural sky
+  [50, 3],    // Rural/suburban transition
+  [70, 3.5],  // Suburban sky
+  [90, 4],    // Suburban/urban transition
+  [110, 4.5], // Light suburban sky
+  [130, 5],   // Suburban sky
+  [150, 5.5], // Bright suburban sky
+  [170, 6],   // Bright suburban sky
+  [190, 6.5], // Suburban/urban transition
+  [210, 7],   // Urban sky
+  [230, 7.5], // City sky
+  [240, 8],   // Inner city sky
+]);
+
+/**
+ * Legacy RGB colormap - kept for reference and any remaining RGB processing
+ * This is now only used for fallback scenarios or debugging
  */
 const LIGHT_POLLUTION_COLORMAP = [
   // [R, G, B, magnitude_per_arcsec_min, magnitude_per_arcsec_max, bortle_scale]
-  // From darkest (non-black) to brightest (red/white) - based on colorbar.png
-  // Note: Pure black (0,0,0) is treated as no-data/water and excluded from dark sky search
-  // Made more restrictive: only very darkest grays are truly pristine dark sky
-  [8, 8, 8, 22.0, 21.99, 1], // Almost black - pristine dark sky (very restrictive)
-  [16, 16, 16, 21.99, 21.95, 1.5], // Very dark gray
-  [24, 24, 24, 21.95, 21.91, 2], // Dark gray
-  [32, 32, 32, 21.91, 21.87, 2.5], // Medium dark gray (where LA RGB 35,35,35 falls)
-  [48, 48, 48, 21.87, 21.81, 3], // Light dark gray
-  [0, 0, 128, 21.81, 21.69, 3.5], // Dark blue
-  [0, 0, 255, 21.69, 21.51, 4], // Blue
-  [0, 128, 0, 21.51, 21.25, 4.5], // Dark green
-  [0, 255, 0, 21.25, 20.91, 5], // Green
-  [128, 128, 0, 20.91, 20.49, 5.5], // Olive/dark yellow
-  [255, 255, 0, 20.49, 20.02, 6], // Yellow
-  [255, 128, 0, 20.02, 19.5, 6.5], // Orange
-  [255, 64, 0, 19.5, 18.95, 7], // Red-orange
-  [255, 0, 0, 18.95, 18.38, 7.5], // Red
-  [255, 255, 255, 18.38, 17.8, 8], // White - extreme light pollution
-  [192, 192, 192, 17.8, 0, 9], // Light gray - beyond scale
+  [8, 8, 8, 22.0, 21.99, 1],
+  [16, 16, 16, 21.99, 21.95, 1.5],
+  [24, 24, 24, 21.95, 21.91, 2],
+  [32, 32, 32, 21.91, 21.87, 2.5],
+  [48, 48, 48, 21.87, 21.81, 3],
+  [0, 0, 128, 21.81, 21.69, 3.5],
+  [0, 0, 255, 21.69, 21.51, 4],
+  [0, 128, 0, 21.51, 21.25, 4.5],
+  [0, 255, 0, 21.25, 20.91, 5],
+  [128, 128, 0, 20.91, 20.49, 5.5],
+  [255, 255, 0, 20.49, 20.02, 6],
+  [255, 128, 0, 20.02, 19.5, 6.5],
+  [255, 64, 0, 19.5, 18.95, 7],
+  [255, 0, 0, 18.95, 18.38, 7.5],
+  [255, 255, 255, 18.38, 17.8, 8],
+  [192, 192, 192, 17.8, 0, 9],
 ];
 
 /**
- * Convert RGB values to Bortle scale using the actual colorbar mapping
+ * Convert grayscale value to Bortle scale using the optimized lookup
+ * This is the primary function for the new grayscale format
+ */
+export function grayscaleToBortleScale(grayValue: number): number {
+  return GRAYSCALE_TO_BORTLE.get(grayValue) || 9; // Default to worst case if not found
+}
+
+/**
+ * Convert RGB values to Bortle scale using the legacy colorbar mapping
+ * This is kept for backward compatibility and fallback scenarios
  */
 export function rgbToBortleScale(r: number, g: number, b: number): number {
   // Pure black (0,0,0) represents water/no-data areas, not dark sky
-  // Treat as extremely light polluted to exclude from dark sky search
   if (r === 0 && g === 0 && b === 0) {
-    return 9; // Worse than any real Bortle scale value
+    return 9;
   }
 
   // Find the closest color match in the colormap
   let minDistance = Infinity;
-  let bestMatch = LIGHT_POLLUTION_COLORMAP[LIGHT_POLLUTION_COLORMAP.length - 1]; // Default to worst case
+  let bestMatch = LIGHT_POLLUTION_COLORMAP[LIGHT_POLLUTION_COLORMAP.length - 1];
 
   for (const colorEntry of LIGHT_POLLUTION_COLORMAP) {
     const [mapR, mapG, mapB] = colorEntry;
-    // Calculate Euclidean distance in RGB space
     const distance = Math.sqrt(
       (r - mapR) ** 2 + (g - mapG) ** 2 + (b - mapB) ** 2
     );
@@ -202,7 +230,7 @@ export function rgbToBortleScale(r: number, g: number, b: number): number {
     }
   }
 
-  return bestMatch[5] as number; // Return Bortle scale
+  return bestMatch[5] as number;
 }
 
 /**
@@ -291,13 +319,25 @@ export async function loadLightPollutionMap(): Promise<{
       reject(new Error("Failed to load light pollution map"));
     };
 
-    // Use the large version for maximum accuracy
-    img.src = "/world2024B-lg.png";
+    // Use the optimized grayscale version for better performance
+    img.src = "/world2024B-lg-grayscale.png";
   });
 }
 
 /**
- * Get pixel data at specific coordinates
+ * Get grayscale pixel data at specific coordinates (optimized for grayscale format)
+ */
+export function getGrayscalePixelData(
+  imageData: ImageData,
+  pixel: PixelCoordinate
+): number {
+  const index = (pixel.y * imageData.width + pixel.x) * 4;
+  // For grayscale images, R, G, B channels are identical, so we just read R
+  return imageData.data[index];
+}
+
+/**
+ * Get pixel data at specific coordinates (legacy RGB format)
  */
 export function getPixelData(
   imageData: ImageData,
@@ -430,12 +470,8 @@ export async function findNearestDarkSky(
       }
 
       // Check if current pixel represents dark sky
-      const pixelData = getPixelData(imageData, pixel);
-      const bortleScale = rgbToBortleScale(
-        pixelData.r,
-        pixelData.g,
-        pixelData.b
-      );
+      const grayValue = getGrayscalePixelData(imageData, pixel);
+      const bortleScale = grayscaleToBortleScale(grayValue);
       const coord = pixelToCoord(pixel, width, height);
 
       // Optional debug logging (can be enabled for troubleshooting)
@@ -453,7 +489,7 @@ export async function findNearestDarkSky(
       // }
 
       // Skip pure black pixels (water/no-data areas)
-      if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
+      if (grayValue === 0) {
         continue; // Skip this pixel
       }
 
@@ -544,14 +580,14 @@ export async function getBortleRatingForLocation(
   try {
     const { imageData, width, height } = await loadLightPollutionMap();
     const pixel = coordToPixel(coord, width, height);
-    const pixelData = getPixelData(imageData, pixel);
+    const grayValue = getGrayscalePixelData(imageData, pixel);
 
     // Skip pure black pixels (water/no-data areas)
-    if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
+    if (grayValue === 0) {
       return null;
     }
 
-    return rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
+    return grayscaleToBortleScale(grayValue);
   } catch (error) {
     console.error("Error getting Bortle rating:", error);
     return null;
@@ -595,14 +631,14 @@ export async function findDarkestBortleInRadius(
         const actualDistance = haversineDistance(centerCoord, testCoord);
         
         if (actualDistance <= radiusKm) {
-          const pixelData = getPixelData(imageData, testPixel);
+          const grayValue = getGrayscalePixelData(imageData, testPixel);
           
           // Skip pure black pixels (water/no-data areas)
-          if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
+          if (grayValue === 0) {
             continue;
           }
           
-          const bortleScale = rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
+          const bortleScale = grayscaleToBortleScale(grayValue);
           
           if (bortleScale < darkestBortle) {
             darkestBortle = bortleScale;
@@ -790,14 +826,14 @@ async function findDarkSiteInDirection(
     if (tooClose) continue;
 
     // Check if current pixel represents dark sky
-    const pixelData = getPixelData(imageData, pixel);
+    const grayValue = getGrayscalePixelData(imageData, pixel);
 
     // Skip pure black pixels (water/no-data areas)
-    if (pixelData.r === 0 && pixelData.g === 0 && pixelData.b === 0) {
+    if (grayValue === 0) {
       continue;
     }
 
-    const bortleScale = rgbToBortleScale(pixelData.r, pixelData.g, pixelData.b);
+    const bortleScale = grayscaleToBortleScale(grayValue);
 
     if (isDarkSky(bortleScale)) {
       const actualDistance = haversineDistance(startCoord, coord);

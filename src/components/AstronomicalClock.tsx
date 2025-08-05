@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect, useState, useRef } from 'react';
 import { useGuaranteedLocation } from '../hooks/useLocation';
 import { 
   timeToAngle, 
@@ -18,7 +18,9 @@ import {
   calculateClockDimensions, 
   getHourMarkerConfig 
 } from '../config/clockConfig';
-import SwipeablePanels from './SwipeablePanels';
+import { useSwipe } from '../hooks/useSwipe';
+import SegmentedControl, { SegmentedControlOption } from './SegmentedControl';
+import { Icon } from './Icon';
 import ClockFace from './ClockFace';
 import EventListView from './EventListView';
 import styles from './AstronomicalClock.module.css';
@@ -33,7 +35,29 @@ export default function AstronomicalClock({
   const [refreshTick, setRefreshTick] = useState(0);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [hoveredArcType, setHoveredArcType] = useState<'sun' | 'moon' | 'gc' | null>(null);
+  
+  // Panel state for segmented control
+  type PanelMode = "clock" | "list";
+  const [currentPanel, setCurrentPanel] = useState<PanelMode>("clock");
+  const containerRef = useRef<HTMLDivElement>(null);
   const now = useMemo(() => currentDate || new Date(), [currentDate, refreshTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  
+  // Handle panel changes
+  const handlePanelChange = (newPanel: PanelMode) => {
+    setCurrentPanel(newPanel);
+  };
+
+  // Setup swipe gestures
+  const panelOrder: PanelMode[] = ["clock", "list"];
+  const currentPanelIndex = panelOrder.indexOf(currentPanel);
+  
+  const { handlers, state } = useSwipe({
+    currentIndex: currentPanelIndex,
+    totalItems: panelOrder.length,
+    onSwipe: (_direction, newIndex) => {
+      handlePanelChange(panelOrder[newIndex]);
+    }
+  });
   
   const currentTimeAngle = getCurrentTimeAngle(location, now);
   
@@ -137,44 +161,18 @@ export default function AstronomicalClock({
     );
   }, [events, location, gcRadius, centerX, centerY]);
 
-  // Create panels for SwipeablePanels
-  const panels = [
+  // Create segmented control options
+  const panelOptions: SegmentedControlOption<PanelMode>[] = [
     {
-      id: 'clock',
-      title: 'Clock View',
-      content: (
-        <ClockFace
-          size={size}
-          dimensions={dimensions}
-          hourMarkerConfig={hourMarkerConfig}
-          clockEvents={clockEvents}
-          sunArcs={sunArcs}
-          moonArc={moonArc}
-          gcArcs={gcArcs}
-          currentTimeAngle={currentTimeAngle}
-          showClockHand={showClockHand}
-          now={now}
-          moonPhase={events.moonPhase}
-          moonIllumination={events.moonIllumination}
-          hoveredEventId={hoveredEventId}
-          hoveredArcType={hoveredArcType}
-          onEventHover={setHoveredEventId}
-          onArcHover={setHoveredArcType}
-        />
-      )
+      value: "clock",
+      label: "",
+      icon: <Icon name="clock-view" size="md" />,
     },
     {
-      id: 'list',
-      title: 'Event List',
-      content: (
-        <EventListView
-          clockEvents={clockEvents}
-          moonPhase={events.moonPhase}
-          moonIllumination={events.moonIllumination}
-          optimalWindow={events.optimalWindow}
-        />
-      )
-    }
+      value: "list",
+      label: "",
+      icon: <Icon name="list-view" size="md" />,
+    },
   ];
   
   // Generate accessibility description
@@ -202,10 +200,74 @@ export default function AstronomicalClock({
         Current time: {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
       </div>
       
-      <SwipeablePanels 
-        panels={panels}
-        initialPanel={0}
-      />
+      {/* Segmented Control for panel switching */}
+      <div className={styles.controlSection}>
+        <SegmentedControl
+          options={panelOptions}
+          value={currentPanel}
+          onChange={handlePanelChange}
+          size="sm"
+          showCounts={false}
+        />
+      </div>
+      
+      {/* Viewport wrapper to constrain visible area */}
+      <div className={styles.panelsViewport}>
+        {/* Swipeable Panels Container */}
+        <div 
+          ref={containerRef}
+          className={styles.panelsContainer}
+          {...handlers}
+          style={{
+            transform: `translateX(calc(-${currentPanelIndex * 50}% + ${state.isDragging ? state.translateX + 'px' : '0px'}))`,
+            transition: state.isDragging ? 'none' : 'transform 0.3s ease'
+          }}
+          role="tabpanel"
+          aria-label="Swipeable astronomical clock panels"
+        >
+        {/* Clock Face Panel */}
+        <div 
+          className={styles.panel}
+          role="tabpanel"
+          aria-labelledby="clock-tab"
+          aria-hidden={currentPanel !== "clock"}
+        >
+          <ClockFace
+            size={size}
+            dimensions={dimensions}
+            hourMarkerConfig={hourMarkerConfig}
+            clockEvents={clockEvents}
+            sunArcs={sunArcs}
+            moonArc={moonArc}
+            gcArcs={gcArcs}
+            currentTimeAngle={currentTimeAngle}
+            showClockHand={showClockHand}
+            now={now}
+            moonPhase={events.moonPhase}
+            moonIllumination={events.moonIllumination}
+            hoveredEventId={hoveredEventId}
+            hoveredArcType={hoveredArcType}
+            onEventHover={setHoveredEventId}
+            onArcHover={setHoveredArcType}
+          />
+        </div>
+        
+        {/* Event List Panel */}
+        <div 
+          className={styles.panel}
+          role="tabpanel"
+          aria-labelledby="list-tab"
+          aria-hidden={currentPanel !== "list"}
+        >
+          <EventListView
+            clockEvents={clockEvents}
+            moonPhase={events.moonPhase}
+            moonIllumination={events.moonIllumination}
+            optimalWindow={events.optimalWindow}
+          />
+        </div>
+      </div>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,8 @@
-Add to this file, to provide a comprehensive history of the project.
+Comprehensive history of the Milky Way Calendar project, documenting major
+phases, architectural decisions, and technical implementations.
 
-Create subsections for major new phases/features.
+This file serves as a technical reference for understanding why specific
+solutions were chosen and how they evolved over time.
 
 ### Timezone Implementation
 
@@ -46,6 +48,61 @@ Create subsections for major new phases/features.
   state updates
 - **Event Flow**: Proper mouseup handling prevents location reset on drag
   release
+
+### Light Pollution Map Optimization (Phase 31)
+
+- **Performance Problem**: Original RGB light pollution map (2.47MB) used only
+  15 unique colors but required expensive RGB-to-Bortle conversion at runtime
+- **Analysis**: Discovered that despite RGB format, image contained only 16
+  distinct Bortle scale values with 80% black pixels (water/no-data)
+- **Solution**: Converted to optimized grayscale format with direct
+  Bortle-to-grayscale mapping
+- **Implementation**: 
+  - Created exact RGB → Bortle → Grayscale conversion preserving 100% accuracy
+  - Added `grayscaleToBortleScale()` and `getGrayscalePixelData()` functions
+  - Updated both main processing (`lightPollutionMap.ts`) and worker
+    (`darkSiteWorker.js`)
+  - Maintained backward compatibility with legacy RGB functions
+- **Optimization Results**:
+  - **File Size**: 2.47MB → 2.25MB (9.1% reduction)
+  - **Runtime Performance**: Eliminated RGB color matching algorithm
+  - **Memory Efficiency**: Single-channel processing vs 3-channel RGB
+  - **Accuracy**: Perfect - all 130 tests pass with identical results
+- **Technical Details**: Uses 16-value lookup table (Map) for O(1) grayscale
+  to Bortle conversion vs O(n) RGB distance calculation
+- **Quality Assurance**: Comprehensive testing verified zero accuracy loss
+  during format conversion
+
+### Unified Cache API Implementation (Phase 32)
+
+- **Architecture Problem**: WorldMap component and darkSiteWorker were
+  duplicating image caching logic with separate cache implementations, leading
+  to redundant downloads and inconsistent caching strategies
+- **Analysis**: WorldMap loaded color images directly via `<img>` tags without
+  caching, while darkSiteWorker had its own Cache API implementation for
+  grayscale maps, resulting in no cache sharing between components
+- **Solution**: Created centralized `MapImageCacheService` providing unified
+  caching for all light pollution map formats
+- **Implementation**:
+  - Built `src/services/mapImageCache.ts` with singleton service pattern
+  - Added automatic format selection (grayscale for calculations, color for
+    display) based on context and screen size
+  - Implemented WebP support detection and fallback handling
+  - Added memory management with object URL cleanup to prevent memory leaks
+  - Enhanced WorldMap component with cached image loading and debounced resize
+  - Updated darkSiteWorker to use shared cache configuration
+  - Maintained backward compatibility while eliminating code duplication
+- **Performance Benefits**:
+  - **Shared Storage**: Cache API storage shared between main thread and worker
+  - **Intelligent Loading**: Cache-first loading with 7-day expiration
+  - **Format Optimization**: Automatic selection of optimal image format/size
+  - **Memory Management**: Proper cleanup prevents memory leaks from object URLs
+  - **Network Efficiency**: Eliminates redundant downloads across components
+- **Testing**: Added comprehensive test suite (12 new tests) validating cache
+  behavior, format selection, singleton pattern, and error handling
+- **Architecture Impact**: Centralized caching eliminates duplicate code,
+  provides consistent performance across all map-related functionality, and
+  enables future cache optimizations from single point of control
 
 ### Navigation and Global State
 

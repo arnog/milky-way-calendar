@@ -244,13 +244,13 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     {
       value: "all",
       label: "",
-      icon: <Icon name="bortle-all" className="global-icon-small" />,
+      icon: <Icon name="bortle-all" size="md" />,
       count: DARK_SITES.length,
     },
     {
       value: "good",
       label: "",
-      icon: <Icon name="bortle-3dots" className="global-icon-small" />,
+      icon: <Icon name="bortle-3dots" size="md" />,
       count: DARK_SITES.filter((site) => {
         const slug = site[4] as string | undefined;
         const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
@@ -260,7 +260,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     {
       value: "excellent",
       label: "",
-      icon: <Icon name="bortle-2dots" className="global-icon-small" />,
+      icon: <Icon name="bortle-2dots" size="md" />,
       count: DARK_SITES.filter((site) => {
         const slug = site[4] as string | undefined;
         const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
@@ -270,7 +270,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     {
       value: "pristine",
       label: "",
-      icon: <Icon name="bortle-1dot" className="global-icon-small" />,
+      icon: <Icon name="bortle-1dot" size="md" />,
       count: DARK_SITES.filter((site) => {
         const slug = site[4] as string | undefined;
         const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
@@ -675,7 +675,8 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                           <h4 className={exploreStyles.knownSiteTitle}>
                             <Icon
                               name="location"
-                              className="global-icon-small color-accent"
+                              size="md"
+                              className="color-accent"
                             />{" "}
                             Nearest Accessible Location
                           </h4>

@@ -306,7 +306,8 @@ export default function LocationPopover({
                 >
                   <Icon
                     name="location"
-                    className="global-icon-small color-accent"
+                    size="md"
+                    className="color-accent"
                   />{" "}
                   {suggestion}
                   <span className={styles.suggestionCoords}>

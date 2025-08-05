@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Location } from "../types/astronomy";
 import { coordToNormalized, normalizedToCoord } from "../utils/lightPollutionMap";
+import { mapImageCache } from "../services/mapImageCache";
 import styles from "./WorldMap.module.css";
 
 interface WorldMapMarker {
@@ -33,8 +34,9 @@ export default function WorldMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string>("/world2024B-sm.jpg");
+  const [imageSrc, setImageSrc] = useState<string>("");
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const previousObjectUrlRef = useRef<string | null>(null);
   
   // Zoom and pan state
   const [zoom, setZoom] = useState(1);
@@ -45,28 +47,32 @@ export default function WorldMap({
   const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null);
   const [lastTouchCenter, setLastTouchCenter] = useState<{ x: number; y: number } | null>(null);
 
-  // Determine which image to use based on screen size
-  const getMapSrc = () => {
-    if (typeof window === "undefined") return "/world2024B-md.jpg";
-    const width = window.innerWidth;
-
-    // Use WebP for better compression when supported
-    const supportsWebP =
-      typeof window !== "undefined" &&
-      document
-        .createElement("canvas")
-        .toDataURL("image/webp")
-        .indexOf("data:image/webp") === 0;
-
-    if (width < 768) {
-      // Mobile devices - use small resolution
-      return supportsWebP ? "/world2024B-sm.webp" : "/world2024B-sm.jpg";
-    } else if (width < 1920) {
-      // Tablets and regular screens - use medium resolution
-      return supportsWebP ? "/world2024B-md.webp" : "/world2024B-md.jpg";
-    } else {
-      // Large screens - use full resolution PNG for best quality
-      return "/world2024B-lg.png";
+  // Load cached image with automatic format selection
+  const loadCachedImage = async () => {
+    try {
+      setIsImageLoading(true);
+      const screenWidth = typeof window !== "undefined" ? window.innerWidth : 1920;
+      
+      const { objectUrl } = await mapImageCache.loadImageAsBlob(
+        'color',
+        undefined, // Let cache service auto-select size
+        screenWidth
+      );
+      
+      // Clean up previous object URL to prevent memory leaks
+      if (previousObjectUrlRef.current && previousObjectUrlRef.current.startsWith('blob:')) {
+        URL.revokeObjectURL(previousObjectUrlRef.current);
+      }
+      
+      setImageSrc(objectUrl);
+      previousObjectUrlRef.current = objectUrl;
+    } catch (error) {
+      console.error('Failed to load cached map image:', error);
+      // Fallback to direct image loading
+      setImageSrc('/world2024B-md.jpg');
+      previousObjectUrlRef.current = null;
+    } finally {
+      setIsImageLoading(false);
     }
   };
 
@@ -340,27 +346,31 @@ export default function WorldMap({
       })()
     : null;
 
-  // Update image source based on window size
+  // Load cached image on mount and resize
   useEffect(() => {
-    const updateImageSrc = () => {
-      const newSrc = getMapSrc();
-      if (newSrc !== imageSrc) {
-        setImageSrc(newSrc);
-        setIsImageLoading(true);
-      }
-    };
-
     // Initial load
-    updateImageSrc();
+    loadCachedImage();
 
-    // Update on resize
+    // Update on resize with debouncing
+    let resizeTimeout: number;
     const handleResize = () => {
-      updateImageSrc();
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        loadCachedImage();
+      }, 300); // Debounce resize events
     };
 
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [imageSrc]);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(resizeTimeout);
+      
+      // Clean up object URL on unmount
+      if (previousObjectUrlRef.current && previousObjectUrlRef.current.startsWith('blob:')) {
+        URL.revokeObjectURL(previousObjectUrlRef.current);
+      }
+    };
+  }, []); // Remove imageSrc dependency since we're using cached URLs
 
   // Add native wheel event listener to prevent page scrolling
   useEffect(() => {
@@ -447,7 +457,7 @@ export default function WorldMap({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        onLoad={() => setIsImageLoading(false)}
+        onLoad={() => {}} // Loading state managed by cache service
         style={{
           transform: `scale(${zoom}) translate(${(panX * 100)}%, ${(panY * (containerRef.current?.clientHeight || 1)) / zoom}px)`,
           transformOrigin: 'center',
