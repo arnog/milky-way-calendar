@@ -202,7 +202,6 @@ export function useAstronomicalData(
 
   return {
     items,
-    isLoading: false, // Always false since computations are fast
     isLoadingMore,
     error,
     itemsLoaded,

@@ -92,8 +92,6 @@ export interface AstronomicalDataTableConfig {
 export interface UseAstronomicalDataResult {
   /** Array of astronomical data items */
   items: AstronomicalDataItem[];
-  /** Loading state for initial load */
-  isLoading: boolean;
   /** Loading state for additional items (infinite scroll) */
   isLoadingMore: boolean;
   /** Error message if loading failed */
