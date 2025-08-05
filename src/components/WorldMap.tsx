@@ -275,12 +275,12 @@ export default function WorldMap({
       );
 
       if (!hasDragged && !hasPanned && distance > 3) {
-        if (e.shiftKey) {
-          // Shift+drag to pan
+        if (e.shiftKey || zoom > 1) {
+          // Shift+drag to pan OR zoom > 1 (intuitive panning when zoomed in)
           hasPanned = true;
           setIsPanning(true);
         } else {
-          // Regular drag to select location
+          // Regular drag to select location (only when zoom = 1)
           hasDragged = true;
           setIsDragging(true);
           onDragStart?.();
@@ -433,7 +433,6 @@ export default function WorldMap({
           >
             +
           </button>
-          <div className={styles.zoomLevel}>{zoom.toFixed(1)}×</div>
           <button
             className={styles.zoomButton}
             onClick={() => handleZoom(-ZOOM_SPEED)}
@@ -441,19 +440,6 @@ export default function WorldMap({
             aria-label="Zoom out"
           >
             −
-          </button>
-          <button
-            className={styles.resetButton}
-            onClick={() => {
-              setZoom(1);
-              const constrained = constrainPan(0, 0, 1);
-              setPanX(constrained.x);
-              setPanY(constrained.y);
-            }}
-            disabled={zoom === 1 && panX === 0 && panY === 0}
-            aria-label="Reset zoom and pan"
-          >
-            ⌂
           </button>
         </div>
       )}
@@ -651,12 +637,6 @@ export default function WorldMap({
         </div>
       )}
       
-      {/* Instructions */}
-      {!isImageLoading && (
-        <div className={styles.instructions}>
-          Shift+drag to pan • Scroll to zoom • Wraps horizontally
-        </div>
-      )}
     </div>
   );
 }
