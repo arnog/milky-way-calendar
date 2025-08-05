@@ -144,7 +144,7 @@ export default function WorldMap({
         return newZoom;
       });
     },
-    [constrainPan, panX, panY, setPan, mapConfig.minZoom, mapConfig.maxZoom],
+    [constrainPan, panX, panY, setPan, setZoom, mapConfig.minZoom, mapConfig.maxZoom],
   );
 
   // Gesture handlers using the hook

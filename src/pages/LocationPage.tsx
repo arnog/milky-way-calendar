@@ -22,9 +22,7 @@ interface LocationPageProps {
 
 // Wrapper component that parses URL and provides location to context
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function LocationPageWrapper({
-  isDarkroomMode: _isDarkroomMode,
-}: LocationPageProps) {
+function LocationPageWrapper(_props: LocationPageProps) {
   const { locationSlug } = useParams<{ locationSlug: string }>();
   // Parse location synchronously - no need for loading state
   const parsedLocation = useMemo(() => {

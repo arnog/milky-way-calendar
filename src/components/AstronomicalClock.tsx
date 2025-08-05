@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState, useRef } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useGuaranteedLocation } from "../hooks/useLocation";
 import { timeToAngle, getCurrentTimeAngle } from "../utils/timeConversion";
 import {
@@ -27,7 +27,6 @@ export default function AstronomicalClock({
 }: AstronomicalClockProps) {
   const { location } = useGuaranteedLocation();
 
-  const [refreshTick, setRefreshTick] = useState(0);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [hoveredArcType, setHoveredArcType] = useState<
     "sun" | "moon" | "gc" | null
@@ -39,8 +38,8 @@ export default function AstronomicalClock({
   const containerRef = useRef<HTMLDivElement>(null);
   const now = useMemo(
     () => currentDate || new Date(),
-    [currentDate, refreshTick],
-  ); // eslint-disable-line react-hooks/exhaustive-deps
+    [currentDate],
+  );
 
   // Handle panel changes
   const handlePanelChange = (newPanel: PanelMode) => {
@@ -65,14 +64,6 @@ export default function AstronomicalClock({
   const currentHour = now.getHours();
   const showClockHand = currentHour >= 18 || currentHour < 6;
 
-  // Auto-refresh clock position every 2 minutes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRefreshTick((tick) => tick + 1);
-    }, CLOCK_CONFIG.AUTO_REFRESH_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Calculate dimensions using configuration
   const dimensions = calculateClockDimensions(size);
