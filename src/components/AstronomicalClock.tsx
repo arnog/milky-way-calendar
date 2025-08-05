@@ -81,13 +81,38 @@ export default function AstronomicalClock({
   }, [events, location, sunRadius, centerX, centerY]);
   
   const moonArc = useMemo(() => {
-    if (!events.moonRise || !events.moonSet) {
+    // Need at least one of moonrise or moonset to show an arc
+    if (!events.moonRise && !events.moonSet) {
       return null;
     }
     
+    // Handle different scenarios:
+    // 1. Both moonrise and moonset: normal arc
+    // 2. Only moonset: arc from viewing window start (6pm/270°) to moonset
+    // 3. Only moonrise: arc from moonrise to viewing window end (6am/270°)
+    
+    let startAngle: number;
+    let endAngle: number;
+    
+    if (events.moonRise && events.moonSet) {
+      // Normal case: both rise and set
+      startAngle = timeToAngle(events.moonRise, location);
+      endAngle = timeToAngle(events.moonSet, location);
+    } else if (events.moonSet && !events.moonRise) {
+      // Moon is up at start of viewing window, sets during night
+      startAngle = 270; // 6pm (start of viewing window)
+      endAngle = timeToAngle(events.moonSet, location);
+    } else if (events.moonRise && !events.moonSet) {
+      // Moon rises during night, still up at end of viewing window
+      startAngle = timeToAngle(events.moonRise, location);
+      endAngle = 270; // 6am next day (end of viewing window)
+    } else {
+      return null; // This shouldn't happen given our check above
+    }
+    
     return createMoonArc(
-      timeToAngle(events.moonRise, location),
-      timeToAngle(events.moonSet, location),
+      startAngle,
+      endAngle,
       events.moonIllumination / 100, // Convert percentage to decimal
       moonRadius,
       centerX,

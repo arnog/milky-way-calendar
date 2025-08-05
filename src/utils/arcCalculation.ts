@@ -1,4 +1,5 @@
 import { type CalculatedArc } from '../types/astronomicalClock';
+import { getColorFromCSSVariable } from '../config/clockConfig';
 
 /**
  * Generate SVG path for a circular arc
@@ -123,20 +124,12 @@ function createGradientArc(
     : (360 - startAngle) + endAngle;
   const segmentAngle = angleSpan / segments;
   
-  // Get the actual color values from CSS variables
-  const getColorFromVar = (varName: string): string => {
-    if (varName === 'var(--sun-twilight)') return '#FFA500';
-    if (varName === 'var(--sun-night)') return '#1a2744';
-    if (varName === 'var(--sun-dawn)') return '#FFD700';
-    if (varName === 'var(--gc-visible)') return '#6EC6FF'; // Cyan  
-    if (varName === 'var(--gc-optimal)') return '#87CEEB'; // Light blue
-    return varName;
-  };
+  // Use centralized color mapping from clockConfig
   
   // Interpolate between two colors
   const interpolateColor = (start: string, end: string, factor: number): string => {
-    const startColor = getColorFromVar(start);
-    const endColor = getColorFromVar(end);
+    const startColor = getColorFromCSSVariable(start);
+    const endColor = getColorFromCSSVariable(end);
     
     // Convert hex to RGB
     const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
@@ -239,20 +232,12 @@ function createColorGradientArc(
     : (360 - startAngle) + endAngle;
   const segmentAngle = angleSpan / segments;
   
-  // Get the actual color values from CSS variables
-  const getColorFromVar = (varName: string): string => {
-    if (varName === 'var(--sun-twilight)') return '#FFA500';
-    if (varName === 'var(--sun-night)') return '#1a2744';
-    if (varName === 'var(--sun-dawn)') return '#FFD700';
-    if (varName === 'var(--gc-visible)') return '#6EC6FF'; // Cyan  
-    if (varName === 'var(--gc-optimal)') return '#87CEEB'; // Light blue
-    return varName;
-  };
+  // Use centralized color mapping from clockConfig
   
   // Interpolate between two colors
   const interpolateColor = (start: string, end: string, factor: number): string => {
-    const startColorHex = getColorFromVar(start);
-    const endColorHex = getColorFromVar(end);
+    const startColorHex = getColorFromCSSVariable(start);
+    const endColorHex = getColorFromCSSVariable(end);
     
     // Convert hex to RGB
     const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
@@ -330,7 +315,7 @@ export function createSunArc(
   if (twilightStartAngle !== twilightEndAngle) {
     arcs.push({
       path: createArcPath(twilightEndAngle, twilightStartAngle, radius, centerX, centerY),
-      color: 'var(--sun-night)',
+      color: getColorFromCSSVariable('var(--sun-night)'),
       className: 'sun-night'
     });
   }
@@ -370,12 +355,12 @@ export function createMoonArc(
   
   // Make opacity proportional to illumination
   // Full moon (100%) = fully opaque (1.0)
-  // New moon (0%) = almost transparent (0.1)
-  const opacity = Math.max(0.1, illumination);
+  // New moon (0%) = minimum visible opacity (0.3 for better visibility)
+  const opacity = Math.max(0.3, illumination);
   
   return {
     path: createArcPath(moonriseAngle, moonsetAngle, radius, centerX, centerY),
-    color: 'var(--moon-arc)',
+    color: getColorFromCSSVariable('var(--moon-arc)'),
     opacity: opacity,
     className: 'moon-arc'
   };
@@ -412,7 +397,7 @@ export function createGalacticCenterArc(
     gcRiseAngle,
     fadeInEndAngle,
     radius,
-    'var(--gc-visible)',
+    getColorFromCSSVariable('var(--gc-visible)'),
     0, // Start transparent
     1, // End fully opaque
     15,
@@ -425,7 +410,7 @@ export function createGalacticCenterArc(
   if (optimalExtendedStartAngle !== fadeInEndAngle) {
     arcs.push({
       path: createArcPath(fadeInEndAngle, optimalExtendedStartAngle, radius, centerX, centerY),
-      color: 'var(--gc-visible)',
+      color: getColorFromCSSVariable('var(--gc-visible)'),
       opacity: 1,
       className: 'gc-visible'
     });
@@ -452,7 +437,7 @@ export function createGalacticCenterArc(
     // Core optimal window (solid optimal color, thicker)
     arcs.push({
       path: createArcPath(optimalStartAngle, optimalEndAngle, radius, centerX, centerY),
-      color: 'var(--gc-optimal)',
+      color: getColorFromCSSVariable('var(--gc-optimal)'),
       opacity: Math.max(0.8, qualityScore), // Quality-based opacity
       strokeWidth: 60, // Thicker for emphasis
       className: 'gc-optimal'
@@ -479,7 +464,7 @@ export function createGalacticCenterArc(
   if (fadeOutStartAngle !== optimalExtendedEndAngle) {
     arcs.push({
       path: createArcPath(optimalExtendedEndAngle, fadeOutStartAngle, radius, centerX, centerY),
-      color: 'var(--gc-visible)',
+      color: getColorFromCSSVariable('var(--gc-visible)'),
       opacity: 1,
       className: 'gc-visible'
     });
@@ -490,7 +475,7 @@ export function createGalacticCenterArc(
     fadeOutStartAngle,
     gcSetAngle,
     radius,
-    'var(--gc-visible)',
+    getColorFromCSSVariable('var(--gc-visible)'),
     1, // Start fully opaque
     0, // End transparent
     15,

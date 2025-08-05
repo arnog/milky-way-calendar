@@ -5,6 +5,7 @@
 
 import { type EventStyleConfig, EventType } from '../types/astronomicalClock';
 
+
 /**
  * Clock layout and sizing configuration
  */
@@ -136,76 +137,6 @@ export const EVENT_LABEL_CONFIG = {
 } as const;
 
 /**
- * Current time indicator configuration
- */
-export const TIME_INDICATOR_CONFIG = {
-  /** Clock hand styling */
-  HAND: {
-    stroke: 'var(--accent)',
-    strokeWidth: 3,
-    opacity: 0.9
-  },
-  
-  /** Center dot styling */
-  CENTER_DOT: {
-    fill: 'var(--accent)',
-    radius: 4
-  },
-  
-  /** Glow effect */
-  GLOW: {
-    filter: 'drop-shadow(0 0 4px rgba(110, 198, 255, 0.6))'
-  }
-} as const;
-
-/**
- * Responsive breakpoints and adjustments
- */
-export const RESPONSIVE_CONFIG = {
-  /** Mobile breakpoint */
-  MOBILE_BREAKPOINT: 768,
-  
-  /** Small mobile breakpoint */
-  SMALL_MOBILE_BREAKPOINT: 480,
-  
-  /** Size adjustments for different screen sizes */
-  MOBILE_ADJUSTMENTS: {
-    hourTextFontSize: 14,
-    eventTimeFontSize: 10,
-    eventLabelFontSize: 10
-  },
-  
-  SMALL_MOBILE_ADJUSTMENTS: {
-    hourTextFontSize: 12,
-    eventTimeFontSize: 9,
-    eventLabelFontSize: 9
-  }
-} as const;
-
-/**
- * Animation and transition configuration
- */
-export const ANIMATION_CONFIG = {
-  /** Default transition duration */
-  DEFAULT_DURATION: '0.3s',
-  
-  /** Transition easing */
-  DEFAULT_EASING: 'ease',
-  
-  /** Hover effects */
-  HOVER: {
-    opacity: 1,
-    strokeWidthIncrease: 2,
-    scaleTransform: 1.2
-  },
-  
-  /** Reduced motion settings */
-  REDUCED_MOTION: {
-    transitionDuration: '0s'
-  }
-} as const;
-
-/**
  * Event type styling configuration
  * Maps event types to their visual representation
  */
@@ -292,51 +223,31 @@ export const EVENT_STYLES: Record<EventType, EventStyleConfig> = {
 } as const;
 
 /**
- * Performance optimization settings
+ * Helper function to convert CSS variable names to actual hex color values
+ * This centralizes the color mapping that was previously duplicated in arcCalculation.ts
  */
-export const PERFORMANCE_CONFIG = {
-  /** Memoization dependencies refresh threshold */
-  MEMO_REFRESH_THRESHOLD: 1000, // 1 second
-  
-  /** SVG optimization settings */
-  SVG_OPTIMIZATION: {
-    /** Use CSS transforms instead of recalculating positions */
-    USE_TRANSFORMS: true,
-    
-    /** Batch DOM updates */
-    BATCH_UPDATES: true,
-    
-    /** Reduce re-renders by splitting layers */
-    SPLIT_LAYERS: true
+export function getColorFromCSSVariable(varName: string): string {
+  // Map CSS variables to actual hex values
+  switch (varName) {
+    case 'var(--sun-twilight)':
+      return '#FFA500'; // Orange
+    case 'var(--sun-night)':
+      return '#1a2744'; // Dark blue
+    case 'var(--sun-dawn)':
+      return '#FFD700'; // Yellow
+    case 'var(--moon-arc)':
+      return '#C0C0C0'; // Silver
+    case 'var(--gc-visible)':
+      return '#6EC6FF'; // Cyan
+    case 'var(--gc-optimal)':
+      return '#87CEEB'; // Light blue
+    case 'var(--accent)':
+      return '#6ec6ff'; // Accent color for current time
+    default:
+      // If it's already a hex color or other format, return as-is
+      return varName;
   }
-} as const;
-
-/**
- * Accessibility configuration
- */
-export const ACCESSIBILITY_CONFIG = {
-  /** ARIA live region update frequency */
-  ARIA_UPDATE_FREQUENCY: 60000, // 1 minute
-  
-  /** Screen reader descriptions */
-  DESCRIPTIONS: {
-    CLOCK_MAIN: 'Astronomical clock showing {eventCount} events throughout the night. Current time: {currentTime}. Use tab to navigate through individual events.',
-    EVENT_LIST: 'Tonight\'s astronomical events in chronological order: {eventSummary}',
-    TIME_UPDATE: 'Current time: {currentTime}'
-  },
-  
-  /** Focus and interaction settings */
-  INTERACTION: {
-    /** Minimum touch target size */
-    MIN_TOUCH_TARGET: 44, // pixels
-    
-    /** Focus outline offset */
-    FOCUS_OUTLINE_OFFSET: 2, // pixels
-    
-    /** Keyboard navigation support */
-    KEYBOARD_SUPPORT: true
-  }
-} as const;
+}
 
 /**
  * Helper function to calculate derived values from base configuration

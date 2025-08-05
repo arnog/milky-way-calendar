@@ -35,8 +35,37 @@ export function calculateMoonData(date: Date, location: Location): MoonData {
     const moonIllumination = moonIllum.phase_fraction; // Fraction of moon's visible disk that is illuminated
     
     // Calculate moon rise/set times
-    const moonRise = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, +1, date, 1);
-    const moonSet = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, date, 1);
+    let moonRise = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, +1, date, 1);
+    let moonSet = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, date, 1);
+
+    // If no moonrise today but we have a moonset, check both yesterday and today for moonrise
+    if (!moonRise && moonSet) {
+      // First check yesterday for moonrise (moon might have risen yesterday)
+      const yesterday = new Date(date.getTime() - 24 * 60 * 60 * 1000);
+      const yesterdayRise = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, +1, yesterday, 1);
+      if (yesterdayRise && yesterdayRise.date > yesterday) {
+        moonRise = yesterdayRise;
+      }
+      
+      // If still no moonrise found, check later today for moonrise after the moonset
+      if (!moonRise) {
+        // Search for moonrise starting from after the moonset time
+        const afterMoonset = new Date(moonSet.date.getTime() + 1000); // 1 second after moonset
+        const todayRise = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, +1, afterMoonset, 1);
+        if (todayRise && todayRise.date.getDate() === date.getDate()) {
+          moonRise = todayRise;
+        }
+      }
+    }
+
+    // If no moonset today but we have a moonrise, check tomorrow for moonset
+    if (moonRise && !moonSet) {
+      const tomorrow = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+      const tomorrowSet = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, tomorrow, 1);
+      if (tomorrowSet) {
+        moonSet = tomorrowSet;
+      }
+    }
 
     // If moon set precedes rise, search for the next set time
     if (moonRise && moonSet && moonSet.date < moonRise.date) {

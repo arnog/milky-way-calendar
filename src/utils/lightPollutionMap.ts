@@ -35,19 +35,29 @@ export interface MultipleDarkSitesResult {
   alternatives: DarkSiteResult[];
 }
 
-// Bortle scale mapping from requirements
-// Based on magnitude per square arcsecond values
-export const BORTLE_SCALE_MAPPING = [
-  { bortle: 1, magPerArcsec: 21.76, threshold: 21.68 },
-  { bortle: 2, magPerArcsec: 21.6, threshold: 21.45 },
-  { bortle: 3, magPerArcsec: 21.3, threshold: 21.05 },
-  { bortle: 4, magPerArcsec: 20.8, threshold: 20.55 },
-  { bortle: 4.5, magPerArcsec: 20.3, threshold: 19.875 },
-  { bortle: 5, magPerArcsec: 19.25, threshold: 18.875 },
-  { bortle: 6, magPerArcsec: 18.5, threshold: 18.25 },
-  { bortle: 7, magPerArcsec: 18.0, threshold: 18.0 },
-  { bortle: 8, magPerArcsec: 17.5, threshold: 0 }, // Anything below 18.0
-];
+/**
+ * Calculate geodesic distance between two coordinates using Haversine formula
+ */
+function haversineDistance(
+  coord1: Coordinate,
+  coord2: Coordinate
+): number {
+  const lat1Rad = (coord1.lat * Math.PI) / 180;
+  const lat2Rad = (coord2.lat * Math.PI) / 180;
+  const deltaLatRad = ((coord2.lat - coord1.lat) * Math.PI) / 180;
+  const deltaLngRad = ((coord2.lng - coord1.lng) * Math.PI) / 180;
+
+  const a =
+    Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
+    Math.cos(lat1Rad) *
+      Math.cos(lat2Rad) *
+      Math.sin(deltaLngRad / 2) *
+      Math.sin(deltaLngRad / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return EARTH_RADIUS_KM * c;
+}
 
 // Earth's radius in kilometers
 const EARTH_RADIUS_KM = 6371;
@@ -136,37 +146,7 @@ export function normalizedToCoord(
   return { lat, lng };
 }
 
-/**
- * Calculate geodesic distance between two coordinates using Haversine formula
- */
-export function haversineDistance(
-  coord1: Coordinate,
-  coord2: Coordinate
-): number {
-  const lat1Rad = (coord1.lat * Math.PI) / 180;
-  const lat2Rad = (coord2.lat * Math.PI) / 180;
-  const deltaLatRad = ((coord2.lat - coord1.lat) * Math.PI) / 180;
-  const deltaLngRad = ((coord2.lng - coord1.lng) * Math.PI) / 180;
 
-  const a =
-    Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
-    Math.cos(lat1Rad) *
-      Math.cos(lat2Rad) *
-      Math.sin(deltaLngRad / 2) *
-      Math.sin(deltaLngRad / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return EARTH_RADIUS_KM * c;
-}
-
-/**
- * Convert RGB values to brightness (simple luminance calculation)
- */
-export function rgbToBrightness(r: number, g: number, b: number): number {
-  // Standard luminance formula
-  return 0.299 * r + 0.587 * g + 0.114 * b;
-}
 
 /**
  * Color mapping based on the actual colorbar from the light pollution map

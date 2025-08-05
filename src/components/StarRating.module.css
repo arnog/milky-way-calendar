@@ -40,3 +40,10 @@
   /* opacity-25 */
   opacity: 0.25;
 }
+
+.dash {
+  /* Display dash for zero rating */
+  font-size: 1.5rem;
+  color: white;
+  opacity: 0.6;
+}

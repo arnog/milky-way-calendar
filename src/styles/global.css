@@ -22,10 +22,6 @@
   --gc-optimal: #87CEEB; /* Light blue - swapped */
 }
 
-/* Common text styles */
-.global-loading-text {
-  color: var(--primary);
-}
 
 /* Tooltip styles - can be used by any component */
 .global-tooltip {
@@ -58,19 +54,6 @@
   border-top: 4px solid rgb(17 24 39);
 }
 
-/* Icon wrapper for tooltips */
-.global-icon-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.global-icon-wrapper .global-tooltip {
-  display: none;
-}
-
-.global-icon-wrapper:hover .global-tooltip {
-  display: block;
-}
 
 /* Common icon sizes */
 .global-icon-small {
@@ -113,180 +96,21 @@
   justify-content: center;
 }
 
-.global-flex-column {
-  display: flex;
-  flex-direction: column;
-}
 
-.global-flex-row {
-  display: flex;
-  flex-direction: row;
-}
 
-/* Common spacing */
-.global-gap-1 {
-  gap: 0.25rem;
-}
 
-.global-gap-2 {
-  gap: 0.5rem;
-}
 
-.global-gap-4 {
-  gap: 1rem;
-}
 
-.global-gap-8 {
-  gap: 2rem;
-}
-
-/* Common text alignments */
-.global-text-center {
-  text-align: center;
-}
-
-.global-text-left {
-  text-align: left;
-}
-
-.global-text-right {
-  text-align: right;
-}
-
-/* Common margins */
-.global-mb-2 {
-  margin-bottom: 0.5rem;
-}
-
-.global-mb-4 {
-  margin-bottom: 1rem;
-}
-
-.global-mb-8 {
-  margin-bottom: 2rem;
-}
-
-.global-mt-4 {
-  margin-top: 1rem;
-}
-
-.global-mt-8 {
-  margin-top: 2rem;
-}
-
-/* Loading states */
-.global-loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-}
-
-/* Typography scales */
-.global-text-xs {
-  font-size: 0.75rem;
-  line-height: 1rem;
-}
-
-.global-text-sm {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-}
-
-.global-text-base {
-  font-size: 1rem;
-  line-height: 1.5rem;
-}
 
 .global-text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
 }
 
-.global-text-xl {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-}
 
-.global-text-2xl {
-  font-size: 1.5rem;
-  line-height: 2rem;
-}
-
-.global-text-3xl {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
-}
-
-.global-text-4xl {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-}
-
-.global-text-5xl {
-  font-size: 3rem;
-  line-height: 1;
-}
-
-.global-text-6xl {
-  font-size: 3.75rem;
-  line-height: 1;
-}
-
-.global-text-7xl {
-  font-size: 4.5rem;
-  line-height: 1;
-}
-
-/* Font weights */
-.global-font-normal {
-  font-weight: 400;
-}
-
-.global-font-medium {
-  font-weight: 500;
-}
-
-.global-font-semibold {
-  font-weight: 600;
-}
-
-.global-font-bold {
-  font-weight: 700;
-}
-
-/* Opacity utilities */
-.global-opacity-60 {
-  opacity: 0.6;
-}
-
-.global-opacity-80 {
-  opacity: 0.8;
-}
-
-.global-opacity-90 {
-  opacity: 0.9;
-}
 
 /* New button styles from UI refresh */
 
-.button-primary {
-  background-color: var(--primary);
-  color: var(--secondary);
-  padding: 12px 24px;
-  border-radius: 6px;
-  transition: all 0.2s ease-in-out;
-  border: none;
-  cursor: pointer;
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
-}
-
-.button-primary:hover {
-  background-color: var(--accent);
-  box-shadow: 0 0 8px var(--glow);
-}
 
 /* Data presentation styles */
 

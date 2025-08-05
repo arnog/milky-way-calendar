@@ -12,7 +12,7 @@ import {
   formatOptimalViewingDuration,
 } from "../utils/integratedOptimalViewing";
 import FormattedTime from "./FormattedTime";
-// import AstronomicalClock from "./AstronomicalClock";
+import AstronomicalClock from "./AstronomicalClock";
 import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
 // import DarkSiteSuggestion from "./DarkSiteSuggestion";
 import styles from "./TonightCard.module.css";
@@ -41,11 +41,14 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
   }, [geolocationFailed, showLocationPopover]);
 
   // Handle location changes with navigation
-  const handleLocationChange = (newLocation: Location, shouldClose?: boolean) => {
+  const handleLocationChange = (
+    newLocation: Location,
+    shouldClose?: boolean
+  ) => {
     updateLocation(newLocation);
     const slug = locationToSlug(newLocation);
     navigate(`/location/${slug}`, { replace: true });
-    
+
     // Close popover if requested
     if (shouldClose) {
       setShowLocationPopover(false);
@@ -59,7 +62,8 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
         <h2 className={styles.title}>Tonight</h2>
         <div className={styles.locationRequired}>
           <p className={styles.locationMessage}>
-            Allow location access to display Milky Way rise and set times for your area
+            Allow location access to display Milky Way rise and set times for
+            your area
           </p>
           <div className={styles.loadingActions}>
             <div className={styles.spinner}></div>
@@ -114,7 +118,6 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
       </div>
     );
   }
-
 
   // Show error if something went wrong
   if (error) {
@@ -191,13 +194,9 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             */}
       </div>
 
-      {/* Astronomical Clock Visualization- For now, we're going to keep it EXPERIMENTAL and hide it.
-      <AstronomicalClock
-        events={events}
-        currentDate={currentDate}
-        size={600}
-      />
-      */}
+      {/* Astronomical Clock Visualization- For now, we're going to keep it EXPERIMENTAL and hide it.*/}
+      <AstronomicalClock events={events} currentDate={currentDate} size={600} />
+
       <div className={styles.eventGrid}>
         {/* Sun Events */}
         <div className={styles.eventSection}>
