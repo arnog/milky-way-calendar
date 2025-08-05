@@ -81,21 +81,6 @@
   height: 2.5rem;
 }
 
-/* Legacy icon size classes - maintained for backward compatibility */
-.global-icon-small {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-.global-icon-medium {
-  width: 2rem;
-  height: 2rem;
-}
-
-.global-icon-large {
-  width: 2.5rem;
-  height: 2.5rem;
-}
 
 /* Common icon colors */
 
