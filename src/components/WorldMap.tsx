@@ -1,9 +1,13 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { flushSync } from "react-dom";
 import { Location } from "../types/astronomy";
 import { normalizedToCoord } from "../utils/lightPollutionMap";
 import { mapImageCache } from "../services/mapImageCache";
 import { useMapState } from "../hooks/useMapState";
 import { useMapGestures } from "../hooks/useMapGestures";
+import { MAP_CONFIG, ZOOM_CONFIG, IMAGE_CONFIG } from "../config/mapConfig";
+import { MapCoordinateSystem, coordinateUtils } from "../utils/mapCoordinates";
+import { throttle, performanceMonitor } from "../utils/performance";
 import ZoomControls from "./ZoomControls";
 import MapImage from "./MapImage";
 import LocationMarker from "./LocationMarker";
@@ -28,7 +32,9 @@ export default function WorldMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const [imageSrc, setImageSrc] = useState<string>("");
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const [isZooming, setIsZooming] = useState(false);
   const previousObjectUrlRef = useRef<string | null>(null);
+  const zoomTimeoutRef = useRef<number | null>(null);
 
   // Map state management
   const {
@@ -37,15 +43,31 @@ export default function WorldMap({
     panY,
     setZoom,
     setPan,
-    constrainPan,
-    config: mapConfig,
+    setZoomAndPan,
   } = useMapState({
-    minZoom: 1,
-    maxZoom: 8,
+    minZoom: ZOOM_CONFIG.MIN,
+    maxZoom: ZOOM_CONFIG.MAX,
   });
 
-  // Load cached image with automatic format selection
-  const loadCachedImage = async () => {
+  // Create coordinate system for transformations
+  const coordinateSystem = useMemo(() => {
+    return new MapCoordinateSystem(zoom, panX, panY, containerRef);
+  }, [zoom, panX, panY]);
+
+  // Track loading state to prevent concurrent image loads
+  const isLoadingRef = useRef(false);
+
+  // Load cached image with automatic format selection and performance monitoring
+  const loadCachedImage = useCallback(async () => {
+    // Prevent concurrent image loading
+    if (isLoadingRef.current) {
+      return;
+    }
+
+    isLoadingRef.current = true;
+    const measurementId = `image-loading-${Date.now()}`;
+    performanceMonitor.startMeasurement(measurementId);
+    
     try {
       setIsImageLoading(true);
       const screenWidth =
@@ -74,77 +96,76 @@ export default function WorldMap({
       previousObjectUrlRef.current = null;
     } finally {
       setIsImageLoading(false);
+      isLoadingRef.current = false;
+      performanceMonitor.endMeasurement(measurementId);
     }
-  };
+  }, []);
 
-  // Zoom constants
-  const ZOOM_SPEED = 0.1;
-
-  // Convert screen coordinates to normalized coordinates (accounting for zoom/pan)
-  const screenToNormalized = (
+  // Convert screen coordinates to normalized coordinates using coordinate system
+  const screenToNormalized = useCallback((
     screenX: number,
     screenY: number,
   ): { x: number; y: number } => {
-    const container = containerRef.current;
-    if (!container) return { x: 0, y: 0 };
+    return coordinateSystem.screenToNormalized(screenX, screenY);
+  }, [coordinateSystem]);
 
-    const rect = container.getBoundingClientRect();
-    const relativeX = (screenX - rect.left) / rect.width;
-    const relativeY = (screenY - rect.top) / rect.height;
-
-    // Account for zoom and pan
-    let x = (relativeX - 0.5) / zoom - panX / zoom + 0.5;
-    let y = (relativeY - 0.5) / zoom - panY / zoom + 0.5;
-
-    // Handle horizontal wrapping: normalize x to 0-1 range
-    x = ((x % 1) + 1) % 1;
-
-    // Constrain y to valid range (no wrapping vertically)
-    y = Math.max(0, Math.min(1, y));
-
-    return { x, y };
-  };
-
-  // Zoom handler
+  // Zoom handler with performance monitoring
   const handleZoom = useCallback(
     (delta: number, centerX?: number, centerY?: number) => {
-      const container = containerRef.current;
-      if (!container) return;
+      performanceMonitor.startMeasurement('zoom-operation', { delta, hasCenter: !!centerX });
+      
+      const currentZoom = zoom;
+      const newZoom = Math.max(
+        ZOOM_CONFIG.MIN,
+        Math.min(ZOOM_CONFIG.MAX, currentZoom + delta),
+      );
 
-      const rect = container.getBoundingClientRect();
-      const zoomCenterX =
-        centerX !== undefined ? (centerX - rect.left) / rect.width - 0.5 : 0;
-      const zoomCenterY =
-        centerY !== undefined ? (centerY - rect.top) / rect.height - 0.5 : 0;
-
-      setZoom((prevZoom) => {
-        const newZoom = Math.max(
-          mapConfig.minZoom,
-          Math.min(mapConfig.maxZoom, prevZoom + delta),
-        );
-
-        if (
-          newZoom !== prevZoom &&
-          centerX !== undefined &&
-          centerY !== undefined &&
-          newZoom > 1
-        ) {
-          // Normal zoom with center point - adjust pan to zoom toward the center point
-          const zoomFactor = newZoom / prevZoom;
-          const newPanX =
-            (panX + zoomCenterX * (prevZoom - newZoom)) / zoomFactor;
-          const newPanY =
-            (panY + zoomCenterY * (prevZoom - newZoom)) / zoomFactor;
-
-          // Apply constraints using the hook's method
-          const constrained = constrainPan(newPanX, newPanY, newZoom);
-          setPan(constrained.x, constrained.y);
+      if (newZoom !== currentZoom) {
+        // Set zooming state to disable transitions
+        setIsZooming(true);
+        
+        // Clear any existing zoom timeout
+        if (zoomTimeoutRef.current) {
+          clearTimeout(zoomTimeoutRef.current);
         }
+        
+        // Calculate pan adjustments if zooming around a specific point
+        if (centerX !== undefined && centerY !== undefined && newZoom > 1) {
+          const zoomCenter = coordinateUtils.getZoomCenter(centerX, centerY, containerRef);
+          const newPan = coordinateUtils.calculateZoomPan(
+            { x: panX, y: panY },
+            zoomCenter,
+            currentZoom,
+            newZoom
+          );
 
-        return newZoom;
-      });
+          // Use flushSync to ensure synchronous state updates and prevent marker lag
+          // This ensures zoom and pan are updated together in the same render cycle
+          flushSync(() => {
+            setZoomAndPan(newZoom, newPan.x, newPan.y);
+          });
+        } else {
+          // Simple zoom without pan adjustment
+          flushSync(() => {
+            setZoom(newZoom);
+          });
+        }
+        
+        // Re-enable transitions after a short delay
+        zoomTimeoutRef.current = setTimeout(() => {
+          setIsZooming(false);
+        }, 50);
+      }
+
+      performanceMonitor.endMeasurement('zoom-operation');
     },
-    [constrainPan, panX, panY, setPan, setZoom, mapConfig.minZoom, mapConfig.maxZoom],
+    [zoom, panX, panY, setZoom, setZoomAndPan],
+  );
+
+  // Throttled zoom handler for high-frequency events
+  const throttledZoom = useMemo(() => 
+    throttle(handleZoom, 16), // ~60fps
+    [handleZoom]
   );
 
   // Gesture handlers using the hook
@@ -168,37 +189,37 @@ export default function WorldMap({
     screenToNormalized,
     normalizedToCoord,
     config: {
-      zoomSpeed: ZOOM_SPEED,
-      dragThreshold: 3,
+      zoomSpeed: ZOOM_CONFIG.SPEED,
+      dragThreshold: MAP_CONFIG.gestures.DRAG_THRESHOLD,
     },
   });
 
-  // Helper function to position markers using the same coordinate system as map transforms
-  const getMarkerPositionForPan = (
+  // Memoized coordinate systems for different pan offsets
+  const coordinateSystems = useMemo(() => ({
+    primary: coordinateSystem,
+    left: new MapCoordinateSystem(zoom, panX - 1, panY, containerRef),
+    right: new MapCoordinateSystem(zoom, panX + 1, panY, containerRef),
+  }), [coordinateSystem, zoom, panX, panY]);
+
+  // Optimized marker position calculator with memoization
+  const getMarkerPositionForPan = useCallback((
     normalizedX: number,
     normalizedY: number,
     customPanX: number,
   ): { x: number; y: number } => {
-    // The map images use: transform: scale(${zoom}) translate(${customPanX * 100}%, ${(panY * containerHeight) / zoom}px)
-    // We need to apply the same transformations to marker positions
-
-    // Start with the base normalized coordinates (0-1 range)
-    // Convert to percentage coordinates
-    let x = normalizedX * 100; // Convert to 0-100 range
-    let y = normalizedY * 100;
-
-    // Step 1: Apply translation (same as maps)
-    x += customPanX * 100; // Same as map's translate(${customPanX * 100}%, ...)
-    // For Y: match map's pixel-based Y translation, converted to percentage
-    y += (panY / zoom) * 100; // Same as map's ${(panY * containerHeight) / zoom}px converted to %
-
-    // Step 2: Apply zoom scaling around center (50%, 50%) - same as maps
-    // CSS transform order: scale() then translate() means we scale the final position
-    x = (x - 50) * zoom + 50;
-    y = (y - 50) * zoom + 50;
-
-    return { x, y };
-  };
+    // Use pre-computed coordinate systems for common offsets
+    if (customPanX === panX) {
+      return coordinateSystems.primary.getMarkerPosition(normalizedX, normalizedY);
+    } else if (customPanX === panX - 1) {
+      return coordinateSystems.left.getMarkerPosition(normalizedX, normalizedY);
+    } else if (customPanX === panX + 1) {
+      return coordinateSystems.right.getMarkerPosition(normalizedX, normalizedY);
+    }
+    
+    // Fallback for custom offsets (rare case)
+    const tempCoordSystem = new MapCoordinateSystem(zoom, customPanX, panY, containerRef);
+    return tempCoordSystem.getMarkerPosition(normalizedX, normalizedY);
+  }, [coordinateSystems, panX, zoom, panY]);
 
   // Load cached image on mount and resize
   useEffect(() => {
@@ -211,13 +232,18 @@ export default function WorldMap({
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         loadCachedImage();
-      }, 300); // Debounce resize events
+      }, IMAGE_CONFIG.RESIZE_DEBOUNCE_MS); // Debounce resize events
     };
 
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
       clearTimeout(resizeTimeout);
+      
+      // Clean up zoom timeout
+      if (zoomTimeoutRef.current) {
+        clearTimeout(zoomTimeoutRef.current);
+      }
 
       // Clean up object URL on unmount
       if (
@@ -227,7 +253,7 @@ export default function WorldMap({
         URL.revokeObjectURL(previousObjectUrlRef.current);
       }
     };
-  }, []); // Remove imageSrc dependency since we're using cached URLs
+  }, [loadCachedImage]);
 
   // Add native wheel event listener to prevent page scrolling
   useEffect(() => {
@@ -238,8 +264,8 @@ export default function WorldMap({
       event.preventDefault();
       event.stopPropagation();
 
-      const delta = -event.deltaY * ZOOM_SPEED * 0.01;
-      handleZoom(delta, event.clientX, event.clientY);
+      const delta = -event.deltaY * ZOOM_CONFIG.SPEED * ZOOM_CONFIG.WHEEL_SPEED_MULTIPLIER;
+      throttledZoom(delta, event.clientX, event.clientY);
     };
 
     container.addEventListener("wheel", handleNativeWheel, { passive: false });
@@ -247,7 +273,7 @@ export default function WorldMap({
     return () => {
       container.removeEventListener("wheel", handleNativeWheel);
     };
-  }, [handleZoom]);
+  }, [throttledZoom]);
 
   return (
     <div ref={containerRef} className={styles.container}>
@@ -261,9 +287,9 @@ export default function WorldMap({
       {/* Zoom controls */}
       <ZoomControls
         zoom={zoom}
-        minZoom={mapConfig.minZoom}
-        maxZoom={mapConfig.maxZoom}
-        zoomSpeed={ZOOM_SPEED}
+        minZoom={ZOOM_CONFIG.MIN}
+        maxZoom={ZOOM_CONFIG.MAX}
+        zoomSpeed={ZOOM_CONFIG.SPEED}
         onZoom={handleZoom}
         isVisible={!isImageLoading}
       />
@@ -278,6 +304,7 @@ export default function WorldMap({
         panOffset={0}
         isDragging={isDragging}
         isPanning={isPanning}
+        isZooming={isZooming}
         isImageLoading={isImageLoading}
         containerRef={containerRef}
         onMouseDown={handleMouseDown}
@@ -295,6 +322,7 @@ export default function WorldMap({
         panOffset={-1}
         isDragging={isDragging}
         isPanning={isPanning}
+        isZooming={isZooming}
         isImageLoading={isImageLoading}
         containerRef={containerRef}
         onMouseDown={handleMouseDown}
@@ -312,6 +340,7 @@ export default function WorldMap({
         panOffset={1}
         isDragging={isDragging}
         isPanning={isPanning}
+        isZooming={isZooming}
         isImageLoading={isImageLoading}
         containerRef={containerRef}
         onMouseDown={handleMouseDown}

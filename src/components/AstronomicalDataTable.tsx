@@ -34,35 +34,29 @@ export default function AstronomicalDataTable({
   const currentYear = new Date().getFullYear();
 
   // Default date formatter
-  const defaultFormatDate = (date: Date, currentDate?: Date) => {
-    if (config.mode === "daily") {
-      const today = currentDate || new Date();
-      const tomorrow = new Date(
-        today.getTime() + APP_CONFIG.ASTRONOMY.MS_PER_DAY,
-      );
+  const defaultFormatDate =
+    config.mode === "daily"
+      ? (date: Date, currentDate?: Date) => {
+          const today = currentDate || new Date();
+          const tomorrow = new Date(
+            today.getTime() + APP_CONFIG.ASTRONOMY.MS_PER_DAY,
+          );
 
-      if (date.toDateString() === today.toDateString()) {
-        return "Today";
-      } else if (date.toDateString() === tomorrow.toDateString()) {
-        return "Tomorrow";
-      } else {
-        return date.toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-        });
-      }
-    } else {
-      // Weekly mode
-      const startDate = date;
-      return startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: startDate.getFullYear() !== currentYear ? "numeric" : undefined,
-      });
-    }
-  };
-
+          if (date.toDateString() === today.toDateString()) return "Today";
+          if (date.toDateString() === tomorrow.toDateString())
+            return "Tomorrow";
+          return date.toLocaleDateString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+          });
+        }
+      : (date: Date) =>
+          date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: date.getFullYear() !== currentYear ? "numeric" : undefined,
+          });
   const formatDate = config.formatDate || defaultFormatDate;
 
   // Toggle expanded row (daily mode only)
@@ -106,7 +100,7 @@ export default function AstronomicalDataTable({
 
   // Setup infinite scroll (weekly mode only)
   useEffect(() => {
-    if (config.mode !== "weekly" || !config.enableInfiniteScroll) return;
+    if (!config.enableInfiniteScroll) return;
 
     const handleObserver = (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
@@ -126,7 +120,7 @@ export default function AstronomicalDataTable({
         observerRef.current.disconnect();
       }
     };
-  }, [config.mode, config.enableInfiniteScroll, canLoadMore, loadMore]);
+  }, [config.enableInfiniteScroll, canLoadMore, loadMore]);
 
   // Don't render if location is not available
   if (locationLoading || !location) {
@@ -155,26 +149,8 @@ export default function AstronomicalDataTable({
         <table className={styles.table}>
           <tbody>
             {items.map((item, index) => {
-              const isExpanded = expandedRows.has(index);
-
-              // Generate structured data for weekly mode
-              const structuredData =
-                config.mode === "weekly"
-                  ? generateEventStructuredData(
-                      {
-                        weekNumber: item.weekNumber!,
-                        startDate: item.startDate!,
-                        visibility: item.visibility,
-                        gcDuration: item.gcDuration!,
-                        moonIllumination: item.moonIllumination!,
-                        optimalWindow: item.optimalWindow,
-                        visibilityReason: item.visibilityReason,
-                      },
-                      location,
-                    )
-                  : null;
-
               if (config.mode === "daily") {
+                const isExpanded = expandedRows.has(index);
                 // Daily mode rendering
                 return (
                   <tr key={index}>
@@ -397,6 +373,19 @@ export default function AstronomicalDataTable({
                   </tr>
                 );
               } else {
+                // Generate structured data for weekly mode
+                const structuredData = generateEventStructuredData(
+                  {
+                    weekNumber: item.weekNumber!,
+                    startDate: item.startDate!,
+                    visibility: item.visibility,
+                    gcDuration: item.gcDuration!,
+                    moonIllumination: item.moonIllumination!,
+                    optimalWindow: item.optimalWindow,
+                    visibilityReason: item.visibilityReason,
+                  },
+                  location,
+                );
                 // Weekly mode rendering
                 return (
                   <tr
@@ -405,14 +394,12 @@ export default function AstronomicalDataTable({
                     style={getRowBackground(item.visibility)}
                     onClick={() => handleRowClick(item, index)}
                   >
-                    {structuredData && (
-                      <script
-                        type="application/ld+json"
-                        dangerouslySetInnerHTML={{
-                          __html: JSON.stringify(structuredData, null, 2),
-                        }}
-                      />
-                    )}
+                    <script
+                      type="application/ld+json"
+                      dangerouslySetInnerHTML={{
+                        __html: JSON.stringify(structuredData, null, 2),
+                      }}
+                    />
                     <td className={styles.weeklyDateCell}>
                       {formatDate(item.startDate!, currentDate)}
                     </td>
@@ -448,7 +435,6 @@ export default function AstronomicalDataTable({
           {isLoadingMore && (
             <div className={styles.loadingMoreContainer}>
               <div className={styles.smallSpinner}></div>
-              Loading more {config.mode === "daily" ? "days" : "weeks"}...
             </div>
           )}
         </div>

@@ -1,4 +1,7 @@
+import { memo, useMemo } from "react";
 import { coordToNormalized } from "../utils/lightPollutionMap";
+import { MARKER_BOUNDS } from "../config/mapConfig";
+import { memoize } from "../utils/performance";
 import styles from "./WorldMap.module.css";
 
 export interface WorldMapMarker {
@@ -28,70 +31,87 @@ interface AdditionalMarkersProps {
   ) => MarkerPosition;
 }
 
-export default function AdditionalMarkers({
+// Memoized coordinate normalization
+const memoizedCoordToNormalized = memoize(
+  (lat: number, lng: number) => coordToNormalized(lat, lng),
+  (lat, lng) => `${lat},${lng}`
+);
+
+function AdditionalMarkersComponent({
   markers,
   panX,
   getMarkerPositionForPan,
 }: AdditionalMarkersProps) {
-  if (markers.length === 0) {
+  // Memoize processed markers with positions and visibility culling
+  const processedMarkers = useMemo(() => {
+    if (markers.length === 0) return [];
+
+    return markers.map((marker) => {
+      const normalized = memoizedCoordToNormalized(marker.lat, marker.lng);
+      
+      // Generate positions for all three maps
+      const positions = [
+        {
+          pos: getMarkerPositionForPan(normalized.x, normalized.y, panX),
+          key: "primary",
+        },
+        {
+          pos: getMarkerPositionForPan(normalized.x, normalized.y, panX - 1),
+          key: "left",
+        },
+        {
+          pos: getMarkerPositionForPan(normalized.x, normalized.y, panX + 1),
+          key: "right",
+        },
+      ];
+
+      // Filter visible positions (marker culling)
+      const visiblePositions = positions.filter(({ pos }) => 
+        pos.x >= MARKER_BOUNDS.MIN_X && 
+        pos.x <= MARKER_BOUNDS.MAX_X && 
+        pos.y >= MARKER_BOUNDS.MIN_Y && 
+        pos.y <= MARKER_BOUNDS.MAX_Y
+      );
+
+      return {
+        marker,
+        visiblePositions,
+      };
+    }).filter(({ visiblePositions }) => visiblePositions.length > 0); // Only keep markers with visible positions
+  }, [markers, panX, getMarkerPositionForPan]);
+
+  if (processedMarkers.length === 0) {
     return null;
   }
 
   return (
     <div className={styles.markerOverlay}>
-      {markers.map((marker) => {
-        const { x: normalizedX, y: normalizedY } = coordToNormalized(
-          marker.lat,
-          marker.lng,
-        );
-
-        // Generate positions for all three maps using the same coordinate system as maps
-        const positions = [
-          {
-            pos: getMarkerPositionForPan(normalizedX, normalizedY, panX),
-            key: "primary",
-          },
-          {
-            pos: getMarkerPositionForPan(normalizedX, normalizedY, panX - 1),
-            key: "left",
-          },
-          {
-            pos: getMarkerPositionForPan(normalizedX, normalizedY, panX + 1),
-            key: "right",
-          },
-        ];
-
-        const markerElements: React.ReactElement[] = [];
-
-        positions.forEach(({ pos, key }) => {
-          // Only show markers that are within reasonable bounds
-          if (pos.x >= -10 && pos.x <= 110 && pos.y >= 0 && pos.y <= 100) {
-            markerElements.push(
-              <div
-                key={`${marker.id}-${key}`}
-                className={styles.markerPosition}
-                style={{
-                  left: `${pos.x}%`,
-                  top: `${pos.y}%`,
-                  opacity: 1,
-                }}
-              >
-                <div
-                  className={marker.className}
-                  onClick={marker.onClick}
-                  onMouseEnter={marker.onMouseEnter}
-                  onMouseLeave={marker.onMouseLeave}
-                  title={marker.title}
-                >
-                  {marker.children}
-                </div>
-              </div>,
-            );
-          }
-        });
-
-        return markerElements;
-      })}
+      {processedMarkers.map(({ marker, visiblePositions }) => (
+        visiblePositions.map(({ pos, key }) => (
+          <div
+            key={`${marker.id}-${key}`}
+            className={styles.markerPosition}
+            style={{
+              left: `${pos.x}%`,
+              top: `${pos.y}%`,
+              opacity: 1,
+            }}
+          >
+            <div
+              className={marker.className}
+              onClick={marker.onClick}
+              onMouseEnter={marker.onMouseEnter}
+              onMouseLeave={marker.onMouseLeave}
+              title={marker.title}
+            >
+              {marker.children}
+            </div>
+          </div>
+        ))
+      ))}
     </div>
   );
 }
+
+// Memoized export to prevent unnecessary re-renders
+export default memo(AdditionalMarkersComponent);

@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import styles from "./WorldMap.module.css";
 
 interface ZoomControlsProps {
@@ -9,7 +10,7 @@ interface ZoomControlsProps {
   isVisible: boolean;
 }
 
-export default function ZoomControls({
+function ZoomControlsComponent({
   zoom,
   minZoom,
   maxZoom,
@@ -17,6 +18,10 @@ export default function ZoomControls({
   onZoom,
   isVisible,
 }: ZoomControlsProps) {
+  // Memoize click handlers to prevent unnecessary re-renders
+  const handleZoomIn = useCallback(() => onZoom(zoomSpeed), [onZoom, zoomSpeed]);
+  const handleZoomOut = useCallback(() => onZoom(-zoomSpeed), [onZoom, zoomSpeed]);
+
   if (!isVisible) {
     return null;
   }
@@ -25,7 +30,7 @@ export default function ZoomControls({
     <div className={styles.zoomControls}>
       <button
         className={styles.zoomButton}
-        onClick={() => onZoom(zoomSpeed)}
+        onClick={handleZoomIn}
         disabled={zoom >= maxZoom}
         aria-label="Zoom in"
       >
@@ -33,7 +38,7 @@ export default function ZoomControls({
       </button>
       <button
         className={styles.zoomButton}
-        onClick={() => onZoom(-zoomSpeed)}
+        onClick={handleZoomOut}
         disabled={zoom <= minZoom}
         aria-label="Zoom out"
       >
@@ -42,3 +47,6 @@ export default function ZoomControls({
     </div>
   );
 }
+
+// Memoized export to prevent unnecessary re-renders
+export default memo(ZoomControlsComponent);

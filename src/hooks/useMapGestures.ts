@@ -1,5 +1,6 @@
 import { useState, useCallback, RefObject } from "react";
 import { Location } from "../types/astronomy";
+import { ZOOM_CONFIG, GESTURE_CONFIG } from "../config/mapConfig";
 
 export interface GestureState {
   isDragging: boolean;
@@ -39,8 +40,8 @@ interface UseMapGesturesProps {
 }
 
 const DEFAULT_CONFIG: Required<GestureConfig> = {
-  zoomSpeed: 0.1,
-  dragThreshold: 3,
+  zoomSpeed: ZOOM_CONFIG.SPEED,
+  dragThreshold: GESTURE_CONFIG.DRAG_THRESHOLD,
 };
 
 export function useMapGestures({
@@ -135,7 +136,7 @@ export function useMapGestures({
         const center = getTouchCenter(event.touches);
 
         const deltaDistance = distance - lastTouchDistance;
-        const zoomDelta = deltaDistance * finalConfig.zoomSpeed * 0.005;
+        const zoomDelta = deltaDistance * finalConfig.zoomSpeed * ZOOM_CONFIG.TOUCH_SPEED_MULTIPLIER;
 
         onZoom(zoomDelta, center.x, center.y);
 

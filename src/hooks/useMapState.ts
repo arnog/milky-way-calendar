@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { ZOOM_CONFIG, PAN_CONFIG } from "../config/mapConfig";
 
 export interface MapState {
   zoom: number;
@@ -11,6 +12,7 @@ export interface MapStateActions {
   setPanX: (panX: number) => void;
   setPanY: (panY: number) => void;
   setPan: (panX: number, panY: number) => void;
+  setZoomAndPan: (zoom: number, panX: number, panY: number) => void;
   resetState: () => void;
 }
 
@@ -23,9 +25,9 @@ export interface MapStateConfig {
 }
 
 const DEFAULT_CONFIG: Required<MapStateConfig> = {
-  minZoom: 1,
-  maxZoom: 8,
-  initialZoom: 1,
+  minZoom: ZOOM_CONFIG.MIN,
+  maxZoom: ZOOM_CONFIG.MAX,
+  initialZoom: ZOOM_CONFIG.MIN,
   initialPanX: 0,
   initialPanY: 0,
 };
@@ -40,11 +42,15 @@ export function useMapState(config: MapStateConfig = {}) {
   // Constraint function for pan values
   const constrainPan = useCallback(
     (newPanX: number, newPanY: number, currentZoom: number) => {
-      // For horizontal (X): Wrap the pan value to keep within -1 to 1 range
+      // For horizontal (X): Wrap the pan value to keep within configured range
       // This ensures we always stay within the 3-map strip
       let constrainedPanX = newPanX;
-      while (constrainedPanX > 1) constrainedPanX -= 2;
-      while (constrainedPanX < -1) constrainedPanX += 2;
+      while (constrainedPanX > PAN_CONFIG.WRAP_MAX) {
+        constrainedPanX -= PAN_CONFIG.WRAP_RANGE;
+      }
+      while (constrainedPanX < PAN_CONFIG.WRAP_MIN) {
+        constrainedPanX += PAN_CONFIG.WRAP_RANGE;
+      }
 
       // For vertical (Y): Constrain to prevent showing areas beyond map bounds
       if (currentZoom <= 1) {
@@ -100,6 +106,23 @@ export function useMapState(config: MapStateConfig = {}) {
     [constrainPan, panX, panY, finalConfig.minZoom, finalConfig.maxZoom],
   );
 
+  // Batch update zoom and pan together to prevent intermediate renders
+  const setZoomAndPan = useCallback(
+    (newZoom: number, newPanX: number, newPanY: number) => {
+      const constrainedZoom = Math.max(
+        finalConfig.minZoom,
+        Math.min(finalConfig.maxZoom, newZoom),
+      );
+      const constrained = constrainPan(newPanX, newPanY, constrainedZoom);
+      
+      // Batch updates together
+      setZoom(constrainedZoom);
+      setPanX(constrained.x);
+      setPanY(constrained.y);
+    },
+    [constrainPan, finalConfig.minZoom, finalConfig.maxZoom],
+  );
+
   const resetState = useCallback(() => {
     setZoom(finalConfig.initialZoom);
     setPanX(finalConfig.initialPanX);
@@ -117,6 +140,7 @@ export function useMapState(config: MapStateConfig = {}) {
     setPanX,
     setPanY,
     setPan: setConstrainedPan,
+    setZoomAndPan,
     resetState,
   };
 

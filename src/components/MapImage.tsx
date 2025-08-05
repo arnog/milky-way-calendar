@@ -1,4 +1,5 @@
-import { RefObject } from "react";
+import { RefObject, memo, useMemo } from "react";
+import { ANIMATION_CONFIG } from "../config/mapConfig";
 import styles from "./WorldMap.module.css";
 
 interface MapImageProps {
@@ -10,6 +11,7 @@ interface MapImageProps {
   panOffset: number; // -1 for left, 0 for primary, 1 for right
   isDragging: boolean;
   isPanning: boolean;
+  isZooming: boolean;
   isImageLoading: boolean;
   containerRef: RefObject<HTMLDivElement>;
   onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -18,7 +20,7 @@ interface MapImageProps {
   onTouchEnd: () => void;
 }
 
-export default function MapImage({
+function MapImageComponent({
   src,
   alt,
   zoom,
@@ -27,6 +29,7 @@ export default function MapImage({
   panOffset,
   isDragging,
   isPanning,
+  isZooming,
   isImageLoading,
   containerRef,
   onMouseDown,
@@ -34,43 +37,55 @@ export default function MapImage({
   onTouchMove,
   onTouchEnd,
 }: MapImageProps) {
-  const getCursorClass = () => {
+  // Memoize cursor class calculation
+  const cursorClass = useMemo(() => {
     if (isDragging) return styles.mapImageGrabbing;
     if (isPanning) return styles.mapImageGrabbing;
     if (zoom > 1) return styles.mapImageGrab;
     return styles.mapImageCrosshair;
-  };
+  }, [isDragging, isPanning, zoom]);
 
-  const getLoadingClass = () => {
+  // Memoize loading class
+  const loadingClass = useMemo(() => {
     return isImageLoading ? styles.mapImageLoading : styles.mapImageLoaded;
-  };
+  }, [isImageLoading]);
 
-  const getTransform = () => {
+  // Memoize transform calculation
+  const transform = useMemo(() => {
     const adjustedPanX = (panX + panOffset) * 100;
     const panYPx = (panY * (containerRef.current?.clientHeight || 1)) / zoom;
     return `scale(${zoom}) translate(${adjustedPanX}%, ${panYPx}px)`;
-  };
+  }, [zoom, panX, panY, panOffset, containerRef]);
 
-  const getTransition = () => {
-    return isPanning || isDragging ? "none" : "transform 0.1s ease-out";
-  };
+  // Memoize transition - disable during panning, dragging, or zooming
+  const transition = useMemo(() => {
+    return isPanning || isDragging || isZooming
+      ? "none" 
+      : `transform ${ANIMATION_CONFIG.TRANSITION_DURATION} ${ANIMATION_CONFIG.TRANSITION_EASING}`;
+  }, [isPanning, isDragging, isZooming]);
+
+  // Memoize style object to prevent unnecessary re-renders
+  const imageStyle = useMemo(() => ({
+    transform,
+    transformOrigin: "center",
+    transition,
+  }), [transform, transition]);
 
   return (
     <img
       src={src}
       alt={alt}
-      className={`${styles.mapImage} ${getCursorClass()} ${getLoadingClass()}`}
+      className={`${styles.mapImage} ${cursorClass} ${loadingClass}`}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onLoad={() => {}} // Loading state managed by cache service
-      style={{
-        transform: getTransform(),
-        transformOrigin: "center",
-        transition: getTransition(),
-      }}
+      style={imageStyle}
       draggable={false}
     />
   );
 }
+
+// Memoized export to prevent unnecessary re-renders
+export default memo(MapImageComponent);
