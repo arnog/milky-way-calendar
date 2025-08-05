@@ -1,0 +1,266 @@
+/* AstronomicalDataTable Unified Component Styles */
+
+.container {
+  /* Glassmorphism base styling */
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(3px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  border-radius: 24px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.container h2 {
+  margin: 0;
+  margin-bottom: 1rem;
+}
+
+/* Loading States */
+.loadingContainer {
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.loadingContent {
+  text-align: center;
+}
+
+.loadingText {
+  text-align: center;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.loadingSubtext {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: rgb(156 163 175);
+  margin-top: 0.5rem;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  height: 3rem;
+  width: 3rem;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 1rem;
+  border: 2px solid transparent;
+  border-bottom: 2px solid #a8b5ff;
+}
+
+.smallSpinner {
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  height: 1rem;
+  width: 1rem;
+  border: 2px solid transparent;
+  border-bottom: 2px solid #a8b5ff;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Title */
+.title {
+  font-family: "Playfair Display", serif;
+  font-size: 2rem;
+  line-height: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--highlight);
+  text-align: center;
+}
+
+/* Table Container */
+.tableContainer {
+  overflow-x: auto;
+  max-width: 600px;
+  margin: 0 auto;
+  /* Add top padding to prevent tooltip clipping */
+  padding-top: 3rem;
+  margin-top: -1.5rem;
+}
+
+.table {
+  width: 100%;
+  font-size: 1rem;
+  line-height: 1.25rem;
+}
+
+/* Row Styles - Base */
+.tableRow {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 300ms;
+  cursor: pointer;
+}
+
+.tableRow:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Daily Mode Specific - Expandable Rows */
+.dailyTableCell {
+  padding: 0;
+}
+
+.dailyRowClickable {
+  cursor: pointer;
+  transition: background-color 200ms;
+}
+
+.dailyRowClickable:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dailyRowHeader {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dailyRowGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  flex: 1;
+}
+
+.expandIcon {
+  margin-left: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Expanded Content */
+.expandedContent {
+  padding: 0 1rem 1rem 1rem;
+}
+
+.expandedPanel {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 0 0 18px 18px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.expandedGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .expandedGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.sectionTitle {
+  color: white;
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  margin: 0;
+  margin-bottom: 0.75rem;
+}
+
+.eventList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.eventRow {
+  font-family: var(--data-font-family);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Weekly Mode Specific - Table Cells */
+.weeklyDateCell {
+  padding: 0 1rem;
+  color: white;
+  font-weight: 500;
+  font-family: var(--data-font-family);
+}
+
+.weeklyVisibilityCell {
+  padding: 0.75rem 0.5rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.weeklyTimeCell {
+  padding: 0.75rem 0.5rem;
+  line-height: 2.25rem;
+  text-align: left;
+  font-family: var(--data-font-family);
+  letter-spacing: 0.03em;
+  color: white;
+}
+
+/* Daily Mode Specific - Content Cells */
+.dailyDateText {
+  color: white;
+  font-weight: 500;
+  font-family: var(--data-font-family);
+}
+
+.dailyTimeText {
+  text-align: left;
+  color: white;
+}
+
+/* Infinite Scroll */
+.loadMoreSection {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.loadingMoreContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(156 163 175);
+}
+
+/* High Visibility Shimmer Animation (Weekly Mode) */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* High Latitude Messages */
+.noGalacticCoreMessage {
+  text-align: center;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  line-height: 1.75rem;
+  color: rgb(209 213 219);
+}
+
+.locationName {
+  font-weight: 600;
+  color: rgb(191 219 254);
+}

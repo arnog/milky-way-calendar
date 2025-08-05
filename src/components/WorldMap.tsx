@@ -2,6 +2,8 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { Location } from "../types/astronomy";
 import { coordToNormalized, normalizedToCoord } from "../utils/lightPollutionMap";
 import { mapImageCache } from "../services/mapImageCache";
+import { useMapState } from "../hooks/useMapState";
+import { useMapGestures } from "../hooks/useMapGestures";
 import styles from "./WorldMap.module.css";
 
 interface WorldMapMarker {
@@ -32,20 +34,23 @@ export default function WorldMap({
   markers = [],
 }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isPanning, setIsPanning] = useState(false);
   const [imageSrc, setImageSrc] = useState<string>("");
   const [isImageLoading, setIsImageLoading] = useState(true);
   const previousObjectUrlRef = useRef<string | null>(null);
   
-  // Zoom and pan state
-  const [zoom, setZoom] = useState(1);
-  const [panX, setPanX] = useState(0);
-  const [panY, setPanY] = useState(0);
-  
-  // Touch gesture state
-  const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null);
-  const [lastTouchCenter, setLastTouchCenter] = useState<{ x: number; y: number } | null>(null);
+  // Map state management
+  const {
+    zoom,
+    panX,
+    panY,
+    setZoom,
+    setPan,
+    constrainPan,
+    config: mapConfig,
+  } = useMapState({
+    minZoom: 1,
+    maxZoom: 8,
+  });
 
   // Load cached image with automatic format selection
   const loadCachedImage = async () => {
@@ -76,56 +81,8 @@ export default function WorldMap({
     }
   };
 
-  // Zoom constraints
-  const MIN_ZOOM = 1;
-  const MAX_ZOOM = 8;
+  // Zoom constants
   const ZOOM_SPEED = 0.1;
-  
-  // Pan constraint helper functions
-  const constrainPan = useCallback((newPanX: number, newPanY: number, currentZoom: number) => {
-    // For horizontal (X): Wrap the pan value to keep within -1 to 1 range
-    // This ensures we always stay within the 3-map strip
-    let constrainedPanX = newPanX;
-    while (constrainedPanX > 1) constrainedPanX -= 2;
-    while (constrainedPanX < -1) constrainedPanX += 2;
-    
-    // For vertical (Y): Constrain to prevent showing areas beyond map bounds
-    if (currentZoom <= 1) {
-      // At zoom level 1 or less, always center the map vertically (no gaps)
-      return { x: constrainedPanX, y: 0 };
-    } else {
-      // When zoomed in, calculate maximum allowed pan distance
-      // This prevents showing empty space beyond the map bounds
-      const maxPanY = (currentZoom - 1) / 2;
-      const minPanY = -(currentZoom - 1) / 2;
-      const constrainedPanY = Math.max(minPanY, Math.min(maxPanY, newPanY));
-      return { x: constrainedPanX, y: constrainedPanY };
-    }
-  }, []);
-  
-  // Helper function to get touch distance
-  const getTouchDistance = (touches: React.TouchList): number => {
-    if (touches.length < 2) return 0;
-    const touch1 = touches[0];
-    const touch2 = touches[1];
-    return Math.sqrt(
-      Math.pow(touch2.clientX - touch1.clientX, 2) +
-      Math.pow(touch2.clientY - touch1.clientY, 2)
-    );
-  };
-  
-  // Helper function to get touch center point
-  const getTouchCenter = (touches: React.TouchList): { x: number; y: number } => {
-    if (touches.length === 1) {
-      return { x: touches[0].clientX, y: touches[0].clientY };
-    }
-    const touch1 = touches[0];
-    const touch2 = touches[1];
-    return {
-      x: (touch1.clientX + touch2.clientX) / 2,
-      y: (touch1.clientY + touch2.clientY) / 2,
-    };
-  };
   
   // Convert screen coordinates to normalized coordinates (accounting for zoom/pan)
   const screenToNormalized = (screenX: number, screenY: number): { x: number; y: number } => {
@@ -150,14 +107,8 @@ export default function WorldMap({
   };
   
 
-  const getLocationFromEvent = (
-    event: React.MouseEvent<HTMLDivElement> | MouseEvent | Touch
-  ): Location => {
-    const normalized = screenToNormalized(event.clientX, event.clientY);
-    return normalizedToCoord(normalized.x, normalized.y);
-  };
 
-  // Zoom functions
+  // Zoom handler
   const handleZoom = useCallback((delta: number, centerX?: number, centerY?: number) => {
     const container = containerRef.current;
     if (!container) return;
@@ -167,170 +118,48 @@ export default function WorldMap({
     const zoomCenterY = centerY !== undefined ? (centerY - rect.top) / rect.height - 0.5 : 0;
     
     setZoom(prevZoom => {
-      const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prevZoom + delta));
+      const newZoom = Math.max(mapConfig.minZoom, Math.min(mapConfig.maxZoom, prevZoom + delta));
       
-      if (newZoom !== prevZoom) {
-        if (newZoom <= 1) {
-          // When zooming to 1.0 or below, always center the map completely
-          // This prevents boundary gaps that can occur from pan calculations
-          setPanX(0);
-          setPanY(0);
-        } else if (centerX !== undefined && centerY !== undefined) {
-          // Normal zoom with center point - adjust pan to zoom toward the center point
-          const zoomFactor = newZoom / prevZoom;
-          const newPanX = (panX + zoomCenterX * (prevZoom - newZoom)) / zoomFactor;
-          const newPanY = (panY + zoomCenterY * (prevZoom - newZoom)) / zoomFactor;
-          
-          // Apply constraints
-          const constrained = constrainPan(newPanX, newPanY, newZoom);
-          setPanX(constrained.x);
-          setPanY(constrained.y);
-        } else {
-          // Zoom without center point - just apply constraints to current pan values
-          const constrained = constrainPan(panX, panY, newZoom);
-          setPanX(constrained.x);
-          setPanY(constrained.y);
-        }
+      if (newZoom !== prevZoom && centerX !== undefined && centerY !== undefined && newZoom > 1) {
+        // Normal zoom with center point - adjust pan to zoom toward the center point
+        const zoomFactor = newZoom / prevZoom;
+        const newPanX = (panX + zoomCenterX * (prevZoom - newZoom)) / zoomFactor;
+        const newPanY = (panY + zoomCenterY * (prevZoom - newZoom)) / zoomFactor;
+        
+        // Apply constraints using the hook's method
+        const constrained = constrainPan(newPanX, newPanY, newZoom);
+        setPan(constrained.x, constrained.y);
       }
       
       return newZoom;
     });
-  }, [constrainPan, panX, panY]);
-  
-  
-  // Touch handlers
-  const handleTouchStart = (event: React.TouchEvent) => {
-    if (event.touches.length === 2) {
-      // Pinch gesture
-      const distance = getTouchDistance(event.touches);
-      const center = getTouchCenter(event.touches);
-      setLastTouchDistance(distance);
-      setLastTouchCenter(center);
-    } else if (event.touches.length === 1) {
-      // Single touch pan
-      const touch = event.touches[0];
-      setLastTouchCenter({ x: touch.clientX, y: touch.clientY });
-      setIsPanning(true);
-    }
-  };
-  
-  const handleTouchMove = (event: React.TouchEvent) => {
-    event.preventDefault();
-    
-    if (event.touches.length === 2 && lastTouchDistance && lastTouchCenter) {
-      // Pinch zoom
-      const distance = getTouchDistance(event.touches);
-      const center = getTouchCenter(event.touches);
-      
-      const deltaDistance = distance - lastTouchDistance;
-      const zoomDelta = deltaDistance * ZOOM_SPEED * 0.005;
-      
-      handleZoom(zoomDelta, center.x, center.y);
-      
-      setLastTouchDistance(distance);
-      setLastTouchCenter(center);
-    } else if (event.touches.length === 1 && isPanning && lastTouchCenter) {
-      // Single touch pan
-      const touch = event.touches[0];
-      const deltaX = touch.clientX - lastTouchCenter.x;
-      const deltaY = touch.clientY - lastTouchCenter.y;
-      
-      const container = containerRef.current;
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        const newPanX = panX + deltaX / rect.width;
-        const newPanY = panY + deltaY / rect.height;
-        
-        // Apply constraints
-        const constrained = constrainPan(newPanX, newPanY, zoom);
-        setPanX(constrained.x);
-        setPanY(constrained.y);
-      }
-      
-      setLastTouchCenter({ x: touch.clientX, y: touch.clientY });
-    }
-  };
-  
-  const handleTouchEnd = () => {
-    setLastTouchDistance(null);
-    setLastTouchCenter(null);
-    setIsPanning(false);
-  };
-  
-  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return; // Only left mouse button
+  }, [constrainPan, panX, panY, setPan, mapConfig.minZoom, mapConfig.maxZoom]);
 
-    event.preventDefault(); // Prevent default behavior
-
-    let hasDragged = false;
-    let hasPanned = false;
-    const startX = event.clientX;
-    const startY = event.clientY;
-    const initialLocation = getLocationFromEvent(event);
-
-    const handleMouseMove = (e: MouseEvent) => {
-      // Check if mouse has moved more than 3 pixels (to differentiate from click)
-      const distance = Math.sqrt(
-        Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2)
-      );
-
-      if (!hasDragged && !hasPanned && distance > 3) {
-        if (e.shiftKey || zoom > 1) {
-          // Shift+drag to pan OR zoom > 1 (intuitive panning when zoomed in)
-          hasPanned = true;
-          setIsPanning(true);
-        } else {
-          // Regular drag to select location (only when zoom = 1)
-          hasDragged = true;
-          setIsDragging(true);
-          onDragStart?.();
-        }
-      }
-
-      if (hasPanned) {
-        // Pan the map
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-        const container = containerRef.current;
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          const newPanX = panX + deltaX / rect.width;
-          const newPanY = panY + deltaY / rect.height;
-          
-          // Apply constraints
-          const constrained = constrainPan(newPanX, newPanY, zoom);
-          setPanX(constrained.x);
-          setPanY(constrained.y);
-        }
-      } else if (hasDragged) {
-        // Select location
-        const newLocation = getLocationFromEvent(e);
-        onLocationChange(newLocation, true);
-      }
-    };
-
-    const handleMouseUp = (e: MouseEvent) => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-
-      if (hasPanned) {
-        setIsPanning(false);
-      } else if (hasDragged) {
-        // End of drag - get final location and notify parent
-        const finalLocation = getLocationFromEvent(e);
-        setIsDragging(false);
-        onDragEnd?.();
-        // Send final location as non-dragging to commit it
-        onLocationChange(finalLocation, false);
-      } else {
-        // It was just a click, handle it
-        onLocationChange(initialLocation, false);
-      }
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-  };
+  // Gesture handlers using the hook
+  const {
+    isDragging,
+    isPanning,
+    handleMouseDown,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = useMapGestures({
+    containerRef,
+    zoom,
+    panX,
+    panY,
+    setPan,
+    onZoom: handleZoom,
+    onLocationChange,
+    onDragStart,
+    onDragEnd,
+    screenToNormalized,
+    normalizedToCoord,
+    config: {
+      zoomSpeed: ZOOM_SPEED,
+      dragThreshold: 3,
+    },
+  });
 
   
   // Helper function to position markers using the same coordinate system as map transforms
@@ -428,7 +257,7 @@ export default function WorldMap({
           <button
             className={styles.zoomButton}
             onClick={() => handleZoom(ZOOM_SPEED)}
-            disabled={zoom >= MAX_ZOOM}
+            disabled={zoom >= mapConfig.maxZoom}
             aria-label="Zoom in"
           >
             +
@@ -436,7 +265,7 @@ export default function WorldMap({
           <button
             className={styles.zoomButton}
             onClick={() => handleZoom(-ZOOM_SPEED)}
-            disabled={zoom <= MIN_ZOOM}
+            disabled={zoom <= mapConfig.minZoom}
             aria-label="Zoom out"
           >
             −
