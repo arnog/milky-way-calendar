@@ -112,6 +112,26 @@
   </g>
 </symbol>
 
+<!-- Bortle scale filter icons -->
+<symbol id="bortle-all" viewBox="0 0 24 24">
+  <rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor"/>
+</symbol>
+
+<symbol id="bortle-3dots" viewBox="0 0 24 24">
+  <circle cx="6" cy="12" r="2" fill="currentColor"/>
+  <circle cx="12" cy="12" r="2" fill="currentColor"/>
+  <circle cx="18" cy="12" r="2" fill="currentColor"/>
+</symbol>
+
+<symbol id="bortle-2dots" viewBox="0 0 24 24">
+  <circle cx="8" cy="12" r="2" fill="currentColor"/>
+  <circle cx="16" cy="12" r="2" fill="currentColor"/>
+</symbol>
+
+<symbol id="bortle-1dot" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="2" fill="currentColor"/>
+</symbol>
+
 </defs>
 
 </svg>
