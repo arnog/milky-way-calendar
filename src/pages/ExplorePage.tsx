@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import WorldMap from "../components/WorldMap";
 import LocationPopover from "../components/LocationPopover";
+import Tooltip from "../components/Tooltip";
 import ResultsMap from "../components/ResultsMap";
 import DarkSiteTooltip from "../components/DarkSiteTooltip";
 import SegmentedControl, {
@@ -56,7 +57,6 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     useState<MultipleDarkSitesResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchProgress, setSearchProgress] = useState(0);
-  const [showLocationPopover, setShowLocationPopover] = useState(false);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [hasAutoSearched, setHasAutoSearched] = useState(false);
@@ -178,7 +178,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
         case "excellent":
           return bortleRating <= 1.8;
         case "good":
-          return bortleRating <= 2.0;
+          return bortleRating < 2.0;
         case "all":
         default:
           return true;
@@ -239,25 +239,28 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
       : []),
   ];
 
-  // Create filter options with counts
+  // Create filter options with counts and icons
   const bortleFilterOptions: SegmentedControlOption<BortleFilter>[] = [
     {
       value: "all",
-      label: "All Sites",
+      label: "",
+      icon: <Icon name="bortle-all" className="global-icon-small" />,
       count: DARK_SITES.length,
     },
     {
       value: "good",
-      label: "≤2.0",
+      label: "",
+      icon: <Icon name="bortle-3dots" className="global-icon-small" />,
       count: DARK_SITES.filter((site) => {
         const slug = site[4] as string | undefined;
         const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
-        return rating <= 2.0;
+        return rating < 2.0;
       }).length,
     },
     {
       value: "excellent",
-      label: "≤1.8",
+      label: "",
+      icon: <Icon name="bortle-2dots" className="global-icon-small" />,
       count: DARK_SITES.filter((site) => {
         const slug = site[4] as string | undefined;
         const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
@@ -266,7 +269,8 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     },
     {
       value: "pristine",
-      label: "≤1.0",
+      label: "",
+      icon: <Icon name="bortle-1dot" className="global-icon-small" />,
       count: DARK_SITES.filter((site) => {
         const slug = site[4] as string | undefined;
         const rating = slug ? getDarkSiteBortleWithFallback(slug) : 2.0;
@@ -276,14 +280,9 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   ];
 
   // Reset auto-search flag when user manually changes location
-  const handleUserLocationChangeWrapper = (
-    location: Location,
-    shouldClose = true
-  ) => {
+  const handleUserLocationChangeWrapper = (location: Location) => {
     updateUserLocation(location); // Use the hook's update function
-    if (shouldClose) {
-      setShowLocationPopover(false);
-    }
+    // Note: LocationPopover closing is handled by the popover API
     // Clear previous results and reset auto-search flag to allow new search
     setDarkSitesResult(null);
     setSearchError(null);
@@ -596,7 +595,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                 <div className={exploreStyles.locationInputSection}>
                   <button
                     ref={locationButtonRef}
-                    onClick={() => setShowLocationPopover(true)}
+                    popovertarget="explore-location-popover"
                     className={exploreStyles.locationButton}
                   >
                     {userLocation
@@ -771,52 +770,57 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                               </div>
 
                               <div className={exploreStyles.alternativeActions}>
-                                <button
-                                  onClick={() =>
-                                    handleDarkSiteClick(
-                                      alt.coordinate.lat,
-                                      alt.coordinate.lng
-                                    )
-                                  }
-                                  className={
-                                    exploreStyles.alternativeActionButton
-                                  }
-                                  title="View Milky Way visibility data"
-                                >
-                                  🔭 View
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleGetDirections(
-                                      alt.coordinate.lat,
-                                      alt.coordinate.lng
-                                    )
-                                  }
-                                  className={
-                                    exploreStyles.alternativeActionButton
-                                  }
-                                  title="Get driving directions"
-                                >
-                                  🗺️ Drive
-                                </button>
-                                {alt.nearestKnownSite && (
+                                <Tooltip content="View Milky Way visibility data">
                                   <button
                                     onClick={() =>
-                                      handleKnownSiteClick(
-                                        alt.nearestKnownSite!.name
+                                      handleDarkSiteClick(
+                                        alt.coordinate.lat,
+                                        alt.coordinate.lng
                                       )
                                     }
                                     className={
                                       exploreStyles.alternativeActionButton
                                     }
-                                    title={`Nearest accessible: ${
+                                  >
+                                    🔭 View
+                                  </button>
+                                </Tooltip>
+                                <Tooltip content="Get driving directions">
+                                  <button
+                                    onClick={() =>
+                                      handleGetDirections(
+                                        alt.coordinate.lat,
+                                        alt.coordinate.lng
+                                      )
+                                    }
+                                    className={
+                                      exploreStyles.alternativeActionButton
+                                    }
+                                  >
+                                    🗺️ Drive
+                                  </button>
+                                </Tooltip>
+                                {alt.nearestKnownSite && (
+                                  <Tooltip 
+                                    content={`Nearest accessible: ${
                                       alt.nearestKnownSite.fullName
                                     } (${alt.nearestKnownSite.distance.toFixed(
                                       0
                                     )}km)`}
                                   >
-                                    🏢 {alt.nearestKnownSite.name}
-                                  </button>
+                                    <button
+                                      onClick={() =>
+                                        handleKnownSiteClick(
+                                          alt.nearestKnownSite!.name
+                                        )
+                                      }
+                                      className={
+                                        exploreStyles.alternativeActionButton
+                                      }
+                                    >
+                                      🏢 {alt.nearestKnownSite.name}
+                                    </button>
+                                  </Tooltip>
                                 )}
                               </div>
                             </div>
@@ -966,13 +970,11 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
       </div>
 
       {/* Location Popover */}
-      {showLocationPopover && (
-        <LocationPopover
-          onLocationChange={handleUserLocationChangeWrapper}
-          onClose={() => setShowLocationPopover(false)}
-          triggerRef={locationButtonRef}
-        />
-      )}
+      <LocationPopover
+        id="explore-location-popover"
+        onLocationChange={handleUserLocationChangeWrapper}
+        onClose={() => {}}
+      />
     </>
   );
 }

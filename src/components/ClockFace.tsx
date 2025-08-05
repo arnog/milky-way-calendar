@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Icon } from './Icon';
 import { getMoonPhaseIcon } from '../utils/moonPhase';
-import ClockTooltip from './ClockTooltip';
+import Tooltip from './Tooltip';
 import FormattedTime from './FormattedTime';
 import { getClockLabelPosition } from '../utils/timeConversion';
 import { 
@@ -314,7 +314,7 @@ export default function ClockFace({
                 height={labelDimensions.height}
                 style={{ overflow: 'visible' }}
               >
-                <ClockTooltip content={event.tooltip}>
+                <Tooltip content={event.tooltip} placement="top">
                   <button 
                     type="button"
                     className={styles.eventLabelContent}
@@ -331,7 +331,7 @@ export default function ClockFace({
                     onBlur={() => onEventHover(null)}
                     onClick={(e) => {
                       e.preventDefault();
-                      // Focus will show the tooltip
+                      // Button click handled by event listeners above
                     }}
                   >
                     {/* Render multiple icons for consolidated events */}
@@ -358,7 +358,7 @@ export default function ClockFace({
                       aria-hidden="true"
                     />
                   </button>
-                </ClockTooltip>
+                </Tooltip>
               </foreignObject>
             </g>
           );

@@ -13,6 +13,7 @@ import {
 } from "../utils/integratedOptimalViewing";
 import FormattedTime from "./FormattedTime";
 import AstronomicalClock from "./AstronomicalClock";
+import Tooltip from "./Tooltip";
 import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
 // import DarkSiteSuggestion from "./DarkSiteSuggestion";
 import styles from "./TonightCard.module.css";
@@ -37,6 +38,11 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
   useEffect(() => {
     if (geolocationFailed && !showLocationPopover) {
       setShowLocationPopover(true);
+      // Auto-open the popover using native API
+      const popover = document.getElementById('tonight-location-popover-failed');
+      if (popover) {
+        popover.showPopover?.();
+      }
     }
   }, [geolocationFailed, showLocationPopover]);
 
@@ -74,18 +80,16 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           <button
             ref={locationButtonRef}
             className={styles.manualLocationButton}
-            onClick={() => setShowLocationPopover(true)}
+            popovertarget="tonight-location-popover"
           >
             <Icon name="location" />
             Choose Manually
           </button>
-          {showLocationPopover && (
-            <LocationPopover
-              onClose={() => setShowLocationPopover(false)}
-              onLocationChange={handleLocationChange}
-              triggerRef={locationButtonRef}
-            />
-          )}
+          <LocationPopover
+            id="tonight-location-popover"
+            onClose={() => setShowLocationPopover(false)}
+            onLocationChange={handleLocationChange}
+          />
         </div>
       </div>
     );
@@ -100,20 +104,11 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           <p className={styles.locationMessage}>
             Please select your location to see tonight's Milky Way visibility.
           </p>
-          {/* Hidden button just for popover positioning */}
-          <button
-            ref={locationButtonRef}
-            style={{ visibility: "hidden", position: "absolute" }}
-          >
-            Choose Location
-          </button>
-          {showLocationPopover && (
-            <LocationPopover
-              onClose={() => setShowLocationPopover(false)}
-              onLocationChange={handleLocationChange}
-              triggerRef={locationButtonRef}
-            />
-          )}
+          <LocationPopover
+            id="tonight-location-popover-failed"
+            onClose={() => setShowLocationPopover(false)}
+            onLocationChange={handleLocationChange}
+          />
         </div>
       </div>
     );
@@ -149,19 +144,20 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
       </div>
 
       <div className={styles.locationSection}>
-        <button
-          ref={locationButtonRef}
-          onClick={() => setShowLocationPopover(true)}
-          className={styles.locationLink}
-        >
-          <Icon
-            name="location"
-            title="Change location"
-            className="global-icon-small color-accent"
-            baselineOffset={4}
-          />{" "}
-          {locationData?.displayName ?? "Loading location..."}
-        </button>
+        <Tooltip content="Change location">
+          <button
+            ref={locationButtonRef}
+            popovertarget="tonight-location-popover-main"
+            className={styles.locationLink}
+          >
+            <Icon
+              name="location"
+              className="global-icon-small color-accent"
+              baselineOffset={4}
+            />{" "}
+            {locationData?.displayName ?? "Loading location..."}
+          </button>
+        </Tooltip>
         {locationData?.bortleRating !== null && (
           <Link to="/faq#bortle-scale" className={styles.bortleRating}>
             Bortle {locationData?.bortleRating?.toFixed(1)}
@@ -205,21 +201,23 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             <div className={styles.eventRow}>
               {events.sunSet && (
                 <>
-                  <Icon
-                    name="sunset"
-                    title="Sunset (Civil Twilight)"
-                    className={`global-icon-medium color-orange-400`}
-                  />
+                  <Tooltip content="Sunset (Civil Twilight)">
+                    <Icon
+                      name="sunset"
+                      className={`global-icon-medium color-orange-400`}
+                    />
+                  </Tooltip>
                   <FormattedTime date={events.sunSet} />
                 </>
               )}
               {events.nightStart && (
                 <>
-                  <Icon
-                    name="night-rise"
-                    title="Astronomical Night Start"
-                    className={`global-icon-medium`}
-                  />
+                  <Tooltip content="Astronomical Night Start">
+                    <Icon
+                      name="night-rise"
+                      className={`global-icon-medium`}
+                    />
+                  </Tooltip>
                   <FormattedTime date={events.nightStart} />
                 </>
               )}
@@ -229,21 +227,23 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             <div className={styles.eventRow}>
               {events.nightEnd && (
                 <>
-                  <Icon
-                    name="night-set"
-                    title="Astronomical Night End"
-                    className={`global-icon-medium`}
-                  />
+                  <Tooltip content="Astronomical Night End">
+                    <Icon
+                      name="night-set"
+                      className={`global-icon-medium`}
+                    />
+                  </Tooltip>
                   <FormattedTime date={events.nightEnd} />
                 </>
               )}
               {events.sunRise && (
                 <>
-                  <Icon
-                    name="sunrise"
-                    title="Sunrise (Civil Dawn)"
-                    className={`global-icon-medium color-yellow-200`}
-                  />
+                  <Tooltip content="Sunrise (Civil Dawn)">
+                    <Icon
+                      name="sunrise"
+                      className={`global-icon-medium color-yellow-200`}
+                    />
+                  </Tooltip>
                   <FormattedTime date={events.sunRise} />
                 </>
               )}
@@ -255,35 +255,38 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
         <div className={styles.eventSection}>
           <h3 className={styles.sectionTitle}>
             Moon{" "}
-            <Icon
-              name={getMoonPhaseIcon(events.moonPhase, location.lat)}
-              title={getMoonPhaseName(events.moonPhase)}
-              className={`global-icon-small color-gray-300`}
-              baselineOffset={2}
-            />{" "}
+            <Tooltip content={getMoonPhaseName(events.moonPhase)}>
+              <Icon
+                name={getMoonPhaseIcon(events.moonPhase, location.lat)}
+                className={`global-icon-small color-gray-300`}
+                baselineOffset={2}
+              />
+            </Tooltip>{" "}
             <span className={styles.moonIllumination}>
               {events.moonIllumination.toFixed(0)}%
             </span>
           </h3>
           {events.moonRise && (
             <div className={styles.eventRowWide}>
-              <Icon
-                name="moonrise"
-                title="Moonrise"
-                className={`global-icon-medium color-gray-300`}
-                baselineOffset={-2}
-              />
+              <Tooltip content="Moonrise">
+                <Icon
+                  name="moonrise"
+                  className={`global-icon-medium color-gray-300`}
+                  baselineOffset={-2}
+                />
+              </Tooltip>
               <FormattedTime date={events.moonRise} />
             </div>
           )}
           {events.moonSet && (
             <div className={styles.eventRowWide}>
-              <Icon
-                name="moonset"
-                title="Moonset"
-                className={`global-icon-medium color-gray-300`}
-                baselineOffset={-2}
-              />
+              <Tooltip content="Moonset">
+                <Icon
+                  name="moonset"
+                  className={`global-icon-medium color-gray-300`}
+                  baselineOffset={-2}
+                />
+              </Tooltip>
               <FormattedTime date={events.moonSet} />
             </div>
           )}
@@ -299,21 +302,23 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             <h3 className={styles.sectionTitle}>Galactic Core</h3>
             {events.gcRise && (
               <div className={styles.eventRowWide}>
-                <Icon
-                  name="galaxy-rise"
-                  title="Galactic Core Rise (≥10°)"
-                  className={`global-icon-medium color-gray-300`}
-                />
+                <Tooltip content="Galactic Core Rise (≥10°)">
+                  <Icon
+                    name="galaxy-rise"
+                    className={`global-icon-medium color-gray-300`}
+                  />
+                </Tooltip>
                 <FormattedTime date={events.gcRise} />
               </div>
             )}
             {events.optimalWindow.startTime && (
               <div className={styles.eventRowWide}>
-                <Icon
-                  name="telescope"
-                  title="Optimal Viewing Window"
-                  className={`global-icon-medium color-gray-300`}
-                />
+                <Tooltip content="Optimal Viewing Window">
+                  <Icon
+                    name="telescope"
+                    className={`global-icon-medium color-gray-300`}
+                  />
+                </Tooltip>
                 <span className="data-time">
                   <FormattedTime
                     timeString={formatOptimalViewingTime(
@@ -336,11 +341,12 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             )}
             {events.gcTransit && events.maxGcAltitude > 0 && (
               <div className={styles.eventRowWide}>
-                <Icon
-                  name="apex"
-                  title="Galactic Core Transit"
-                  className={`global-icon-medium color-gray-300`}
-                />
+                <Tooltip content="Galactic Core Transit">
+                  <Icon
+                    name="apex"
+                    className={`global-icon-medium color-gray-300`}
+                  />
+                </Tooltip>
                 <span className="data-time">
                   <FormattedTime date={events.gcTransit} />
                   <span className="small-caps"> at </span>
@@ -350,11 +356,12 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             )}
             {events.gcSet && (
               <div className={styles.eventRowWide}>
-                <Icon
-                  name="galaxy-set"
-                  title="Galactic Core Set (≤10°)"
-                  className={`global-icon-medium color-gray-300`}
-                />
+                <Tooltip content="Galactic Core Set (≤10°)">
+                  <Icon
+                    name="galaxy-set"
+                    className={`global-icon-medium color-gray-300`}
+                  />
+                </Tooltip>
                 <FormattedTime date={events.gcSet} />
               </div>
             )}
@@ -370,13 +377,11 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
         )}
       </div>
 
-      {showLocationPopover && (
-        <LocationPopover
-          triggerRef={locationButtonRef}
-          onClose={() => setShowLocationPopover(false)}
-          onLocationChange={handleLocationChange}
-        />
-      )}
+      <LocationPopover
+        id="tonight-location-popover-main"
+        onClose={() => setShowLocationPopover(false)}
+        onLocationChange={handleLocationChange}
+      />
     </div>
   );
 }

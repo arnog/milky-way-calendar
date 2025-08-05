@@ -1,24 +1,22 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { createPortal } from "react-dom";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Location } from "../types/astronomy";
 import { useLocation } from "../hooks/useLocation";
 import WorldMap from "./WorldMap";
 import { useLocationManager } from "../hooks/useLocationManager";
 import { Icon } from "./Icon";
-import { APP_CONFIG } from "../config/appConfig";
-import { useFocusTrap } from "../hooks/useFocusTrap";
+import Tooltip from "./Tooltip";
 import styles from "./LocationPopover.module.css";
 
 interface LocationPopoverProps {
   onLocationChange: (location: Location, shouldClose?: boolean) => void;
   onClose: () => void;
-  triggerRef: React.RefObject<HTMLElement>;
+  id: string; // ID for the popover element
 }
 
 export default function LocationPopover({
   onLocationChange,
   onClose,
-  triggerRef,
+  id,
 }: LocationPopoverProps) {
   const { location } = useLocation();
   const [geoLoading, setGeoLoading] = useState(false);
@@ -37,86 +35,60 @@ export default function LocationPopover({
     handleGeolocationSuccess,
   } = useLocationManager({ initialLocation: location, onLocationChange });
 
-  const [popoverPosition, setPopoverPosition] = useState({
-    top: 0,
-    left: 0,
-    width: 0,
-  });
-  const [isPositioned, setIsPositioned] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  // Implement focus trapping for accessibility
-  useFocusTrap(popoverRef, {
-    isActive: true,
-    initialFocusRef: inputRef,
-    returnFocusRef: triggerRef,
-    onEscape: onClose,
-  });
-
-  // Position popover relative to trigger and update on scroll
+  // Position popover when it opens
   useEffect(() => {
-    const updatePosition = () => {
-      if (triggerRef.current) {
-        const triggerRect = triggerRef.current.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const desiredWidth = viewportWidth < APP_CONFIG.LAYOUT.MOBILE_BREAKPOINT 
-          ? Math.min(viewportWidth - APP_CONFIG.LAYOUT.SMALL_SCREEN_PADDING, APP_CONFIG.LAYOUT.SMALL_SCREEN_MAX_WIDTH)
-          : Math.min(Math.max(viewportWidth * APP_CONFIG.LAYOUT.LARGE_SCREEN_MIN_WIDTH_FACTOR, APP_CONFIG.LAYOUT.LARGE_SCREEN_MIN_WIDTH), APP_CONFIG.LAYOUT.LARGE_SCREEN_MAX_WIDTH);
-
-        // Center the popover horizontally on the page
-        const left = (viewportWidth - desiredWidth) / 2;
-
-        // Position popover directly below the trigger button (viewport coordinates)
-        // Since we're using position: fixed, we use viewport coordinates, not document coordinates
-        const top = triggerRect.bottom + 8;
-
-        setPopoverPosition({
-          top: top,
-          left: left,
-          width: desiredWidth,
-        });
-        setIsPositioned(true);
+    if (!popoverRef.current) return;
+    
+    const popover = popoverRef.current;
+    
+    // Listen for the beforetoggle event to position popover relative to trigger
+    const handleBeforeToggle = (event: Event) => {
+      const toggleEvent = event as PopoverToggleEvent;
+      if (toggleEvent.newState === 'open') {
+        // Use a small delay to ensure the popover is fully rendered
+        setTimeout(() => {
+          const triggerElement = document.querySelector(`[popovertarget="${id}"]`) as HTMLElement;
+          
+          if (triggerElement && popover) {
+            const triggerRect = triggerElement.getBoundingClientRect();
+            const popoverRect = popover.getBoundingClientRect();
+            
+            // Calculate position below the trigger, centered
+            const viewportWidth = window.innerWidth;
+            const left = Math.max(8, Math.min(
+              triggerRect.left + (triggerRect.width - popoverRect.width) / 2,
+              viewportWidth - popoverRect.width - 8
+            ));
+            const top = triggerRect.bottom + 8;
+            
+            // Apply the position with !important to override any other styles
+            popover.style.setProperty('position', 'fixed', 'important');
+            popover.style.setProperty('left', `${left}px`, 'important');
+            popover.style.setProperty('top', `${top}px`, 'important');
+            popover.style.setProperty('right', 'auto', 'important');
+            popover.style.setProperty('bottom', 'auto', 'important');
+          }
+        }, 10);
       }
     };
-
-    // Update position immediately when popover opens
-    updatePosition();
-
-    // Update position when user scrolls to keep it relative to the trigger
-    const handleScroll = () => {
-      updatePosition();
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [triggerRef]);
-
-  // Close on outside click, resize, or escape key (but NOT on scroll)
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(event.target as Node) &&
-        triggerRef.current &&
-        !triggerRef.current.contains(event.target as Node)
-      ) {
-        onClose();
-      }
-    };
-
-    const handleResize = () => {
-      onClose();
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    window.addEventListener("resize", handleResize);
-
+    
+    popover.addEventListener('beforetoggle', handleBeforeToggle);
+    
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("resize", handleResize);
+      popover.removeEventListener('beforetoggle', handleBeforeToggle);
     };
-  }, [onClose, triggerRef]);
+  }, [id]);
+
+  // Handle popover close events
+  const handleToggle = useCallback((event: Event) => {
+    const popoverEvent = event as ToggleEvent;
+    if (popoverEvent.newState === 'closed') {
+      onClose();
+    }
+  }, [onClose]);
 
   // Watch for location changes from context (e.g., successful retry) and propagate to parent
   // Only close if location changes from null to a value (successful geolocation)
@@ -125,6 +97,10 @@ export default function LocationPopover({
     // Only trigger if we went from no location to having a location
     if (!previousLocationRef.current && location) {
       onLocationChange(location, true); // Close popover when location is successfully obtained
+      // Close the popover using the native API
+      if (popoverRef.current) {
+        popoverRef.current.hidePopover();
+      }
     }
     
     previousLocationRef.current = location;
@@ -238,47 +214,39 @@ export default function LocationPopover({
     attemptGeolocation(1);
   }, [attemptGeolocation]);
 
-  return createPortal(
+  return (
     <div
       ref={popoverRef}
+      id={id}
+      popover="auto"
       className={styles.popover}
-      role="dialog"
-      aria-modal="true"
       aria-label="Select location"
-      style={{
-        top: popoverPosition.top,
-        left: popoverPosition.left,
-        width: popoverPosition.width,
-        maxWidth: "90vw",
-        backgroundColor: "rgba(15, 23, 42, 0.85)",
-        backdropFilter: "blur(32px)",
-        WebkitBackdropFilter: "blur(32px)",
-        visibility: isPositioned ? "visible" : "hidden",
-      }}
+      onToggle={handleToggle}
     >
       <div className={styles.header}>
         <h3></h3>
-        <button 
-          onClick={onClose} 
-          className={styles.closeButton}
-          aria-label="Close location picker"
-          title="Close location picker"
-        >
-          <svg
-            className={styles.closeIcon}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
+        <Tooltip content="Close location picker" placement="left">
+          <button 
+            onClick={() => popoverRef.current?.hidePopover()} 
+            className={styles.closeButton}
+            aria-label="Close location picker"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            <svg
+              className={styles.closeIcon}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </Tooltip>
       </div>
 
       {geoLoading ? (
@@ -312,18 +280,22 @@ export default function LocationPopover({
                   }
                 }}
               />
-              <button
-                onClick={handleFindMeClick}
+              <Tooltip 
+                content={geoLoading ? "Finding your location..." : "Use current location"}
                 disabled={geoLoading}
-                className={styles.clearButton}
-                title={geoLoading ? "Finding your location..." : "Use current location"}
+                placement="top"
               >
-                <Icon
-                  name="current-location"
-                  title={geoLoading ? "Finding your location..." : "Use current location"}
-                  className={`${styles.clearIcon} ${geoLoading ? styles.loading : ''}`}
-                />
-              </button>
+                <button
+                  onClick={handleFindMeClick}
+                  disabled={geoLoading}
+                  className={styles.clearButton}
+                >
+                  <Icon
+                    name="current-location"
+                    className={`${styles.clearIcon} ${geoLoading ? styles.loading : ''}`}
+                  />
+                </button>
+              </Tooltip>
             </div>
 
             {suggestion && (
@@ -371,7 +343,6 @@ export default function LocationPopover({
           </div>
         </>
       )}
-    </div>,
-    document.body
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import Tooltip from "./Tooltip";
 import styles from "./StarRating.module.css";
 
 interface StarRatingProps {
@@ -14,25 +14,18 @@ export default function StarRating({
   size = "md",
   reason,
 }: StarRatingProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
   if (rating === 0) {
-    return (
-      <div
-        className={`${styles.container} ${className}`}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        onTouchStart={() => setShowTooltip(true)}
-        onTouchEnd={() => setTimeout(() => setShowTooltip(false), 2000)}
-      >
+    const content = (
+      <div className={`${styles.container} ${className}`}>
         <span className={styles.dash}>—</span>
-        {showTooltip && (reason ?? "No visibility") && (
-          <div className="global-tooltip">
-            {reason ?? "No visibility"}
-            <div className="global-tooltip-arrow"></div>
-          </div>
-        )}
       </div>
     );
+    
+    return reason ? (
+      <Tooltip content={reason ?? "No visibility"}>
+        {content}
+      </Tooltip>
+    ) : content;
   }
 
   const sizeClass = {
@@ -58,21 +51,15 @@ export default function StarRating({
     );
   }
 
-  return (
-    <div 
-      className={`${styles.container} ${className}`}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-      onTouchStart={() => setShowTooltip(true)}
-      onTouchEnd={() => setTimeout(() => setShowTooltip(false), 2000)}
-    >
+  const content = (
+    <div className={`${styles.container} ${className}`}>
       {stars}
-      {showTooltip && reason && (
-        <div className="global-tooltip">
-          {reason}
-          <div className="global-tooltip-arrow"></div>
-        </div>
-      )}
     </div>
   );
+
+  return reason ? (
+    <Tooltip content={reason}>
+      {content}
+    </Tooltip>
+  ) : content;
 }

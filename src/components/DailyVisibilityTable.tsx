@@ -3,6 +3,7 @@ import { useLocation } from "../hooks/useLocation";
 import { useWeeklyVisibility } from "../hooks/useWeeklyVisibility";
 import StarRating from "./StarRating";
 import { Icon } from "./Icon";
+import Tooltip from "./Tooltip";
 import { APP_CONFIG } from "../config/appConfig";
 import {
   formatOptimalViewingTime,
@@ -117,11 +118,12 @@ export default function DailyVisibilityTable({
                             <div className={styles.eventList}>
                               {day.sunSet && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="sunset"
-                                    title="Sunset"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Sunset">
+                                    <Icon
+                                      name="sunset"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       date={day.sunSet}
@@ -131,11 +133,12 @@ export default function DailyVisibilityTable({
                               )}
                               {day.nightStart && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="night-rise"
-                                    title="Astronomical Night Start"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Astronomical Night Start">
+                                    <Icon
+                                      name="night-rise"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       date={day.nightStart}
@@ -145,11 +148,12 @@ export default function DailyVisibilityTable({
                               )}
                               {day.nightEnd && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="night-set"
-                                    title="Astronomical Night End"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Astronomical Night End">
+                                    <Icon
+                                      name="night-set"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       date={day.nightEnd}
@@ -159,11 +163,12 @@ export default function DailyVisibilityTable({
                               )}
                               {day.sunRise && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="sunrise"
-                                    title="Sunrise"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Sunrise">
+                                    <Icon
+                                      name="sunrise"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       date={day.sunRise}
@@ -179,15 +184,16 @@ export default function DailyVisibilityTable({
                             <h4 className={styles.sectionTitle}>Moon</h4>
                             <div className={styles.eventList}>
                               <div className={styles.eventRow}>
-                                <Icon
-                                  name={getMoonPhaseIcon(
-                                    day.moonPhase,
-                                    location.lat
-                                  )}
-                                  title={getMoonPhaseName(day.moonPhase)}
-                                  className={styles.icon}
-                                  baselineOffset={2}
-                                />
+                                <Tooltip content={getMoonPhaseName(day.moonPhase)}>
+                                  <Icon
+                                    name={getMoonPhaseIcon(
+                                      day.moonPhase,
+                                      location.lat
+                                    )}
+                                    className={styles.icon}
+                                    baselineOffset={2}
+                                  />
+                                </Tooltip>
                                 <span className="small-caps">
                                   {Math.round(day.moonIllumination * 100)}%
                                   illuminated
@@ -195,11 +201,12 @@ export default function DailyVisibilityTable({
                               </div>
                               {day.moonRise && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="moonrise"
-                                    title="Moonrise"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Moonrise">
+                                    <Icon
+                                      name="moonrise"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       date={day.moonRise}
@@ -209,11 +216,12 @@ export default function DailyVisibilityTable({
                               )}
                               {day.moonSet && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="moonset"
-                                    title="Moonset"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Moonset">
+                                    <Icon
+                                      name="moonset"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       date={day.moonSet}
@@ -232,11 +240,12 @@ export default function DailyVisibilityTable({
                             <div className={styles.eventList}>
                               {day.gcRise && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="galaxy-rise"
-                                    title="Galactic Core Rise (≥10°)"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Galactic Core Rise (≥10°)">
+                                    <Icon
+                                      name="galaxy-rise"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       date={day.gcRise}
@@ -246,11 +255,12 @@ export default function DailyVisibilityTable({
                               )}
                               {day.optimalWindow.startTime && day.optimalWindow.endTime && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="telescope"
-                                    title="Optimal Observation Time"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Optimal Observation Time">
+                                    <Icon
+                                      name="telescope"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       timeString={formatOptimalViewingTime(
@@ -267,11 +277,12 @@ export default function DailyVisibilityTable({
                               )}
                               {day.gcTransit && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="apex"
-                                    title="Galactic Core Transit"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Galactic Core Transit">
+                                    <Icon
+                                      name="apex"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       date={day.gcTransit}
@@ -285,11 +296,12 @@ export default function DailyVisibilityTable({
                               )}
                               {day.gcSet && (
                                 <div className={styles.eventRow}>
-                                  <Icon
-                                    name="galaxy-set"
-                                    title="Galactic Core Set (≤10°)"
-                                    className={styles.icon}
-                                  />
+                                  <Tooltip content="Galactic Core Set (≤10°)">
+                                    <Icon
+                                      name="galaxy-set"
+                                      className={styles.icon}
+                                    />
+                                  </Tooltip>
                                   <span>
                                     <FormattedTime 
                                       date={day.gcSet}

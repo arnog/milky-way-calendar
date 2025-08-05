@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { WeekData } from "../types/astronomy";
 import { useLocation } from "../hooks/useLocation";
-import { getVisibilityDescription } from "../utils/visibilityRating";
 import StarRating from "./StarRating";
 import { calculateAstronomicalEvents } from "../utils/calculateAstronomicalEvents";
 import { APP_CONFIG } from "../config/appConfig";
@@ -156,7 +155,6 @@ export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
                   key={`${week.startDate.getFullYear()}-${week.weekNumber}`}
                   className={styles.tableRow}
                   style={getRowBackground(week.visibility)}
-                  title={getVisibilityDescription(week.visibility)}
                   onClick={() => onDateClick && onDateClick(week.startDate)}
                 >
                   {structuredData && (
