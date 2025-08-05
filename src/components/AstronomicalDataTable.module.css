@@ -16,7 +16,7 @@
   margin-bottom: 1rem;
 }
 
-/* Loading States */
+/* Error States */
 .loadingContainer {
   backdrop-filter: blur(8px);
   background: rgba(255, 255, 255, 0.05);
@@ -26,34 +26,11 @@
   margin-bottom: 2rem;
 }
 
-.loadingContent {
-  text-align: center;
-}
-
 .loadingText {
   text-align: center;
   font-size: 1.25rem;
   line-height: 1.75rem;
   color: rgba(255, 255, 255, 0.6);
-}
-
-.loadingSubtext {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: rgb(156 163 175);
-  margin-top: 0.5rem;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-  border-radius: 9999px;
-  height: 3rem;
-  width: 3rem;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 1rem;
-  border: 2px solid transparent;
-  border-bottom: 2px solid #a8b5ff;
 }
 
 .smallSpinner {
@@ -251,16 +228,3 @@
   }
 }
 
-/* High Latitude Messages */
-.noGalacticCoreMessage {
-  text-align: center;
-  padding-top: 4rem;
-  padding-bottom: 4rem;
-  line-height: 1.75rem;
-  color: rgb(209 213 219);
-}
-
-.locationName {
-  font-weight: 600;
-  color: rgb(191 219 254);
-}

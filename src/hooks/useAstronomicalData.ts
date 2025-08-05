@@ -18,7 +18,6 @@ export function useAstronomicalData(
 ): UseAstronomicalDataResult {
   const { location } = useLocation();
   const [items, setItems] = useState<AstronomicalDataItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [itemsLoaded, setItemsLoaded] = useState(0);
@@ -152,7 +151,6 @@ export function useAstronomicalData(
       return;
     }
 
-    setIsLoading(true);
     setError(null);
 
     try {
@@ -162,8 +160,6 @@ export function useAstronomicalData(
     } catch (err) {
       console.error('Error loading initial astronomical data:', err);
       setError('Failed to load astronomical data');
-    } finally {
-      setIsLoading(false);
     }
   }, [location, loadData, initialItemCount]);
 
@@ -206,7 +202,7 @@ export function useAstronomicalData(
 
   return {
     items,
-    isLoading,
+    isLoading: false, // Always false since computations are fast
     isLoadingMore,
     error,
     itemsLoaded,
