@@ -104,6 +104,45 @@ solutions were chosen and how they evolved over time.
   provides consistent performance across all map-related functionality, and
   enables future cache optimizations from single point of control
 
+### Astronomical Data Table Component Consolidation (Phase 33)
+
+- **Architecture Problem**: DailyVisibilityTable and Calendar components had
+  very similar functionality (date-based data display, star ratings, formatted
+  times) but completely different implementations, leading to significant code
+  duplication and maintenance overhead
+- **Analysis**: Both components shared 80% of their logic but used different
+  data structures, CSS files, and rendering approaches despite showing
+  astronomical data in tabular format
+- **Solution**: Created unified `AstronomicalDataTable` component with
+  configuration-driven behavior supporting both daily and weekly modes
+- **Implementation**:
+  - Built configurable `AstronomicalDataTable` component in
+    `src/components/AstronomicalDataTable.tsx` with mode-based rendering
+  - Created shared `useAstronomicalData` hook in `src/hooks/useAstronomicalData.ts`
+    supporting both daily and weekly data loading patterns
+  - Implemented comprehensive TypeScript interfaces in
+    `src/types/astronomicalDataTable.ts` for type-safe configuration
+  - Consolidated CSS styling into single `AstronomicalDataTable.module.css`
+    with mode-specific variants (daily expandable rows, weekly infinite scroll)
+  - Converted original components to thin configuration wrappers (24 lines each)
+  - Removed unnecessary loading states since astronomical computations are fast
+  - Cleaned up unused CSS classes reducing bundle size
+- **Component Renaming**: Updated names for consistency and clarity:
+  - `Calendar` → `WeeklyAstroTable` (clearer purpose indication)
+  - `DailyVisibilityTable` → `DailyAstroTable` (consistent naming pattern)
+- **Architecture Benefits**:
+  - **Single Source of Truth**: All table logic centralized in one component
+  - **Reduced Duplication**: Eliminated 400+ lines of duplicate code
+  - **Better Maintainability**: Changes to table behavior only require updates
+    in one location
+  - **Type Safety**: Comprehensive interfaces prevent configuration errors
+  - **Performance**: Removed unused loading states and optimized CSS bundle
+- **Functionality Preservation**: All existing features maintained including
+  expandable details (daily mode), infinite scroll (weekly mode), navigation
+  callbacks, and structured data generation
+- **Testing**: All 142 existing tests continue to pass, validating that
+  consolidation preserved functionality while improving architecture
+
 ### Navigation and Global State
 
 - **Global State**: Dark/Field mode maintained across all pages with app-level

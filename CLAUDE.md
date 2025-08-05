@@ -57,14 +57,17 @@ npm run test:run     # Run tests once (non-watch mode)
 
 ## Project Structure
 
-- `src/components/` - React components (Calendar, TonightCard, LocationPopover,
-  WorldMap, StarRating) with corresponding `.module.css` files
+- `src/components/` - React components (AstronomicalDataTable, DailyAstroTable, 
+  WeeklyAstroTable, TonightCard, LocationPopover, WorldMap, StarRating) with 
+  corresponding `.module.css` files
 - `src/pages/` - Page components (HomePage, LocationPage, ExplorePage, FAQPage)
 - `src/hooks/` - Custom React hooks (`useDateFromQuery` for URL date state
-  management, `useLocation` for home location, `useExploreLocation` for explore page)
+  management, `useLocation` for home location, `useExploreLocation` for explore page,
+  `useAstronomicalData` for unified daily/weekly data loading)
 - `src/utils/` - Utility functions for astronomical calculations and location
   parsing
-- `src/types/` - TypeScript type definitions
+- `src/types/` - TypeScript type definitions (includes `astronomicalDataTable.ts`
+  for unified table component interfaces)
 - `src/styles/` - CSS styling with global utilities (`global.css`) and modular
   component styles
 - `src/test/` - Comprehensive unit test suite (109 tests across 8 files)
@@ -375,6 +378,22 @@ tests) validating cache behavior, format selection, and error handling, and
 achieved seamless image sharing between main thread and worker context with
 consistent performance optimization across all map-related functionality
 
+✅ **Phase 33**: Astronomical Data Table Component Consolidation - Implemented
+comprehensive consolidation of DailyVisibilityTable and Calendar components into
+a unified architecture: created configurable `AstronomicalDataTable` component
+supporting both daily and weekly modes through configuration, developed shared
+`useAstronomicalData` hook with unified data loading for both time scales,
+implemented comprehensive TypeScript interfaces (`AstronomicalDataTableConfig`,
+`AstronomicalDataItem`, `UseAstronomicalDataResult`) for type-safe configuration,
+consolidated CSS styling into single `AstronomicalDataTable.module.css` with
+mode-specific variants, eliminated code duplication while preserving all existing
+functionality including expandable details, infinite scroll, and navigation,
+removed unnecessary loading states since astronomical computations are fast
+(< 100ms), cleaned up unused CSS classes reducing bundle size, renamed components
+for consistency and clarity (`Calendar` → `WeeklyAstroTable`, 
+`DailyVisibilityTable` → `DailyAstroTable`), and achieved single source of truth
+for table logic with improved maintainability through configuration-driven approach
+
 **Current state**: Feature-complete astronomy calendar with fully migrated
 time-integrated astronomical calculations, comprehensive date navigation via URL
 parameters allowing users to explore any date, sophisticated coordinate
@@ -386,7 +405,10 @@ forward when geolocation fails**, **optimized light pollution map processing
 with 9.1% file size reduction and eliminated runtime conversion overhead while
 maintaining perfect accuracy**, **unified Cache API implementation sharing map
 images between WorldMap component and darkSiteWorker with automatic format
-selection, intelligent caching strategies, and memory management**, accurate
+selection, intelligent caching strategies, and memory management**, **consolidated
+astronomical data table architecture with unified AstronomicalDataTable component
+supporting both daily and weekly modes through configuration, eliminating code
+duplication while maintaining all functionality**, accurate
 timezone handling for international
 users, proper high-latitude handling, comprehensive dark sky site discovery with
 corrected coordinate mapping and optimal classification thresholds, educational
