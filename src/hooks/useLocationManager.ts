@@ -238,7 +238,7 @@ export function useLocationManager({
       setIsNearbyMatch(false);
       saveLocation(parsed.location, parsed.matchedName);
     }
-  }, [inputValue, onLocationChange, saveLocation]);
+  }, [inputValue, onLocationChange, saveLocation, updateLocationState]);
 
   const handleGeolocationSuccess = useCallback(
     (location: Location) => {

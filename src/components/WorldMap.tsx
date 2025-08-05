@@ -77,8 +77,11 @@ export default function WorldMap({
   
   // Pan constraint helper functions
   const constrainPan = useCallback((newPanX: number, newPanY: number, currentZoom: number) => {
-    // For horizontal (X): Allow wrapping by not constraining
-    const constrainedPanX = newPanX;
+    // For horizontal (X): Wrap the pan value to keep within -1 to 1 range
+    // This ensures we always stay within the 3-map strip
+    let constrainedPanX = newPanX;
+    while (constrainedPanX > 1) constrainedPanX -= 2;
+    while (constrainedPanX < -1) constrainedPanX += 2;
     
     // For vertical (Y): Constrain to prevent showing areas beyond map bounds
     // When zoomed in, we need to prevent panning too far up or down
@@ -169,7 +172,7 @@ export default function WorldMap({
       
       return newZoom;
     });
-  }, [constrainPan]);
+  }, [constrainPan, panX, panY]);
   
   
   // Touch handlers
@@ -307,27 +310,33 @@ export default function WorldMap({
   };
 
   
-  // Convert normalized coordinates to screen coordinates (accounting for zoom/pan)
-  // This matches the CSS transform order: scale() then translate()
-  const normalizedToScreen = (normalizedX: number, normalizedY: number): { x: number; y: number } => {
-    // First apply zoom (scale) around center (0.5, 0.5)
-    const scaledX = (normalizedX - 0.5) * zoom + 0.5;
-    const scaledY = (normalizedY - 0.5) * zoom + 0.5;
+  // Helper function to position markers using the same coordinate system as map transforms
+  const getMarkerPositionForPan = (normalizedX: number, normalizedY: number, customPanX: number): { x: number; y: number } => {
+    // The map images use: transform: scale(${zoom}) translate(${customPanX * 100}%, ${(panY * containerHeight) / zoom}px)
+    // We need to apply the same transformations to marker positions
     
-    // Then apply pan (translate)
-    let x = scaledX + panX;
-    const y = scaledY + panY;
+    // Start with the base normalized coordinates (0-1 range)
+    // Convert to percentage coordinates 
+    let x = normalizedX * 100; // Convert to 0-100 range
+    let y = normalizedY * 100;
     
-    // Handle horizontal wrapping: normalize x to 0-1 range
-    x = ((x % 1) + 1) % 1;
+    // Step 1: Apply translation (same as maps)
+    x += customPanX * 100; // Same as map's translate(${customPanX * 100}%, ...)
+    // For Y: match map's pixel-based Y translation, converted to percentage
+    y += (panY / zoom) * 100; // Same as map's ${(panY * containerHeight) / zoom}px converted to %
     
-    return { x: x * 100, y: y * 100 }; // Convert to percentages for CSS positioning
+    // Step 2: Apply zoom scaling around center (50%, 50%) - same as maps
+    // CSS transform order: scale() then translate() means we scale the final position
+    x = (x - 50) * zoom + 50;
+    y = (y - 50) * zoom + 50;
+    
+    return { x, y };
   };
 
   const markerPosition = location
     ? (() => {
         const normalized = coordToNormalized(location.lat, location.lng);
-        return normalizedToScreen(normalized.x, normalized.y);
+        return getMarkerPositionForPan(normalized.x, normalized.y, panX);
       })()
     : null;
 
@@ -422,7 +431,7 @@ export default function WorldMap({
         </div>
       )}
 
-      {/* Primary map image */}
+      {/* Primary map */}
       <img
         src={imageSrc}
         alt="World map showing light pollution"
@@ -440,63 +449,61 @@ export default function WorldMap({
         onTouchEnd={handleTouchEnd}
         onLoad={() => setIsImageLoading(false)}
         style={{
-          transform: `scale(${zoom}) translate(${(panX * (containerRef.current?.clientWidth || 1)) / zoom}px, ${(panY * (containerRef.current?.clientHeight || 1)) / zoom}px)`,
+          transform: `scale(${zoom}) translate(${(panX * 100)}%, ${(panY * (containerRef.current?.clientHeight || 1)) / zoom}px)`,
           transformOrigin: 'center',
           transition: isPanning || isDragging ? 'none' : 'transform 0.1s ease-out'
         }}
         draggable={false}
       />
       
-      {/* Wrapped copies for horizontal continuity */}
-      <>
-        {/* Left wrapped copy */}
-        <img
-          src={imageSrc}
-          alt="World map showing light pollution (wrapped left)"
-          className={`${styles.mapImage} ${
-            isDragging ? styles.mapImageGrabbing : 
-            isPanning ? styles.mapImageGrabbing :
-            zoom > 1 ? styles.mapImageGrab :
-            styles.mapImageCrosshair
-          } ${
-            isImageLoading ? styles.mapImageLoading : styles.mapImageLoaded
-          }`}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{
-            transform: `scale(${zoom}) translate(${(panX * (containerRef.current?.clientWidth || 1)) / zoom - 100}%, ${(panY * (containerRef.current?.clientHeight || 1)) / zoom}px)`,
-            transformOrigin: 'center',
-            transition: isPanning || isDragging ? 'none' : 'transform 0.1s ease-out'
-          }}
-          draggable={false}
-        />
-        
-        {/* Right wrapped copy */}
-        <img
-          src={imageSrc}
-          alt="World map showing light pollution (wrapped right)"
-          className={`${styles.mapImage} ${
-            isDragging ? styles.mapImageGrabbing : 
-            isPanning ? styles.mapImageGrabbing :
-            zoom > 1 ? styles.mapImageGrab :
-            styles.mapImageCrosshair
-          } ${
-            isImageLoading ? styles.mapImageLoading : styles.mapImageLoaded
-          }`}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{
-            transform: `scale(${zoom}) translate(${(panX * (containerRef.current?.clientWidth || 1)) / zoom + 100}%, ${(panY * (containerRef.current?.clientHeight || 1)) / zoom}px)`,
-            transformOrigin: 'center',
-            transition: isPanning || isDragging ? 'none' : 'transform 0.1s ease-out'
-          }}
-          draggable={false}
-        />
-      </>
+      {/* Left wrapped copy - always rendered for seamless wrapping */}
+      <img
+        src={imageSrc}
+        alt="World map showing light pollution (left wrap)"
+        className={`${styles.mapImage} ${
+          isDragging ? styles.mapImageGrabbing : 
+          isPanning ? styles.mapImageGrabbing :
+          zoom > 1 ? styles.mapImageGrab :
+          styles.mapImageCrosshair
+        } ${
+          isImageLoading ? styles.mapImageLoading : styles.mapImageLoaded
+        }`}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          transform: `scale(${zoom}) translate(${((panX - 1) * 100)}%, ${(panY * (containerRef.current?.clientHeight || 1)) / zoom}px)`,
+          transformOrigin: 'center',
+          transition: isPanning || isDragging ? 'none' : 'transform 0.1s ease-out',
+        }}
+        draggable={false}
+      />
+      
+      {/* Right wrapped copy - always rendered for seamless wrapping */}
+      <img
+        src={imageSrc}
+        alt="World map showing light pollution (right wrap)"
+        className={`${styles.mapImage} ${
+          isDragging ? styles.mapImageGrabbing : 
+          isPanning ? styles.mapImageGrabbing :
+          zoom > 1 ? styles.mapImageGrab :
+          styles.mapImageCrosshair
+        } ${
+          isImageLoading ? styles.mapImageLoading : styles.mapImageLoaded
+        }`}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          transform: `scale(${zoom}) translate(${((panX + 1) * 100)}%, ${(panY * (containerRef.current?.clientHeight || 1)) / zoom}px)`,
+          transformOrigin: 'center',
+          transition: isPanning || isDragging ? 'none' : 'transform 0.1s ease-out',
+        }}
+        draggable={false}
+      />
+
 
       {/* Location marker overlay */}
       {location && markerPosition && (
@@ -531,32 +538,40 @@ export default function WorldMap({
             }}
           />
           
-          {/* Wrapped copies */}
-          {markerPosition.y >= 0 && markerPosition.y <= 100 && (
+          {/* Wrapped copies - calculate positions using same pan offsets as map copies */}
+          {markerPosition.y >= 0 && markerPosition.y <= 100 && location && (
             <>
-              {/* Wrapped copy on the right */}
-              {markerPosition.x + 100 >= 0 && markerPosition.x + 100 <= 100 && (
-                <div
-                  className={styles.marker}
-                  style={{
-                    left: `${markerPosition.x + 100}%`,
-                    top: `${markerPosition.y}%`,
-                    opacity: 1
-                  }}
-                />
-              )}
+              {/* Left map copy: use panX - 1 to match map's (panX - 1) * 100% translation */}
+              {(() => {
+                const normalized = coordToNormalized(location.lat, location.lng);
+                const leftPos = getMarkerPositionForPan(normalized.x, normalized.y, panX - 1);
+                return leftPos.x >= -10 && leftPos.x <= 110 && (
+                  <div
+                    className={styles.marker}
+                    style={{
+                      left: `${leftPos.x}%`,
+                      top: `${leftPos.y}%`,
+                      opacity: 1
+                    }}
+                  />
+                );
+              })()}
               
-              {/* Wrapped copy on the left */}
-              {markerPosition.x - 100 >= 0 && markerPosition.x - 100 <= 100 && (
-                <div
-                  className={styles.marker}
-                  style={{
-                    left: `${markerPosition.x - 100}%`,
-                    top: `${markerPosition.y}%`,
-                    opacity: 1
-                  }}
-                />
-              )}
+              {/* Right map copy: use panX + 1 to match map's (panX + 1) * 100% translation */}
+              {(() => {
+                const normalized = coordToNormalized(location.lat, location.lng);
+                const rightPos = getMarkerPositionForPan(normalized.x, normalized.y, panX + 1);
+                return rightPos.x >= -10 && rightPos.x <= 110 && (
+                  <div
+                    className={styles.marker}
+                    style={{
+                      left: `${rightPos.x}%`,
+                      top: `${rightPos.y}%`,
+                      opacity: 1
+                    }}
+                  />
+                );
+              })()}
             </>
           )}
         </div>
@@ -567,86 +582,42 @@ export default function WorldMap({
         <div className={styles.markerOverlay}>
           {markers.map((marker) => {
             const { x: normalizedX, y: normalizedY } = coordToNormalized(marker.lat, marker.lng);
-            const screenPos = normalizedToScreen(normalizedX, normalizedY);
             
-            // For horizontal wrapping, we might need to show the marker at multiple positions
-            const markerElements = [];
+            // Generate positions for all three maps using the same coordinate system as maps
+            const positions = [
+              { pos: getMarkerPositionForPan(normalizedX, normalizedY, panX), key: 'primary' },
+              { pos: getMarkerPositionForPan(normalizedX, normalizedY, panX - 1), key: 'left' },
+              { pos: getMarkerPositionForPan(normalizedX, normalizedY, panX + 1), key: 'right' }
+            ];
             
-            // Primary marker position
-            markerElements.push(
-              <div
-                key={`${marker.id}-primary`}
-                className={styles.markerPosition}
-                style={{
-                  left: `${screenPos.x}%`,
-                  top: `${screenPos.y}%`,
-                  opacity: screenPos.y >= 0 && screenPos.y <= 100 ? 1 : 0
-                }}
-              >
-                <div
-                  className={marker.className}
-                  onClick={marker.onClick}
-                  onMouseEnter={marker.onMouseEnter}
-                  onMouseLeave={marker.onMouseLeave}
-                  title={marker.title}
-                >
-                  {marker.children}
-                </div>
-              </div>
-            );
+            const markerElements: React.ReactElement[] = [];
             
-            // We might need wrapped copies
-            // Check if we need a wrapped copy on the left (position + 100%)
-            const wrappedRightX = screenPos.x + 100;
-            if (wrappedRightX >= 0 && wrappedRightX <= 100) {
-              markerElements.push(
-                <div
-                  key={`${marker.id}-wrapped-right`}
-                  className={styles.markerPosition}
-                  style={{
-                    left: `${wrappedRightX}%`,
-                    top: `${screenPos.y}%`,
-                    opacity: screenPos.y >= 0 && screenPos.y <= 100 ? 1 : 0
-                  }}
-                >
+            positions.forEach(({ pos, key }) => {
+              // Only show markers that are within reasonable bounds
+              if (pos.x >= -10 && pos.x <= 110 && pos.y >= 0 && pos.y <= 100) {
+                markerElements.push(
                   <div
-                    className={marker.className}
-                    onClick={marker.onClick}
-                    onMouseEnter={marker.onMouseEnter}
-                    onMouseLeave={marker.onMouseLeave}
-                    title={marker.title}
+                    key={`${marker.id}-${key}`}
+                    className={styles.markerPosition}
+                    style={{
+                      left: `${pos.x}%`,
+                      top: `${pos.y}%`,
+                      opacity: 1
+                    }}
                   >
-                    {marker.children}
+                    <div
+                      className={marker.className}
+                      onClick={marker.onClick}
+                      onMouseEnter={marker.onMouseEnter}
+                      onMouseLeave={marker.onMouseLeave}
+                      title={marker.title}
+                    >
+                      {marker.children}
+                    </div>
                   </div>
-                </div>
-              );
-            }
-            
-            // Check if we need a wrapped copy on the right (position - 100%)
-            const wrappedLeftX = screenPos.x - 100;
-            if (wrappedLeftX >= 0 && wrappedLeftX <= 100) {
-              markerElements.push(
-                <div
-                  key={`${marker.id}-wrapped-left`}
-                  className={styles.markerPosition}
-                  style={{
-                    left: `${wrappedLeftX}%`,
-                    top: `${screenPos.y}%`,
-                    opacity: screenPos.y >= 0 && screenPos.y <= 100 ? 1 : 0
-                  }}
-                >
-                  <div
-                    className={marker.className}
-                    onClick={marker.onClick}
-                    onMouseEnter={marker.onMouseEnter}
-                    onMouseLeave={marker.onMouseLeave}
-                    title={marker.title}
-                  >
-                    {marker.children}
-                  </div>
-                </div>
-              );
-            }
+                );
+              }
+            });
             
             return markerElements;
           })}

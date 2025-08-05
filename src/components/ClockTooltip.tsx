@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './ClockTooltip.module.css';
 
 interface ClockTooltipProps {
@@ -22,11 +22,11 @@ export default function ClockTooltip({ content, children }: ClockTooltipProps) {
   };
 
   // Hide tooltip with cleanup
-  const hideTooltip = () => {
+  const hideTooltip = useCallback(() => {
     setShowTooltip(false);
     setIsTouch(false);
     clearTooltipTimeout();
-  };
+  }, []);
 
   // Show tooltip for touch devices with auto-dismiss
   const showTooltipWithTimeout = () => {
@@ -64,7 +64,7 @@ export default function ClockTooltip({ content, children }: ClockTooltipProps) {
       document.removeEventListener('touchstart', handleOutsideInteraction);
       document.removeEventListener('mousedown', handleOutsideInteraction);
     };
-  }, [showTooltip, isTouch]);
+  }, [showTooltip, isTouch, hideTooltip]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
