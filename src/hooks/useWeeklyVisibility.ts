@@ -35,7 +35,7 @@ export interface UseWeeklyVisibilityResult {
  */
 export function useWeeklyVisibility(
   currentDate?: Date,
-  numberOfDays: number = 7
+  numberOfDays: number = 7,
 ): UseWeeklyVisibilityResult {
   const { location } = useLocation();
   const [dailyData, setDailyData] = useState<DayData[]>([]);
@@ -56,7 +56,9 @@ export function useWeeklyVisibility(
 
         // Calculate data for the specified number of days
         for (let i = 0; i < numberOfDays; i++) {
-          const date = new Date(today.getTime() + i * APP_CONFIG.ASTRONOMY.MS_PER_DAY);
+          const date = new Date(
+            today.getTime() + i * APP_CONFIG.ASTRONOMY.MS_PER_DAY,
+          );
 
           // Calculate all astronomical events for this day
           const events = calculateAstronomicalEvents(date, location);
@@ -83,7 +85,10 @@ export function useWeeklyVisibility(
 
         setDailyData(data);
       } catch (error) {
-        console.error("useWeeklyVisibility: Error calculating daily visibility data:", error);
+        console.error(
+          "useWeeklyVisibility: Error calculating daily visibility data:",
+          error,
+        );
         setError("Failed to calculate weekly visibility data");
       }
     };
@@ -93,6 +98,6 @@ export function useWeeklyVisibility(
 
   return {
     dailyData,
-    error
+    error,
   };
 }

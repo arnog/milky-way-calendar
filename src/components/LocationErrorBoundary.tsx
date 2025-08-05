@@ -34,7 +34,7 @@ export default class LocationErrorBoundary extends Component<
       console.error(
         "LocationErrorBoundary caught a location error:",
         error,
-        errorInfo
+        errorInfo,
       );
     }
   }
@@ -59,7 +59,7 @@ export default class LocationErrorBoundary extends Component<
           console.error("Geolocation error:", error);
           // Still retry to let the app fall back to default location
           this.handleRetry();
-        }
+        },
       );
     } else {
       this.handleRetry();

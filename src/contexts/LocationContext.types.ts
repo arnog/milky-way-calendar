@@ -1,4 +1,4 @@
-import { Location } from '../types/astronomy';
+import { Location } from "../types/astronomy";
 
 export interface LocationContextType {
   location: Location | null;

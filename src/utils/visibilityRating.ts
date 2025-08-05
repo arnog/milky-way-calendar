@@ -4,17 +4,15 @@ import {
   TwilightData,
   Location,
 } from "../types/astronomy";
-import { 
-  computeGCObservationScore, 
-  createGCAltitudeFunction, 
-  createMoonAltitudeFunction, 
-  createGCMoonAngleFunction 
+import {
+  computeGCObservationScore,
+  createGCAltitudeFunction,
+  createMoonAltitudeFunction,
+  createGCMoonAngleFunction,
 } from "./gcObservationScoring";
-
 
 // Re-export the formatTimeInLocationTimezone function from timezoneUtils
 export { formatTimeInLocationTimezone } from "./timezoneUtils";
-
 
 export interface VisibilityRatingResult {
   rating: number;
@@ -26,13 +24,13 @@ export function calculateVisibilityRating(
   moonData: MoonData,
   twilightData: TwilightData,
   location: Location,
-  date: Date
+  date: Date,
 ): VisibilityRatingResult {
   // Create the altitude and angle functions
   const gcAltitude = createGCAltitudeFunction(location);
   const moonAltitude = createMoonAltitudeFunction(location);
   const gcMoonAngle = createGCMoonAngleFunction(location);
-  
+
   // Call the new scoring algorithm
   const result = computeGCObservationScore({
     latitude: location.lat,
@@ -47,15 +45,14 @@ export function calculateVisibilityRating(
     gcSet: gcData.setTime,
     gcAltitude,
     moonAltitude,
-    gcMoonAngle
+    gcMoonAngle,
   });
-  
+
   return {
     rating: result.rating,
-    reason: result.reason
+    reason: result.reason,
   };
 }
-
 
 export function getVisibilityDescription(stars: number): string {
   switch (stars) {

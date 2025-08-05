@@ -12,9 +12,7 @@
   background.
 
 - When a task has been completed:
-
   - Review the code:
-
     - Look for opportunities to remove dead code or simplify logic
     - Look for hardcoded values that should be replaced with constants or
       configuration options
@@ -97,7 +95,7 @@
   ```typescript
   function updateUser(
     userId: string,
-    userData: { name?: string; email?: string }
+    userData: { name?: string; email?: string },
   ) {
     userData.name = userData.name?.toUpperCase();
   }
@@ -241,7 +239,6 @@
   ```
 
 - Name functions and methods according to their side effects:
-
   - If a function modifies state, use a verb that indicates the action (e.g.,
     `update`, `set`, `add`, `remove`):
 
@@ -327,7 +324,6 @@
 - Test files should be named `componentName.test.ts` or `utilityName.test.ts`
 
 - Focus testing on:
-
   - **Astronomical calculations**: Verify accuracy with known values
   - **Edge cases**: High latitudes, extreme dates, timezone boundaries
   - **User interactions**: Location selection, date navigation
@@ -367,7 +363,7 @@
   ```typescript
   function calculateGalacticCenterAltitude(
     location: Location,
-    date: Date
+    date: Date,
   ): number | null {
     // Pure function with no side effects
   }
@@ -442,7 +438,7 @@
   ```typescript
   const debouncedLocationSearch = useMemo(
     () => debounce(searchLocations, 300),
-    []
+    [],
   );
   ```
 
@@ -460,14 +456,13 @@
    */
   function calculateGalacticCenterAltitude(
     location: Location,
-    date: Date
+    date: Date,
   ): number | null {
     // ...
   }
   ```
 
 - **Update CHANGELOG.md** for user-facing changes:
-
   - New features that affect user experience
   - Bug fixes that resolve user-reported issues
   - Performance improvements users will notice

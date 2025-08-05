@@ -148,7 +148,7 @@ class StorageService {
   setLocation(
     kind: LocationKind,
     location: Location,
-    matchedName?: string | null
+    matchedName?: string | null,
   ): boolean {
     const data: StoredLocationData = {
       latlong: location,

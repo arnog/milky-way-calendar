@@ -26,18 +26,18 @@ export function LocationProvider({
   };
 
   const [location, setLocationState] = useState<Location | null>(
-    getInitialLocation()
+    getInitialLocation(),
   );
   // Only show loading if we don't have any location (initial or saved)
   const [isLoading, setIsLoading] = useState(
-    !skipGeolocation && !initialLocation && !location
+    !skipGeolocation && !initialLocation && !location,
   );
   const [geolocationFailed, setGeolocationFailed] = useState(false);
 
   // Define updateLocation before useEffect
   const updateLocation = (
     newLocation: Location,
-    matchedName?: string | null
+    matchedName?: string | null,
   ) => {
     setLocationState(newLocation);
 
@@ -141,7 +141,7 @@ export function LocationProvider({
             setGeolocationFailed(true);
             setIsLoading(false);
           },
-          options
+          options,
         );
       };
 
@@ -159,7 +159,7 @@ export function LocationProvider({
             } else {
               // Permission denied
               console.info(
-                "Geolocation permission denied, using default location"
+                "Geolocation permission denied, using default location",
               );
               setGeolocationFailed(true);
               setIsLoading(false);
@@ -260,7 +260,7 @@ export function LocationProvider({
         setGeolocationFailed(true);
         setIsLoading(false);
       },
-      options
+      options,
     );
   };
 

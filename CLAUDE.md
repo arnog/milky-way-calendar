@@ -57,26 +57,26 @@ npm run test:run     # Run tests once (non-watch mode)
 
 ## Project Structure
 
-- `src/components/` - React components (AstronomicalDataTable, DailyAstroTable, 
-  WeeklyAstroTable, TonightCard, LocationPopover, WorldMap, StarRating) with 
+- `src/components/` - React components (AstronomicalDataTable, DailyAstroTable,
+  WeeklyAstroTable, TonightCard, LocationPopover, WorldMap, StarRating) with
   corresponding `.module.css` files
 - `src/pages/` - Page components (HomePage, LocationPage, ExplorePage, FAQPage)
 - `src/hooks/` - Custom React hooks (`useDateFromQuery` for URL date state
-  management, `useLocation` for home location, `useExploreLocation` for explore page,
-  `useAstronomicalData` for unified daily/weekly data loading)
+  management, `useLocation` for home location, `useExploreLocation` for explore
+  page, `useAstronomicalData` for unified daily/weekly data loading)
 - `src/utils/` - Utility functions for astronomical calculations and location
   parsing
-- `src/types/` - TypeScript type definitions (includes `astronomicalDataTable.ts`
-  for unified table component interfaces)
+- `src/types/` - TypeScript type definitions (includes
+  `astronomicalDataTable.ts` for unified table component interfaces)
 - `src/styles/` - CSS styling with global utilities (`global.css`) and modular
   component styles
 - `src/test/` - Comprehensive unit test suite (109 tests across 8 files)
 - `public/icons.svg` - SVG sprite with custom icons (stars, sun/moon rise/set,
   transit)
-- `public/world2024B-lg-grayscale.png` - Optimized grayscale light pollution
-  map (2.25MB, 9.1% smaller than RGB version)
-- `public/world2024B-*.{webp,jpg,png}` - Legacy light pollution maps in
-  multiple resolutions
+- `public/world2024B-lg-grayscale.png` - Optimized grayscale light pollution map
+  (2.25MB, 9.1% smaller than RGB version)
+- `public/world2024B-*.{webp,jpg,png}` - Legacy light pollution maps in multiple
+  resolutions
 - `public/sitemap.xml` - XML sitemap for search engine optimization
 - `public/robots.txt` - Search engine crawler instructions
 - `scripts/generate-sitemap.js` - Dynamic sitemap generation script
@@ -101,32 +101,43 @@ ensure consistency and accuracy:
 
 ## Location Management Architecture
 
-The app implements a **dual-location system** that separates the home "Tonight" 
+The app implements a **dual-location system** that separates the home "Tonight"
 location from the exploration location, providing optimal user experience:
 
 ### **Home Location System**
+
 - **Purpose**: Used for Tonight card, calendar, and all `/location/` routes
 - **Management**: `useLocation` hook with `LocationContext`
 - **Storage**: `milkyway-home-location` in localStorage
-- **Geolocation**: Automatic detection with retry logic and user-friendly error handling
+- **Geolocation**: Automatic detection with retry logic and user-friendly error
+  handling
 - **Persistence**: Maintained across app sessions and page navigation
 
-### **Explore Location System**  
+### **Explore Location System**
+
 - **Purpose**: Independent location state for `/explore` page only
 - **Management**: `useExploreLocation` hook (standalone)
-- **Storage**: `milkyway-explore-location` in localStorage  
-- **Initialization**: Starts with home location on first visit if no explore location exists
-- **Independence**: Changes only affect explore page, never impact home/calendar locations
+- **Storage**: `milkyway-explore-location` in localStorage
+- **Initialization**: Starts with home location on first visit if no explore
+  location exists
+- **Independence**: Changes only affect explore page, never impact home/calendar
+  locations
 
 ### **User Experience Benefits**
-- **Seamless exploration**: Users can browse different locations without losing their home base
-- **Persistent exploration**: Returning to explore page preserves last explored location
+
+- **Seamless exploration**: Users can browse different locations without losing
+  their home base
+- **Persistent exploration**: Returning to explore page preserves last explored
+  location
 - **Context preservation**: Home location remains stable for astronomy planning
-- **Clean separation**: Independent location contexts prevent accidental interference
+- **Clean separation**: Independent location contexts prevent accidental
+  interference
 
 ### **Storage Service Architecture**
+
 - **Unified interface**: Single `storageService` handles both location types
-- **Dedicated storage keys**: `milkyway-home-location` and `milkyway-explore-location`
+- **Dedicated storage keys**: `milkyway-home-location` and
+  `milkyway-explore-location`
 - **Type safety**: Full TypeScript support with `StoredLocationData` interface
 - **Error handling**: Graceful fallbacks for localStorage unavailability
 
@@ -334,30 +345,30 @@ quality with comprehensive testing and TypeScript strict mode compliance
 location selection and error handling to provide seamless user experience:
 replaced silent Death Valley fallback with intuitive LocationPopover interface,
 implemented smart error differentiation between permission denied (Code 1) and
-technical issues (Code 2: dormant location services, Code 3: timeouts),
-enhanced LocationPopover with 3-attempt retry logic using adaptive timeouts
-(10-20 seconds) and progressive positioning methods (network → GPS), added
-detailed user feedback with loading states, retry counters, and helpful error
-messages including "wake up Maps app" guidance for dormant location services,
-implemented manual location bypass during initial loading with "Choose Manually"
-button, auto-opening LocationPopover on geolocation failure to eliminate
-intermediate error panels, centralized default location configuration in
-appConfig.ts with reusable utility functions, and streamlined UI by hiding
-calendar and weekly panels when location unavailable to prevent redundant
-loading messages, creating a polished location experience that handles edge
-cases gracefully and guides users toward solutions
+technical issues (Code 2: dormant location services, Code 3: timeouts), enhanced
+LocationPopover with 3-attempt retry logic using adaptive timeouts (10-20
+seconds) and progressive positioning methods (network → GPS), added detailed
+user feedback with loading states, retry counters, and helpful error messages
+including "wake up Maps app" guidance for dormant location services, implemented
+manual location bypass during initial loading with "Choose Manually" button,
+auto-opening LocationPopover on geolocation failure to eliminate intermediate
+error panels, centralized default location configuration in appConfig.ts with
+reusable utility functions, and streamlined UI by hiding calendar and weekly
+panels when location unavailable to prevent redundant loading messages, creating
+a polished location experience that handles edge cases gracefully and guides
+users toward solutions
 
 ✅ **Phase 31**: Light Pollution Map Optimization - Implemented comprehensive
 performance optimization by converting RGB light pollution map to optimized
-grayscale format: analyzed current 2.47MB RGB map with only 15 unique colors
-and determined single-channel grayscale would be more efficient, created exact
+grayscale format: analyzed current 2.47MB RGB map with only 15 unique colors and
+determined single-channel grayscale would be more efficient, created exact
 RGB-to-Bortle-to-grayscale mapping preserving 100% calculation accuracy using
-direct lookup table with 16 discrete values (0, 10, 20, 30, 40, 50, 70, 90,
-110, 130, 150, 170, 190, 210, 230, 240), updated `lightPollutionMap.ts` with
-new `grayscaleToBortleScale()` and `getGrayscalePixelData()` functions while
-maintaining backward compatibility, updated `darkSiteWorker.js` to use
-optimized grayscale processing throughout, replaced image file with compressed
-2.25MB grayscale version achieving 9.1% file size reduction, eliminated runtime
+direct lookup table with 16 discrete values (0, 10, 20, 30, 40, 50, 70, 90, 110,
+130, 150, 170, 190, 210, 230, 240), updated `lightPollutionMap.ts` with new
+`grayscaleToBortleScale()` and `getGrayscalePixelData()` functions while
+maintaining backward compatibility, updated `darkSiteWorker.js` to use optimized
+grayscale processing throughout, replaced image file with compressed 2.25MB
+grayscale version achieving 9.1% file size reduction, eliminated runtime
 RGB-to-Bortle conversion overhead for significant CPU performance gains, and
 verified implementation with all 130 tests passing, resulting in faster
 downloads, reduced memory usage, and improved processing performance while
@@ -384,15 +395,16 @@ a unified architecture: created configurable `AstronomicalDataTable` component
 supporting both daily and weekly modes through configuration, developed shared
 `useAstronomicalData` hook with unified data loading for both time scales,
 implemented comprehensive TypeScript interfaces (`AstronomicalDataTableConfig`,
-`AstronomicalDataItem`, `UseAstronomicalDataResult`) for type-safe configuration,
-consolidated CSS styling into single `AstronomicalDataTable.module.css` with
-mode-specific variants, eliminated code duplication while preserving all existing
-functionality including expandable details, infinite scroll, and navigation,
-removed unnecessary loading states since astronomical computations are fast
-(< 100ms), cleaned up unused CSS classes reducing bundle size, renamed components
-for consistency and clarity (`Calendar` → `WeeklyAstroTable`, 
-`DailyVisibilityTable` → `DailyAstroTable`), and achieved single source of truth
-for table logic with improved maintainability through configuration-driven approach
+`AstronomicalDataItem`, `UseAstronomicalDataResult`) for type-safe
+configuration, consolidated CSS styling into single
+`AstronomicalDataTable.module.css` with mode-specific variants, eliminated code
+duplication while preserving all existing functionality including expandable
+details, infinite scroll, and navigation, removed unnecessary loading states
+since astronomical computations are fast (< 100ms), cleaned up unused CSS
+classes reducing bundle size, renamed components for consistency and clarity
+(`Calendar` → `WeeklyAstroTable`, `DailyVisibilityTable` → `DailyAstroTable`),
+and achieved single source of truth for table logic with improved
+maintainability through configuration-driven approach
 
 **Current state**: Feature-complete astronomy calendar with fully migrated
 time-integrated astronomical calculations, comprehensive date navigation via URL
@@ -405,18 +417,18 @@ forward when geolocation fails**, **optimized light pollution map processing
 with 9.1% file size reduction and eliminated runtime conversion overhead while
 maintaining perfect accuracy**, **unified Cache API implementation sharing map
 images between WorldMap component and darkSiteWorker with automatic format
-selection, intelligent caching strategies, and memory management**, **consolidated
-astronomical data table architecture with unified AstronomicalDataTable component
-supporting both daily and weekly modes through configuration, eliminating code
-duplication while maintaining all functionality**, accurate
-timezone handling for international
-users, proper high-latitude handling, comprehensive dark sky site discovery with
-corrected coordinate mapping and optimal classification thresholds, educational
-FAQ system with modern navigation and anchor linking, full SEO optimization for
-search engine discoverability, robust test coverage (142 tests) ensuring
-calculation accuracy and preventing critical regressions, modern CSS Modules
-architecture for scalable styling, centralized color theming with CSS variables,
-enhanced typography with raised colons for optimal time readability, unified
+selection, intelligent caching strategies, and memory management**,
+**consolidated astronomical data table architecture with unified
+AstronomicalDataTable component supporting both daily and weekly modes through
+configuration, eliminating code duplication while maintaining all
+functionality**, accurate timezone handling for international users, proper
+high-latitude handling, comprehensive dark sky site discovery with corrected
+coordinate mapping and optimal classification thresholds, educational FAQ system
+with modern navigation and anchor linking, full SEO optimization for search
+engine discoverability, robust test coverage (142 tests) ensuring calculation
+accuracy and preventing critical regressions, modern CSS Modules architecture
+for scalable styling, centralized color theming with CSS variables, enhanced
+typography with raised colons for optimal time readability, unified
 time-integrated observation windows providing honest quality expectations across
 all components, polished night-sky aesthetic with professional visual design and
 complete astronomical event coverage, corrected moon phase display with accurate

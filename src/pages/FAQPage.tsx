@@ -17,7 +17,7 @@ export default function FAQPage() {
       if (element) {
         // Scroll to the element with a small delay to ensure the page is fully loaded
         setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 100);
       }
     }

@@ -41,54 +41,62 @@ export default function LocationPopover({
   // Position popover when it opens
   useEffect(() => {
     if (!popoverRef.current) return;
-    
+
     const popover = popoverRef.current;
-    
+
     // Listen for the beforetoggle event to position popover relative to trigger
     const handleBeforeToggle = (event: Event) => {
       const toggleEvent = event as PopoverToggleEvent;
-      if (toggleEvent.newState === 'open') {
+      if (toggleEvent.newState === "open") {
         // Use a small delay to ensure the popover is fully rendered
         setTimeout(() => {
-          const triggerElement = document.querySelector(`[popovertarget="${id}"]`) as HTMLElement;
-          
+          const triggerElement = document.querySelector(
+            `[popovertarget="${id}"]`,
+          ) as HTMLElement;
+
           if (triggerElement && popover) {
             const triggerRect = triggerElement.getBoundingClientRect();
             const popoverRect = popover.getBoundingClientRect();
-            
+
             // Calculate position below the trigger, centered
             const viewportWidth = window.innerWidth;
-            const left = Math.max(8, Math.min(
-              triggerRect.left + (triggerRect.width - popoverRect.width) / 2,
-              viewportWidth - popoverRect.width - 8
-            ));
+            const left = Math.max(
+              8,
+              Math.min(
+                triggerRect.left + (triggerRect.width - popoverRect.width) / 2,
+                viewportWidth - popoverRect.width - 8,
+              ),
+            );
             const top = triggerRect.bottom + 8;
-            
+
             // Apply the position with !important to override any other styles
-            popover.style.setProperty('position', 'fixed', 'important');
-            popover.style.setProperty('left', `${left}px`, 'important');
-            popover.style.setProperty('top', `${top}px`, 'important');
-            popover.style.setProperty('right', 'auto', 'important');
-            popover.style.setProperty('bottom', 'auto', 'important');
+            popover.style.setProperty("position", "fixed", "important");
+            popover.style.setProperty("left", `${left}px`, "important");
+            popover.style.setProperty("top", `${top}px`, "important");
+            popover.style.setProperty("right", "auto", "important");
+            popover.style.setProperty("bottom", "auto", "important");
           }
         }, 10);
       }
     };
-    
-    popover.addEventListener('beforetoggle', handleBeforeToggle);
-    
+
+    popover.addEventListener("beforetoggle", handleBeforeToggle);
+
     return () => {
-      popover.removeEventListener('beforetoggle', handleBeforeToggle);
+      popover.removeEventListener("beforetoggle", handleBeforeToggle);
     };
   }, [id]);
 
   // Handle popover close events
-  const handleToggle = useCallback((event: Event) => {
-    const popoverEvent = event as ToggleEvent;
-    if (popoverEvent.newState === 'closed') {
-      onClose();
-    }
-  }, [onClose]);
+  const handleToggle = useCallback(
+    (event: Event) => {
+      const popoverEvent = event as ToggleEvent;
+      if (popoverEvent.newState === "closed") {
+        onClose();
+      }
+    },
+    [onClose],
+  );
 
   // Watch for location changes from context (e.g., successful retry) and propagate to parent
   // Only close if location changes from null to a value (successful geolocation)
@@ -102,113 +110,130 @@ export default function LocationPopover({
         popoverRef.current.hidePopover();
       }
     }
-    
+
     previousLocationRef.current = location;
   }, [location, onLocationChange]);
 
   // Enhanced geolocation with retry logic and user feedback
-  const attemptGeolocation = useCallback((attempt: number = 1, lastErrorCode?: number) => {
-    const maxAttempts = 3;
-    
-    // Adaptive timeout based on previous error
-    let timeout = 10000; // Default 10s
-    if (attempt > 1) {
-      if (lastErrorCode === 3) { // Previous timeout
-        timeout = 20000; // Extend to 20s for timeout retries
-      } else if (lastErrorCode === 2) { // Previous position unavailable
-        timeout = 15000; // 15s for dormant location services
-      } else {
-        timeout = 15000; // Default retry timeout
-      }
-    }
-    
-    setGeoLoading(true);
-    setRetryCount(attempt);
-    
-    if (attempt === 1) {
-      setGeoMessage("Trying to find your location...");
-    } else {
-      setGeoMessage(`Retrying... (attempt ${attempt} of ${maxAttempts})`);
-    }
+  const attemptGeolocation = useCallback(
+    (attempt: number = 1, lastErrorCode?: number) => {
+      const maxAttempts = 3;
 
-    if (!navigator.geolocation) {
-      setGeoLoading(false);
-      setGeoMessage("Location services not available in your browser.");
-      return;
-    }
-
-    const options: PositionOptions = {
-      enableHighAccuracy: attempt > 1, // Use high accuracy for retries
-      timeout: timeout,
-      maximumAge: 60000 // 1 minute cache
-    };
-
-    navigator.geolocation.getCurrentPosition(
-      (position: GeolocationPosition) => {
-        console.info('LocationPopover geolocation success:', {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          attempt: attempt
-        });
-        
-        const newLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        
-        // Success! Clear states and update location via geolocation handler
-        setGeoLoading(false);
-        setGeoMessage(null);
-        setRetryCount(0);
-        handleGeolocationSuccess(newLocation); // This uses strict 5km threshold and closes popover
-      },
-      (error: GeolocationPositionError) => {
-        console.warn('LocationPopover geolocation error:', {
-          code: error.code,
-          message: error.message,
-          attempt: attempt
-        });
-        
-        // Handle permission denied immediately - no retries
-        if (error.code === 1) {
-          setGeoLoading(false);
-          setRetryCount(0);
-          setGeoMessage("Location access was denied. Please allow location access in your browser settings and try again, or select your location on the map below.");
-          return;
-        }
-        
-        // For technical issues (code 2 & 3), retry with different strategies
-        if (attempt < maxAttempts) {
-          // Show different retry messages based on error type
-          if (error.code === 2) {
-            setGeoMessage(`Location services seem to be dormant. Retrying with different positioning methods... (attempt ${attempt + 1} of ${maxAttempts})`);
-          } else if (error.code === 3) {
-            setGeoMessage(`Location request timed out. Trying again with extended timeout... (attempt ${attempt + 1} of ${maxAttempts})`);
-          } else {
-            setGeoMessage(`Retrying... (attempt ${attempt + 1} of ${maxAttempts})`);
-          }
-          
-          setTimeout(() => {
-            attemptGeolocation(attempt + 1, error.code);
-          }, 1500);
+      // Adaptive timeout based on previous error
+      let timeout = 10000; // Default 10s
+      if (attempt > 1) {
+        if (lastErrorCode === 3) {
+          // Previous timeout
+          timeout = 20000; // Extend to 20s for timeout retries
+        } else if (lastErrorCode === 2) {
+          // Previous position unavailable
+          timeout = 15000; // 15s for dormant location services
         } else {
-          // Final failure - show specific message based on error type
-          setGeoLoading(false);
-          setRetryCount(0);
-          
-          const finalErrorMessages = {
-            2: "Unable to determine your location. This is likely because location services are dormant or network positioning is unavailable. Try opening Apple Maps (or Google Maps) first to 'wake up' location services, then return here and try again. Alternatively, select your location on the map below.",
-            3: "Location requests keep timing out. This might indicate poor network connectivity or system location services being slow to respond. Please select your location on the map below or type it in the input field above."
-          };
-          
-          setGeoMessage(finalErrorMessages[error.code as keyof typeof finalErrorMessages] || 
-                       "Could not find your location after multiple attempts. Please select it on the map below or type it in the input field above.");
+          timeout = 15000; // Default retry timeout
         }
-      },
-      options
-    );
-  }, [handleGeolocationSuccess]);
+      }
+
+      setGeoLoading(true);
+      setRetryCount(attempt);
+
+      if (attempt === 1) {
+        setGeoMessage("Trying to find your location...");
+      } else {
+        setGeoMessage(`Retrying... (attempt ${attempt} of ${maxAttempts})`);
+      }
+
+      if (!navigator.geolocation) {
+        setGeoLoading(false);
+        setGeoMessage("Location services not available in your browser.");
+        return;
+      }
+
+      const options: PositionOptions = {
+        enableHighAccuracy: attempt > 1, // Use high accuracy for retries
+        timeout: timeout,
+        maximumAge: 60000, // 1 minute cache
+      };
+
+      navigator.geolocation.getCurrentPosition(
+        (position: GeolocationPosition) => {
+          console.info("LocationPopover geolocation success:", {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            attempt: attempt,
+          });
+
+          const newLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          // Success! Clear states and update location via geolocation handler
+          setGeoLoading(false);
+          setGeoMessage(null);
+          setRetryCount(0);
+          handleGeolocationSuccess(newLocation); // This uses strict 5km threshold and closes popover
+        },
+        (error: GeolocationPositionError) => {
+          console.warn("LocationPopover geolocation error:", {
+            code: error.code,
+            message: error.message,
+            attempt: attempt,
+          });
+
+          // Handle permission denied immediately - no retries
+          if (error.code === 1) {
+            setGeoLoading(false);
+            setRetryCount(0);
+            setGeoMessage(
+              "Location access was denied. Please allow location access in your browser settings and try again, or select your location on the map below.",
+            );
+            return;
+          }
+
+          // For technical issues (code 2 & 3), retry with different strategies
+          if (attempt < maxAttempts) {
+            // Show different retry messages based on error type
+            if (error.code === 2) {
+              setGeoMessage(
+                `Location services seem to be dormant. Retrying with different positioning methods... (attempt ${attempt + 1} of ${maxAttempts})`,
+              );
+            } else if (error.code === 3) {
+              setGeoMessage(
+                `Location request timed out. Trying again with extended timeout... (attempt ${attempt + 1} of ${maxAttempts})`,
+              );
+            } else {
+              setGeoMessage(
+                `Retrying... (attempt ${attempt + 1} of ${maxAttempts})`,
+              );
+            }
+
+            setTimeout(() => {
+              attemptGeolocation(attempt + 1, error.code);
+            }, 1500);
+          } else {
+            // Final failure - show specific message based on error type
+            setGeoLoading(false);
+            setRetryCount(0);
+
+            const finalErrorMessages = {
+              2: "Unable to determine your location. This is likely because location services are dormant or network positioning is unavailable. Try opening Apple Maps (or Google Maps) first to 'wake up' location services, then return here and try again. Alternatively, select your location on the map below.",
+              3: "Location requests keep timing out. This might indicate poor network connectivity or system location services being slow to respond. Please select your location on the map below or type it in the input field above.",
+            };
+
+            setGeoMessage(
+              finalErrorMessages[
+                error.code as keyof typeof finalErrorMessages
+              ] ||
+                "Could not find your location after multiple attempts. Please select it on the map below or type it in the input field above.",
+            );
+          }
+        },
+        options,
+      );
+    },
+    [handleGeolocationSuccess],
+  );
 
   const handleFindMeClick = useCallback(() => {
     attemptGeolocation(1);
@@ -226,8 +251,8 @@ export default function LocationPopover({
       <div className={styles.header}>
         <h3></h3>
         <Tooltip content="Close location picker" placement="left">
-          <button 
-            onClick={() => popoverRef.current?.hidePopover()} 
+          <button
+            onClick={() => popoverRef.current?.hidePopover()}
             className={styles.closeButton}
             aria-label="Close location picker"
           >
@@ -280,8 +305,12 @@ export default function LocationPopover({
                   }
                 }}
               />
-              <Tooltip 
-                content={geoLoading ? "Finding your location..." : "Use current location"}
+              <Tooltip
+                content={
+                  geoLoading
+                    ? "Finding your location..."
+                    : "Use current location"
+                }
                 disabled={geoLoading}
                 placement="top"
               >
@@ -292,7 +321,7 @@ export default function LocationPopover({
                 >
                   <Icon
                     name="current-location"
-                    className={`${styles.clearIcon} ${geoLoading ? styles.loading : ''}`}
+                    className={`${styles.clearIcon} ${geoLoading ? styles.loading : ""}`}
                   />
                 </button>
               </Tooltip>
@@ -304,11 +333,7 @@ export default function LocationPopover({
                   onClick={acceptSuggestion}
                   className={styles.suggestionButton}
                 >
-                  <Icon
-                    name="location"
-                    size="md"
-                    className="color-accent"
-                  />{" "}
+                  <Icon name="location" size="md" className="color-accent" />{" "}
                   {suggestion}
                   <span className={styles.suggestionCoords}>
                     (Press Tab or click to select)
@@ -319,14 +344,15 @@ export default function LocationPopover({
 
             {geoMessage && (
               <div className={styles.geoMessageWrapper}>
-                <div className={`${styles.geoMessage} ${geoLoading ? styles.loading : styles.error}`}>
-                  {geoLoading && (
-                    <div className={styles.spinner}></div>
-                  )}
+                <div
+                  className={`${styles.geoMessage} ${geoLoading ? styles.loading : styles.error}`}
+                >
+                  {geoLoading && <div className={styles.spinner}></div>}
                   {geoMessage}
                   {geoLoading && retryCount > 1 && (
                     <div className={styles.retryInfo}>
-                      We're trying different positioning methods and longer timeouts to help wake up location services...
+                      We're trying different positioning methods and longer
+                      timeouts to help wake up location services...
                     </div>
                   )}
                 </div>

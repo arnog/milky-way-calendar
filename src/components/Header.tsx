@@ -52,8 +52,10 @@ export default function Header({
           </div>
         </nav>
 
-        <Tooltip 
-          content={isDarkroomMode ? "Switch to Dark Mode" : "Switch to Field Mode"}
+        <Tooltip
+          content={
+            isDarkroomMode ? "Switch to Dark Mode" : "Switch to Field Mode"
+          }
           placement="bottom"
         >
           <button

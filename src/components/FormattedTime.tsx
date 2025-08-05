@@ -24,7 +24,10 @@ export default function FormattedTime({
     finalTimeString = formatTimeInLocationTimezone(date, location);
   } else if (date && !location) {
     // Fallback to local time if location is not available
-    finalTimeString = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    finalTimeString = date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   } else {
     // No valid time to display
     return <span className={className}>—</span>;

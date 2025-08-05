@@ -45,7 +45,7 @@ export default function ResultsMap({
       console.log("ResultsMap: User location:", userLocation);
       console.log(
         "ResultsMap: Dark sites found:",
-        darkSitesResult.alternatives.length
+        darkSitesResult.alternatives.length,
       );
     }
   }, [userLocation, darkSitesResult]);
@@ -59,7 +59,7 @@ export default function ResultsMap({
         lng: userLocation.lng,
         type: "user",
         title: `Your Location (${userLocation.lat.toFixed(
-          3
+          3,
         )}, ${userLocation.lng.toFixed(3)})`,
       },
       // Primary dark site
@@ -81,7 +81,7 @@ export default function ResultsMap({
         bortleScale: alt.bortleScale,
       })),
     ],
-    [userLocation, darkSitesResult]
+    [userLocation, darkSitesResult],
   );
 
   // Calculate bounds to fit all markers
@@ -113,7 +113,7 @@ export default function ResultsMap({
         {
           padding,
           duration: 1000,
-        }
+        },
       );
     }
   }, [bounds]);
@@ -197,7 +197,7 @@ export default function ResultsMap({
                   title={
                     marker.distance && marker.bortleScale
                       ? `${marker.title}: ${marker.distance.toFixed(
-                          1
+                          1,
                         )}km, Bortle ${marker.bortleScale}`
                       : marker.title
                   }
@@ -206,8 +206,8 @@ export default function ResultsMap({
                       marker.type === "user"
                         ? 1000
                         : marker.type === "primary"
-                        ? 100
-                        : 50,
+                          ? 100
+                          : 50,
                   }}
                 >
                   {marker.type === "user" && "📍"}

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 interface UseFocusTrapOptions {
   /** Whether the focus trap is active */
@@ -17,7 +17,7 @@ interface UseFocusTrapOptions {
  */
 export function useFocusTrap(
   containerRef: React.RefObject<HTMLElement>,
-  options: UseFocusTrapOptions
+  options: UseFocusTrapOptions,
 ) {
   const { isActive, initialFocusRef, returnFocusRef, onEscape } = options;
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
@@ -49,7 +49,7 @@ export function useFocusTrap(
       if (!containerRef.current) return;
 
       // Handle Escape key
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         event.preventDefault();
         if (onEscape) {
           onEscape();
@@ -58,9 +58,9 @@ export function useFocusTrap(
       }
 
       // Handle Tab key for focus trapping
-      if (event.key === 'Tab') {
+      if (event.key === "Tab") {
         const focusableElements = getFocusableElements(containerRef.current);
-        
+
         if (focusableElements.length === 0) {
           event.preventDefault();
           return;
@@ -94,17 +94,18 @@ export function useFocusTrap(
     };
 
     // Add keyboard event listener
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     // Capture the return focus element at effect time to avoid stale ref issues
     const returnElement = returnFocusRef?.current;
 
     // Cleanup function
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      
+      document.removeEventListener("keydown", handleKeyDown);
+
       // Return focus to the previously focused element or the specified return element
-      const elementToFocus = returnElement ?? previouslyFocusedElementRef.current;
+      const elementToFocus =
+        returnElement ?? previouslyFocusedElementRef.current;
       if (elementToFocus && document.contains(elementToFocus)) {
         // Small delay to ensure the popover is fully closed
         setTimeout(() => {
@@ -125,25 +126,27 @@ function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
   }
 
   const focusableSelectors = [
-    'button:not([disabled])',
-    'input:not([disabled])',
-    'textarea:not([disabled])',
-    'select:not([disabled])',
-    'a[href]',
+    "button:not([disabled])",
+    "input:not([disabled])",
+    "textarea:not([disabled])",
+    "select:not([disabled])",
+    "a[href]",
     '[tabindex]:not([tabindex="-1"])',
-    '[contenteditable="true"]'
-  ].join(', ');
+    '[contenteditable="true"]',
+  ].join(", ");
 
-  const elements = container.querySelectorAll(focusableSelectors) as NodeListOf<HTMLElement>;
-  
-  return Array.from(elements).filter(element => {
+  const elements = container.querySelectorAll(
+    focusableSelectors,
+  ) as NodeListOf<HTMLElement>;
+
+  return Array.from(elements).filter((element) => {
     // Check if element is visible and not hidden
     const style = window.getComputedStyle(element);
     return (
-      style.display !== 'none' &&
-      style.visibility !== 'hidden' &&
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
       element.offsetParent !== null &&
-      !element.hasAttribute('aria-hidden')
+      !element.hasAttribute("aria-hidden")
     );
   });
 }

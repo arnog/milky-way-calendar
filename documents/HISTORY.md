@@ -57,7 +57,7 @@ solutions were chosen and how they evolved over time.
   distinct Bortle scale values with 80% black pixels (water/no-data)
 - **Solution**: Converted to optimized grayscale format with direct
   Bortle-to-grayscale mapping
-- **Implementation**: 
+- **Implementation**:
   - Created exact RGB → Bortle → Grayscale conversion preserving 100% accuracy
   - Added `grayscaleToBortleScale()` and `getGrayscalePixelData()` functions
   - Updated both main processing (`lightPollutionMap.ts`) and worker
@@ -68,8 +68,8 @@ solutions were chosen and how they evolved over time.
   - **Runtime Performance**: Eliminated RGB color matching algorithm
   - **Memory Efficiency**: Single-channel processing vs 3-channel RGB
   - **Accuracy**: Perfect - all 130 tests pass with identical results
-- **Technical Details**: Uses 16-value lookup table (Map) for O(1) grayscale
-  to Bortle conversion vs O(n) RGB distance calculation
+- **Technical Details**: Uses 16-value lookup table (Map) for O(1) grayscale to
+  Bortle conversion vs O(n) RGB distance calculation
 - **Quality Assurance**: Comprehensive testing verified zero accuracy loss
   during format conversion
 
@@ -118,12 +118,13 @@ solutions were chosen and how they evolved over time.
 - **Implementation**:
   - Built configurable `AstronomicalDataTable` component in
     `src/components/AstronomicalDataTable.tsx` with mode-based rendering
-  - Created shared `useAstronomicalData` hook in `src/hooks/useAstronomicalData.ts`
-    supporting both daily and weekly data loading patterns
+  - Created shared `useAstronomicalData` hook in
+    `src/hooks/useAstronomicalData.ts` supporting both daily and weekly data
+    loading patterns
   - Implemented comprehensive TypeScript interfaces in
     `src/types/astronomicalDataTable.ts` for type-safe configuration
-  - Consolidated CSS styling into single `AstronomicalDataTable.module.css`
-    with mode-specific variants (daily expandable rows, weekly infinite scroll)
+  - Consolidated CSS styling into single `AstronomicalDataTable.module.css` with
+    mode-specific variants (daily expandable rows, weekly infinite scroll)
   - Converted original components to thin configuration wrappers (24 lines each)
   - Removed unnecessary loading states since astronomical computations are fast
   - Cleaned up unused CSS classes reducing bundle size

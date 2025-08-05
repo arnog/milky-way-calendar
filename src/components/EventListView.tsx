@@ -1,9 +1,9 @@
-import { Icon } from './Icon';
-import { getMoonPhaseIcon } from '../utils/moonPhase';
-import FormattedTime from './FormattedTime';
-import { useGuaranteedLocation } from '../hooks/useLocation';
-import { type ClockEvent } from '../types/astronomicalClock';
-import styles from './EventListView.module.css';
+import { Icon } from "./Icon";
+import { getMoonPhaseIcon } from "../utils/moonPhase";
+import FormattedTime from "./FormattedTime";
+import { useGuaranteedLocation } from "../hooks/useLocation";
+import { type ClockEvent } from "../types/astronomicalClock";
+import styles from "./EventListView.module.css";
 
 interface EventListViewProps {
   clockEvents: ClockEvent[];
@@ -20,23 +20,26 @@ export default function EventListView({
   moonPhase,
   moonIllumination,
   optimalWindow,
-  className = ""
+  className = "",
 }: EventListViewProps) {
   const { location } = useGuaranteedLocation();
-  
+
   // Generate accessibility description
   const generateEventListDescription = () => {
     const eventSummary = clockEvents
       .sort((a, b) => a.time.getTime() - b.time.getTime())
-      .map(event => `${event.title} at ${event.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`)
-      .join(', ');
+      .map(
+        (event) =>
+          `${event.title} at ${event.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+      )
+      .join(", ");
     return `Tonight's astronomical events in chronological order: ${eventSummary}`;
   };
 
   return (
     <div className={`${styles.listView} ${className}`}>
       <h3 className={styles.panelTitle}>Tonight's Events</h3>
-      <div 
+      <div
         className={styles.eventList}
         role="list"
         aria-label={generateEventListDescription()}
@@ -44,47 +47,45 @@ export default function EventListView({
         {clockEvents
           .sort((a, b) => a.time.getTime() - b.time.getTime())
           .map((event, index) => {
-            const isMoonrise = event.icon === 'moonrise';
-            const isOptimalViewing = event.icon === 'telescope';
-            
+            const isMoonrise = event.icon === "moonrise";
+            const isOptimalViewing = event.icon === "telescope";
+
             return (
-              <div 
-                key={index} 
-                className={`${styles.listEventItem} ${event.eventClass ? styles[event.eventClass] : ''}`}
+              <div
+                key={index}
+                className={`${styles.listEventItem} ${event.eventClass ? styles[event.eventClass] : ""}`}
                 role="listitem"
-                aria-label={`${event.title} at ${event.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                aria-label={`${event.title} at ${event.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
               >
-                <Icon
-                  name={event.icon}
-                  size="lg"
-                  aria-hidden="true"
-                />
+                <Icon name={event.icon} size="lg" aria-hidden="true" />
                 <div className={styles.listEventContent}>
                   <span className={styles.listEventTitle}>{event.title}</span>
                   <div className={styles.listEventDetails}>
-                    <FormattedTime 
-                      date={event.time} 
-                    />
+                    <FormattedTime date={event.time} />
                     {isMoonrise && (
                       <div className={styles.listEventExtra}>
                         <Icon
                           name={getMoonPhaseIcon(moonPhase, location.lat)}
                           size="md"
                         />
-                        <span className="data-time">{moonIllumination.toFixed(0)}% illuminated</span>
+                        <span className="data-time">
+                          {moonIllumination.toFixed(0)}% illuminated
+                        </span>
                       </div>
                     )}
                     {isOptimalViewing && optimalWindow.averageScore && (
                       <div className={styles.listEventExtra}>
-                        <span className="small-caps">{Math.round(optimalWindow.averageScore * 100)}% quality</span>
+                        <span className="small-caps">
+                          {Math.round(optimalWindow.averageScore * 100)}%
+                          quality
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
             );
-          })
-        }
+          })}
       </div>
     </div>
   );

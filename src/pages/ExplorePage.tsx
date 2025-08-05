@@ -45,7 +45,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     string | null
   >(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
-    null
+    null,
   );
 
   // Bortle filter state
@@ -71,7 +71,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     try {
       // Load dark sites search results
       const sessionDarkSitesResult = sessionStorage.getItem(
-        EXPLORE_SESSION_KEYS.DARK_SITES_RESULT
+        EXPLORE_SESSION_KEYS.DARK_SITES_RESULT,
       );
       if (sessionDarkSitesResult) {
         setDarkSitesResult(JSON.parse(sessionDarkSitesResult));
@@ -79,7 +79,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
 
       // Load auto-search flag
       const sessionHasAutoSearched = sessionStorage.getItem(
-        EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED
+        EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED,
       );
       if (sessionHasAutoSearched) {
         setHasAutoSearched(JSON.parse(sessionHasAutoSearched));
@@ -87,7 +87,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     } catch (error) {
       console.warn(
         "Failed to load ExplorePage state from sessionStorage:",
-        error
+        error,
       );
     }
   }, []);
@@ -100,7 +100,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
       if (darkSitesResult) {
         sessionStorage.setItem(
           EXPLORE_SESSION_KEYS.DARK_SITES_RESULT,
-          JSON.stringify(darkSitesResult)
+          JSON.stringify(darkSitesResult),
         );
       } else {
         sessionStorage.removeItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT);
@@ -108,7 +108,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     } catch (error) {
       console.warn(
         "Failed to persist dark sites result to sessionStorage:",
-        error
+        error,
       );
     }
   }, [darkSitesResult]);
@@ -118,12 +118,12 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     try {
       sessionStorage.setItem(
         EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED,
-        JSON.stringify(hasAutoSearched)
+        JSON.stringify(hasAutoSearched),
       );
     } catch (error) {
       console.warn(
         "Failed to persist auto-search flag to sessionStorage:",
-        error
+        error,
       );
     }
   }, [hasAutoSearched]);
@@ -152,7 +152,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
             setSearchError(
               formatMessage(APP_CONFIG.MESSAGES.NO_DARK_SITES_FOUND, {
                 radius: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
-              })
+              }),
             );
           }
         } catch (error) {
@@ -217,10 +217,10 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
             onClick: () =>
               handleDarkSiteClick(
                 darkSitesResult.primary.coordinate.lat,
-                darkSitesResult.primary.coordinate.lng
+                darkSitesResult.primary.coordinate.lng,
               ),
             title: `Primary Dark Site (${darkSitesResult.primary.distance.toFixed(
-              1
+              1,
             )}km away, Bortle ${darkSitesResult.primary.bortleScale})`,
           },
           // Alternative dark sites (orange)
@@ -232,7 +232,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
             onClick: () =>
               handleDarkSiteClick(alt.coordinate.lat, alt.coordinate.lng),
             title: `Alternative Dark Site (${alt.distance.toFixed(
-              1
+              1,
             )}km away, Bortle ${alt.bortleScale})`,
           })),
         ]
@@ -295,7 +295,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     } catch (error) {
       console.warn(
         "Failed to clear search results from sessionStorage:",
-        error
+        error,
       );
     }
   };
@@ -329,7 +329,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
     } catch (error) {
       console.warn(
         "Failed to clear search results from sessionStorage:",
-        error
+        error,
       );
     }
   };
@@ -340,7 +340,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
 
   const handleGetDirections = (lat: number, lng: number) => {
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat.toFixed(
-      6
+      6,
     )},${lng.toFixed(6)}`;
     window.open(googleMapsUrl, "_blank");
   };
@@ -601,7 +601,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                   >
                     {userLocation
                       ? `${userLocation.lat.toFixed(
-                          4
+                          4,
                         )}, ${userLocation.lng.toFixed(4)}`
                       : "Select your location"}
                   </button>
@@ -650,7 +650,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                           onClick={() =>
                             handleDarkSiteClick(
                               darkSitesResult.primary.coordinate.lat,
-                              darkSitesResult.primary.coordinate.lng
+                              darkSitesResult.primary.coordinate.lng,
                             )
                           }
                           className={exploreStyles.viewLocationButton}
@@ -661,7 +661,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                           onClick={() =>
                             handleGetDirections(
                               darkSitesResult.primary.coordinate.lat,
-                              darkSitesResult.primary.coordinate.lng
+                              darkSitesResult.primary.coordinate.lng,
                             )
                           }
                           className={exploreStyles.directionsButton}
@@ -690,7 +690,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                             </strong>{" "}
                             is{" "}
                             {darkSitesResult.primary.nearestKnownSite.distance.toFixed(
-                              1
+                              1,
                             )}
                             km from this dark site. This location may offer
                             better road access and facilities.
@@ -699,7 +699,8 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                             <button
                               onClick={() =>
                                 handleKnownSiteClick(
-                                  darkSitesResult.primary.nearestKnownSite!.name
+                                  darkSitesResult.primary.nearestKnownSite!
+                                    .name,
                                 )
                               }
                               className={exploreStyles.knownSiteButton}
@@ -713,7 +714,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                   darkSitesResult.primary.nearestKnownSite!
                                     .coordinate.lat,
                                   darkSitesResult.primary.nearestKnownSite!
-                                    .coordinate.lng
+                                    .coordinate.lng,
                                 )
                               }
                               className={
@@ -777,7 +778,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                     onClick={() =>
                                       handleDarkSiteClick(
                                         alt.coordinate.lat,
-                                        alt.coordinate.lng
+                                        alt.coordinate.lng,
                                       )
                                     }
                                     className={
@@ -792,7 +793,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                     onClick={() =>
                                       handleGetDirections(
                                         alt.coordinate.lat,
-                                        alt.coordinate.lng
+                                        alt.coordinate.lng,
                                       )
                                     }
                                     className={
@@ -807,13 +808,13 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                     content={`Nearest accessible: ${
                                       alt.nearestKnownSite.fullName
                                     } (${alt.nearestKnownSite.distance.toFixed(
-                                      0
+                                      0,
                                     )}km)`}
                                   >
                                     <button
                                       onClick={() =>
                                         handleKnownSiteClick(
-                                          alt.nearestKnownSite!.name
+                                          alt.nearestKnownSite!.name,
                                         )
                                       }
                                       className={

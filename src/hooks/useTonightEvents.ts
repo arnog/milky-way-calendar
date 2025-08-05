@@ -52,7 +52,7 @@ export function useTonightEvents(currentDate?: Date): UseTonightEventsResult {
         nearestDarkSite: null,
         nearestKnownLocation: null,
       };
-    }
+    },
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -87,7 +87,7 @@ export function useTonightEvents(currentDate?: Date): UseTonightEventsResult {
           displayName = savedLocationData.matchedName;
         } else {
           displayName = `${location.lat.toFixed(1)}, ${location.lng.toFixed(
-            1
+            1,
           )}`;
         }
 
@@ -95,7 +95,7 @@ export function useTonightEvents(currentDate?: Date): UseTonightEventsResult {
         const matchedName = savedLocationData?.matchedName;
         const description = getSpecialLocationDescription(
           location,
-          matchedName
+          matchedName,
         );
 
         // Find nearest known location for coordinates display
@@ -131,7 +131,7 @@ export function useTonightEvents(currentDate?: Date): UseTonightEventsResult {
               { lat: location.lat, lng: location.lng },
               {
                 maxDistance: APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
-              }
+              },
             );
           }
         } catch (error) {
@@ -175,7 +175,7 @@ export function useTonightEvents(currentDate?: Date): UseTonightEventsResult {
         if (!events.sunRise || events.sunRise <= now) {
           const tomorrowEvents = calculateAstronomicalEvents(
             new Date(now.getTime() + APP_CONFIG.ASTRONOMY.MS_PER_DAY),
-            location
+            location,
           );
           tomorrowSunrise = tomorrowEvents.sunRise;
         }

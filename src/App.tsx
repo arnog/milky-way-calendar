@@ -67,11 +67,9 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
 
       <div className={styles.container}>
         <div className={styles.content}>
-          <TonightCard
-            currentDate={currentDate}
-          />
+          <TonightCard currentDate={currentDate} />
           <DailyAstroTable currentDate={currentDate} />
-          <WeeklyAstroTable 
+          <WeeklyAstroTable
             currentDate={currentDate}
             onDateClick={setCurrentDate}
           />
@@ -112,13 +110,13 @@ function App() {
               </Suspense>
             }
           />
-          <Route 
-            path="/faq" 
+          <Route
+            path="/faq"
             element={
               <Suspense fallback={<PageLoader />}>
                 <FAQPage />
               </Suspense>
-            } 
+            }
           />
         </Routes>
       </div>

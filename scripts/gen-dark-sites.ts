@@ -1,7 +1,7 @@
 /**
  * gen-dark-sites.js
  *
-  * Reads the official U.S. Bortle Class 2 list (as of Aug 2, 2025);
+ * Reads the official U.S. Bortle Class 2 list (as of Aug 2, 2025);
  * subtracts your current DARK_SITES names;
  * fetches lat/lon via Wikidata (and OpenStreetMap fallback);
  * outputs a TS snippet in your desired format.
@@ -45,7 +45,7 @@ async function loadExisting() {
 
 async function fetchGoAstronomyList() {
   const res = await fetch(
-    "https://www.go-astronomy.com/bortle-class-2-sky-sites.php"
+    "https://www.go-astronomy.com/bortle-class-2-sky-sites.php",
   );
   const html = await res.text();
 
@@ -59,7 +59,7 @@ async function fetchGoAstronomyList() {
   for (const pattern of patterns) {
     const matches = [...html.matchAll(pattern)];
     console.error(
-      `Pattern ${patterns.indexOf(pattern)}: found ${matches.length} matches`
+      `Pattern ${patterns.indexOf(pattern)}: found ${matches.length} matches`,
     );
     if (matches.length > 0) {
       for (const match of matches) {
@@ -78,7 +78,7 @@ async function fetchGoAstronomyList() {
 }
 
 async function queryWikidataCoordinates(
-  label: string
+  label: string,
 ): Promise<{ lat: number; lon: number; source: string } | null> {
   // SPARQL: entity with english label = label
   const sparql = `
@@ -88,12 +88,14 @@ SELECT ?placeLabel ?coord WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }`;
   const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(
-    sparql
+    sparql,
   )}`;
   const resp = await fetch(url, { headers: { Accept: "application/json" } });
   if (!resp.ok) throw new Error(`SPARQL failed for ${label}`);
   const data = await resp.json();
-  const results = (data as { results: { bindings: { coord: { value: string } }[] } }).results.bindings;
+  const results = (
+    data as { results: { bindings: { coord: { value: string } }[] } }
+  ).results.bindings;
   if (results && results.length > 0) {
     // coordinate in format "Point(lon lat)"
     const wkt = results[0].coord.value;
@@ -107,12 +109,12 @@ SELECT ?placeLabel ?coord WHERE {
 }
 
 async function queryOSMCoordinates(
-  label: string
+  label: string,
 ): Promise<{ lat: number; lon: number; source: string } | null> {
   const resp = await fetch(
     `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-      label
-    )}&limit=1&format=json`
+      label,
+    )}&limit=1&format=json`,
   );
   if (!resp.ok) return null;
   const j = (await resp.json()) as { lat: string; lon: string }[];
@@ -166,10 +168,10 @@ async function queryOSMCoordinates(
     "Plumas-Eureka State Park, California",
   ];
   const missing = allNames.filter(
-    (n) => !existingNames.includes(n) && !alreadyProcessed.includes(n)
+    (n) => !existingNames.includes(n) && !alreadyProcessed.includes(n),
   );
   console.error(
-    `Found ${missing.length} missing Bortle-2 sites from Go-Astronomy.`
+    `Found ${missing.length} missing Bortle-2 sites from Go-Astronomy.`,
   );
   const outputTuples = [];
   let processedCount = 0;
@@ -181,7 +183,7 @@ async function queryOSMCoordinates(
     }
     processedCount++;
     console.error(
-      `Processing ${processedCount}/${missing.length}: ${fullName}`
+      `Processing ${processedCount}/${missing.length}: ${fullName}`,
     );
     // Try different variations for better matches
     let coord = await queryWikidataCoordinates(fullName);
@@ -215,12 +217,12 @@ async function queryOSMCoordinates(
   }
 
   console.log(
-    "// === Auto-generated additional DARK_SITES from Go-Astronomy Bortle Class 2 list ==="
+    "// === Auto-generated additional DARK_SITES from Go-Astronomy Bortle Class 2 list ===",
   );
   console.log("export const ADDITIONAL_DARK_SITES: SpecialLocation[] = [");
   for (const tup of outputTuples) {
     console.log(
-      `  ["${tup[0]}", "${tup[1]}", ${tup[2]}, ${tup[3]}, "${tup[4]}"],`
+      `  ["${tup[0]}", "${tup[1]}", ${tup[2]}, ${tup[3]}, "${tup[4]}"],`,
     );
   }
   console.log("] as const;");

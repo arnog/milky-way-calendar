@@ -7,18 +7,18 @@ import { formatTimeInLocationTimezone } from "./timezoneUtils";
  */
 export function timeToAngle(date: Date, location: Location): number {
   const timeString = formatTimeInLocationTimezone(date, location);
-  const [hours, minutes] = timeString.split(':').map(Number);
-  
+  const [hours, minutes] = timeString.split(":").map(Number);
+
   // Calculate total minutes from midnight
   const totalMinutes = hours * 60 + minutes;
-  
+
   // Convert to 12-hour format (720 minutes = 12 hours)
   const minutes12 = totalMinutes % 720;
-  
+
   // Convert to degrees (720 minutes = 360 degrees)
   // 0 minutes (midnight/noon) = 0° (12 o'clock position at top)
   const angle = (minutes12 / 720) * 360;
-  
+
   return angle;
 }
 
@@ -28,23 +28,26 @@ export function timeToAngle(date: Date, location: Location): number {
 export function minutesToAngle(minutes: number): number {
   // Convert to 12-hour format (wrap at 720 minutes)
   const minutes12 = minutes % 720;
-  
+
   // Convert to degrees (720 minutes = 360 degrees)
   // 0 minutes (midnight/noon) = 0° (12 o'clock position at top)
   const angle = (minutes12 / 720) * 360;
-  
+
   return angle;
 }
 
 /**
  * Calculate the angle span between two times, handling day wraparound
  */
-export function calculateAngleSpan(startAngle: number, endAngle: number): number {
+export function calculateAngleSpan(
+  startAngle: number,
+  endAngle: number,
+): number {
   if (endAngle >= startAngle) {
     return endAngle - startAngle;
   } else {
     // Handle wraparound (e.g., 11 PM to 1 AM)
-    return (360 - startAngle) + endAngle;
+    return 360 - startAngle + endAngle;
   }
 }
 
@@ -56,35 +59,48 @@ export function calculateAngleSpan(startAngle: number, endAngle: number): number
  */
 export function isEventDistant(eventTime: Date, currentTime: Date): boolean {
   const eventHours = eventTime.getHours();
-  
+
   // Get date parts for comparison
-  const eventDate = new Date(eventTime.getFullYear(), eventTime.getMonth(), eventTime.getDate());
-  const currentDate = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate());
-  
-  const daysDiff = Math.floor((eventDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000));
-  
+  const eventDate = new Date(
+    eventTime.getFullYear(),
+    eventTime.getMonth(),
+    eventTime.getDate(),
+  );
+  const currentDate = new Date(
+    currentTime.getFullYear(),
+    currentTime.getMonth(),
+    currentTime.getDate(),
+  );
+
+  const daysDiff = Math.floor(
+    (eventDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000),
+  );
+
   // Same day: show reduced opacity if before 6pm (18:00)
   if (daysDiff === 0 && eventHours < 18) {
     return true;
   }
-  
+
   // Next day: show reduced opacity if after 6am (06:00)
   if (daysDiff === 1 && eventHours >= 6) {
     return true;
   }
-  
+
   // Any other day difference
   if (daysDiff < 0 || daysDiff > 1) {
     return true;
   }
-  
+
   return false;
 }
 
 /**
  * Get the current time angle for the location
  */
-export function getCurrentTimeAngle(location: Location, currentDate?: Date): number {
+export function getCurrentTimeAngle(
+  location: Location,
+  currentDate?: Date,
+): number {
   const now = currentDate || new Date();
   return timeToAngle(now, location);
 }
@@ -93,17 +109,16 @@ export function getCurrentTimeAngle(location: Location, currentDate?: Date): num
  * Calculate position for labels around the clock perimeter
  */
 export function getClockLabelPosition(
-  angle: number, 
-  radius: number, 
-  centerX: number = 200, 
-  centerY: number = 200
+  angle: number,
+  radius: number,
+  centerX: number = 200,
+  centerY: number = 200,
 ): { x: number; y: number } {
   // Convert angle to radians (SVG angles start from top, clockwise)
   const radians = (angle * Math.PI) / 180;
-  
+
   return {
     x: centerX + radius * Math.sin(radians),
-    y: centerY - radius * Math.cos(radians)
+    y: centerY - radius * Math.cos(radians),
   };
 }
-

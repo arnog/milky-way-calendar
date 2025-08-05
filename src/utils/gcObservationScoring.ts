@@ -30,9 +30,7 @@ export type VisibilitySample = {
   moonAngle: number;
 };
 
-export function computeGCObservationScore(
-  inputs: ObservationInputs
-): {
+export function computeGCObservationScore(inputs: ObservationInputs): {
   bestTime: Date | null;
   rating: number; // 0-4
   curve: VisibilitySample[];
@@ -47,53 +45,55 @@ export function computeGCObservationScore(
     gcSet,
     gcAltitude,
     moonAltitude,
-    gcMoonAngle
+    gcMoonAngle,
   } = inputs;
 
   const curve: VisibilitySample[] = [];
 
   // GC never visible for lat > 61°N or < -61°S
   if (Math.abs(latitude) > 61) {
-    return { 
-      bestTime: null, 
-      rating: 0, 
+    return {
+      bestTime: null,
+      rating: 0,
       curve,
-      reason: "Galactic Center never visible at this latitude"
+      reason: "Galactic Center never visible at this latitude",
     };
   }
 
   // No astronomical night
   if (!nightStart || !nightEnd) {
-    return { 
-      bestTime: null, 
-      rating: 0, 
+    return {
+      bestTime: null,
+      rating: 0,
       curve,
-      reason: "No astronomical darkness (sun never reaches -18°)"
+      reason: "No astronomical darkness (sun never reaches -18°)",
     };
   }
 
   // No GC rise/set data
   if (!gcRise || !gcSet) {
-    return { 
-      bestTime: null, 
-      rating: 0, 
+    return {
+      bestTime: null,
+      rating: 0,
       curve,
-      reason: "Galactic Center does not rise above 15°"
+      reason: "Galactic Center does not rise above 15°",
     };
   }
 
   // Intersection of night and GC visibility
-  const windowStart = new Date(Math.max(nightStart.getTime(), gcRise.getTime()));
+  const windowStart = new Date(
+    Math.max(nightStart.getTime(), gcRise.getTime()),
+  );
   const windowEnd = new Date(Math.min(nightEnd.getTime(), gcSet.getTime()));
 
   // Check window length
   const windowLengthMin = (windowEnd.getTime() - windowStart.getTime()) / 60000;
   if (windowLengthMin < 30) {
-    return { 
-      bestTime: null, 
-      rating: 0, 
+    return {
+      bestTime: null,
+      rating: 0,
       curve,
-      reason: "Observation window too short (< 30 minutes)"
+      reason: "Observation window too short (< 30 minutes)",
     };
   }
 
@@ -115,7 +115,7 @@ export function computeGCObservationScore(
   pushSegment(
     addMinutes(windowStart, edgeSpan),
     addMinutes(windowEnd, -edgeSpan),
-    largeStep
+    largeStep,
   );
   pushSegment(addMinutes(windowEnd, -edgeSpan), windowEnd, smallStep);
 
@@ -150,7 +150,7 @@ export function computeGCObservationScore(
         score,
         altitudeGC,
         moonAlt,
-        moonAngle: angle
+        moonAngle: angle,
       });
 
       accumulatedScore += score * seg.step;
@@ -164,11 +164,11 @@ export function computeGCObservationScore(
   }
 
   if (totalMinutes === 0) {
-    return { 
-      bestTime: null, 
-      rating: 0, 
+    return {
+      bestTime: null,
+      rating: 0,
       curve,
-      reason: "No observation time when Galactic Center is above 15°"
+      reason: "No observation time when Galactic Center is above 15°",
     };
   }
 
@@ -176,38 +176,48 @@ export function computeGCObservationScore(
 
   // Window length multiplier - gentle penalty for shorter windows
   // 1+ hour with perfect conditions should still rate highly
-  const maxWindow = 120; // 2 hours for full multiplier  
+  const maxWindow = 120; // 2 hours for full multiplier
   const minWindow = 30; // 30 minutes minimum
   // Scale from 0.7 to 1.0 (instead of 0.5 to 1.0) to be less punitive
   const lengthMultiplier = Math.max(
-    APP_CONFIG.QUALITY.LENGTH_MULTIPLIER_MIN, 
+    APP_CONFIG.QUALITY.LENGTH_MULTIPLIER_MIN,
     Math.min(
-      (windowLengthMin - minWindow) / (maxWindow - minWindow) * APP_CONFIG.QUALITY.LENGTH_MULTIPLIER_SCALE + APP_CONFIG.QUALITY.LENGTH_MULTIPLIER_MIN, 
-      1
-    )
+      ((windowLengthMin - minWindow) / (maxWindow - minWindow)) *
+        APP_CONFIG.QUALITY.LENGTH_MULTIPLIER_SCALE +
+        APP_CONFIG.QUALITY.LENGTH_MULTIPLIER_MIN,
+      1,
+    ),
   );
   const finalScore = avgScore * lengthMultiplier;
 
   // Map to rating and determine reason
   let rating: number;
   let reason: string;
-  
+
   if (windowLengthMin < 30) {
     rating = 0;
     reason = "Observation window too short (< 30 minutes)";
   } else if (finalScore < 0.25) {
     rating = 1;
     // Determine primary cause of poor visibility
-    if (moonIllumination > APP_CONFIG.QUALITY.BRIGHT_MOON_THRESHOLD && avgScore < APP_CONFIG.QUALITY.MIN_QUALITY_VIEWING_SCORE) {
+    if (
+      moonIllumination > APP_CONFIG.QUALITY.BRIGHT_MOON_THRESHOLD &&
+      avgScore < APP_CONFIG.QUALITY.MIN_QUALITY_VIEWING_SCORE
+    ) {
       reason = `Severe moon interference (${Math.round(moonIllumination * 100)}% illuminated)`;
-    } else if (windowLengthMin < APP_CONFIG.QUALITY.MIN_OBSERVATION_WINDOW_MINUTES) {
+    } else if (
+      windowLengthMin < APP_CONFIG.QUALITY.MIN_OBSERVATION_WINDOW_MINUTES
+    ) {
       reason = `Very short observation window (${Math.round(windowLengthMin)} minutes)`;
     } else {
       reason = "Poor viewing conditions";
     }
   } else if (finalScore < APP_CONFIG.QUALITY.MIN_QUALITY_VIEWING_SCORE) {
     rating = 2;
-    if (moonIllumination > APP_CONFIG.QUALITY.MOON_INTERFERENCE_THRESHOLD && avgScore < APP_CONFIG.QUALITY.MIN_QUALITY_VIEWING_SCORE) {
+    if (
+      moonIllumination > APP_CONFIG.QUALITY.MOON_INTERFERENCE_THRESHOLD &&
+      avgScore < APP_CONFIG.QUALITY.MIN_QUALITY_VIEWING_SCORE
+    ) {
       reason = `Significant moon interference (${Math.round(moonIllumination * 100)}% illuminated)`;
     } else if (windowLengthMin < 90) {
       reason = `Limited observation window (${(windowLengthMin / APP_CONFIG.ASTRONOMY.MINUTES_PER_HOUR).toFixed(1)} hours)`;
@@ -239,30 +249,42 @@ export function computeGCObservationScore(
 
 // Helper functions to calculate altitude and angles
 export function createGCAltitudeFunction(
-  location: Location
+  location: Location,
 ): (time: Date) => number {
   const observer = new Astronomy.Observer(location.lat, location.lng, 0);
-  
+
   return (time: Date) => {
     const horizontal = Astronomy.Horizon(
       time,
       observer,
       GALACTIC_CENTER_RA,
-      GALACTIC_CENTER_DEC
+      GALACTIC_CENTER_DEC,
     );
     return horizontal.altitude;
   };
 }
 
 export function createMoonAltitudeFunction(
-  location: Location
+  location: Location,
 ): (time: Date) => number {
   const observer = new Astronomy.Observer(location.lat, location.lng, 0);
-  
+
   return (time: Date) => {
     try {
-      const moonEquator = Astronomy.Equator(Astronomy.Body.Moon, time, observer, false, true);
-      const moonHorizon = Astronomy.Horizon(time, observer, moonEquator.ra, moonEquator.dec, "normal");
+      const moonEquator = Astronomy.Equator(
+        Astronomy.Body.Moon,
+        time,
+        observer,
+        false,
+        true,
+      );
+      const moonHorizon = Astronomy.Horizon(
+        time,
+        observer,
+        moonEquator.ra,
+        moonEquator.dec,
+        "normal",
+      );
       return moonHorizon.altitude;
     } catch (error) {
       console.error("Error calculating moon altitude:", error);
@@ -272,34 +294,43 @@ export function createMoonAltitudeFunction(
 }
 
 export function createGCMoonAngleFunction(
-  location: Location
+  location: Location,
 ): (time: Date) => number {
   const observer = new Astronomy.Observer(location.lat, location.lng, 0);
-  
+
   return (time: Date) => {
     try {
       // Get moon equatorial coordinates
-      const moonEquator = Astronomy.Equator(Astronomy.Body.Moon, time, observer, false, true);
-      
+      const moonEquator = Astronomy.Equator(
+        Astronomy.Body.Moon,
+        time,
+        observer,
+        false,
+        true,
+      );
+
       // Calculate angular separation using spherical trigonometry
       // Convert RA from hours to degrees
       const gcRaDeg = GALACTIC_CENTER_RA * 15;
       const moonRaDeg = moonEquator.ra * 15;
-      
+
       // Convert to radians
-      const gcRaRad = gcRaDeg * Math.PI / 180;
-      const gcDecRad = GALACTIC_CENTER_DEC * Math.PI / 180;
-      const moonRaRad = moonRaDeg * Math.PI / 180;
-      const moonDecRad = moonEquator.dec * Math.PI / 180;
-      
+      const gcRaRad = (gcRaDeg * Math.PI) / 180;
+      const gcDecRad = (GALACTIC_CENTER_DEC * Math.PI) / 180;
+      const moonRaRad = (moonRaDeg * Math.PI) / 180;
+      const moonDecRad = (moonEquator.dec * Math.PI) / 180;
+
       // Calculate angular separation using the spherical law of cosines
-      const cosAngle = Math.sin(gcDecRad) * Math.sin(moonDecRad) +
-                      Math.cos(gcDecRad) * Math.cos(moonDecRad) * 
-                      Math.cos(gcRaRad - moonRaRad);
-      
+      const cosAngle =
+        Math.sin(gcDecRad) * Math.sin(moonDecRad) +
+        Math.cos(gcDecRad) *
+          Math.cos(moonDecRad) *
+          Math.cos(gcRaRad - moonRaRad);
+
       // Convert back to degrees
-      const angle = Math.acos(Math.max(-1, Math.min(1, cosAngle))) * 180 / Math.PI;
-      
+      const angle =
+        (Math.acos(Math.max(-1, Math.min(1, cosAngle))) * 180) / Math.PI;
+
       return angle;
     } catch (error) {
       console.error("Error calculating GC-Moon angle:", error);

@@ -65,7 +65,7 @@ export function useExploreLocation(): ExploreLocationHookType {
       storageService.setLocation(
         "explore",
         location,
-        nearbyLocation?.matchedName ?? null
+        nearbyLocation?.matchedName ?? null,
       );
     }
   }, [location]);
@@ -99,7 +99,7 @@ export function useExploreLocation(): ExploreLocationHookType {
       // Update storage immediately with explicit matched name
       storageService.setLocation("explore", newLocation, finalMatchedName);
     },
-    []
+    [],
   );
 
   /**

@@ -30,7 +30,9 @@
 .userMarker {
   background-color: #10b981 !important;
   border: 3px solid white !important;
-  box-shadow: 0 0 0 2px #10b981, 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  box-shadow:
+    0 0 0 2px #10b981,
+    0 4px 8px rgba(0, 0, 0, 0.3) !important;
   z-index: 1000 !important;
   position: relative !important;
 }
@@ -39,7 +41,9 @@
   background-color: #059669 !important;
   cursor: default;
   transform: none;
-  box-shadow: 0 0 0 2px #059669, 0 6px 12px rgba(0, 0, 0, 0.4) !important;
+  box-shadow:
+    0 0 0 2px #059669,
+    0 6px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 .primaryMarker {
@@ -101,27 +105,27 @@
     gap: 0.5rem;
     padding: 0.375rem 0.75rem;
   }
-  
+
   .legendItem {
     font-size: 0.7rem;
   }
-  
+
   .legendIcon {
     font-size: 0.8rem;
   }
-  
+
   .marker {
     width: 28px;
     height: 28px;
     font-size: 14px;
   }
-  
+
   .primaryMarker {
     width: 32px;
     height: 32px;
     font-size: 16px;
   }
-  
+
   .alternativeMarker {
     width: 26px;
     height: 26px;

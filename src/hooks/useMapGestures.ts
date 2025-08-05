@@ -1,5 +1,5 @@
-import { useState, useCallback, RefObject } from 'react';
-import { Location } from '../types/astronomy';
+import { useState, useCallback, RefObject } from "react";
+import { Location } from "../types/astronomy";
 
 export interface GestureState {
   isDragging: boolean;
@@ -30,7 +30,10 @@ interface UseMapGesturesProps {
   onLocationChange: (location: Location, isDragging?: boolean) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
-  screenToNormalized: (screenX: number, screenY: number) => { x: number; y: number };
+  screenToNormalized: (
+    screenX: number,
+    screenY: number,
+  ) => { x: number; y: number };
   normalizedToCoord: (x: number, y: number) => Location;
   config?: GestureConfig;
 }
@@ -55,11 +58,16 @@ export function useMapGestures({
   config = {},
 }: UseMapGesturesProps) {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
-  const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null);
-  const [lastTouchCenter, setLastTouchCenter] = useState<{ x: number; y: number } | null>(null);
+  const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(
+    null,
+  );
+  const [lastTouchCenter, setLastTouchCenter] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Helper function to get touch distance
   const getTouchDistance = useCallback((touches: React.TouchList): number => {
@@ -68,132 +76,77 @@ export function useMapGestures({
     const touch2 = touches[1];
     return Math.sqrt(
       Math.pow(touch2.clientX - touch1.clientX, 2) +
-      Math.pow(touch2.clientY - touch1.clientY, 2)
+        Math.pow(touch2.clientY - touch1.clientY, 2),
     );
   }, []);
-  
-  // Helper function to get touch center point
-  const getTouchCenter = useCallback((touches: React.TouchList): { x: number; y: number } => {
-    if (touches.length === 1) {
-      return { x: touches[0].clientX, y: touches[0].clientY };
-    }
-    const touch1 = touches[0];
-    const touch2 = touches[1];
-    return {
-      x: (touch1.clientX + touch2.clientX) / 2,
-      y: (touch1.clientY + touch2.clientY) / 2,
-    };
-  }, []);
 
-  const getLocationFromEvent = useCallback((
-    event: React.MouseEvent<HTMLDivElement> | MouseEvent | Touch
-  ): Location => {
-    const normalized = screenToNormalized(event.clientX, event.clientY);
-    return normalizedToCoord(normalized.x, normalized.y);
-  }, [screenToNormalized, normalizedToCoord]);
+  // Helper function to get touch center point
+  const getTouchCenter = useCallback(
+    (touches: React.TouchList): { x: number; y: number } => {
+      if (touches.length === 1) {
+        return { x: touches[0].clientX, y: touches[0].clientY };
+      }
+      const touch1 = touches[0];
+      const touch2 = touches[1];
+      return {
+        x: (touch1.clientX + touch2.clientX) / 2,
+        y: (touch1.clientY + touch2.clientY) / 2,
+      };
+    },
+    [],
+  );
+
+  const getLocationFromEvent = useCallback(
+    (
+      event: React.MouseEvent<HTMLDivElement> | MouseEvent | Touch,
+    ): Location => {
+      const normalized = screenToNormalized(event.clientX, event.clientY);
+      return normalizedToCoord(normalized.x, normalized.y);
+    },
+    [screenToNormalized, normalizedToCoord],
+  );
 
   // Touch handlers
-  const handleTouchStart = useCallback((event: React.TouchEvent) => {
-    if (event.touches.length === 2) {
-      // Pinch gesture
-      const distance = getTouchDistance(event.touches);
-      const center = getTouchCenter(event.touches);
-      setLastTouchDistance(distance);
-      setLastTouchCenter(center);
-    } else if (event.touches.length === 1) {
-      // Single touch pan
-      const touch = event.touches[0];
-      setLastTouchCenter({ x: touch.clientX, y: touch.clientY });
-      setIsPanning(true);
-    }
-  }, [getTouchDistance, getTouchCenter]);
-  
-  const handleTouchMove = useCallback((event: React.TouchEvent) => {
-    event.preventDefault();
-    
-    if (event.touches.length === 2 && lastTouchDistance && lastTouchCenter) {
-      // Pinch zoom
-      const distance = getTouchDistance(event.touches);
-      const center = getTouchCenter(event.touches);
-      
-      const deltaDistance = distance - lastTouchDistance;
-      const zoomDelta = deltaDistance * finalConfig.zoomSpeed * 0.005;
-      
-      onZoom(zoomDelta, center.x, center.y);
-      
-      setLastTouchDistance(distance);
-      setLastTouchCenter(center);
-    } else if (event.touches.length === 1 && isPanning && lastTouchCenter) {
-      // Single touch pan
-      const touch = event.touches[0];
-      const deltaX = touch.clientX - lastTouchCenter.x;
-      const deltaY = touch.clientY - lastTouchCenter.y;
-      
-      const container = containerRef.current;
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        const newPanX = panX + deltaX / rect.width;
-        const newPanY = panY + deltaY / rect.height;
-        setPan(newPanX, newPanY);
+  const handleTouchStart = useCallback(
+    (event: React.TouchEvent) => {
+      if (event.touches.length === 2) {
+        // Pinch gesture
+        const distance = getTouchDistance(event.touches);
+        const center = getTouchCenter(event.touches);
+        setLastTouchDistance(distance);
+        setLastTouchCenter(center);
+      } else if (event.touches.length === 1) {
+        // Single touch pan
+        const touch = event.touches[0];
+        setLastTouchCenter({ x: touch.clientX, y: touch.clientY });
+        setIsPanning(true);
       }
-      
-      setLastTouchCenter({ x: touch.clientX, y: touch.clientY });
-    }
-  }, [
-    lastTouchDistance,
-    lastTouchCenter,
-    isPanning,
-    panX,
-    panY,
-    containerRef,
-    setPan,
-    onZoom,
-    getTouchDistance,
-    getTouchCenter,
-    finalConfig.zoomSpeed,
-  ]);
-  
-  const handleTouchEnd = useCallback(() => {
-    setLastTouchDistance(null);
-    setLastTouchCenter(null);
-    setIsPanning(false);
-  }, []);
+    },
+    [getTouchDistance, getTouchCenter],
+  );
 
-  // Mouse handlers
-  const handleMouseDown = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return; // Only left mouse button
+  const handleTouchMove = useCallback(
+    (event: React.TouchEvent) => {
+      event.preventDefault();
 
-    event.preventDefault(); // Prevent default behavior
+      if (event.touches.length === 2 && lastTouchDistance && lastTouchCenter) {
+        // Pinch zoom
+        const distance = getTouchDistance(event.touches);
+        const center = getTouchCenter(event.touches);
 
-    let hasDragged = false;
-    let hasPanned = false;
-    const startX = event.clientX;
-    const startY = event.clientY;
-    const initialLocation = getLocationFromEvent(event);
+        const deltaDistance = distance - lastTouchDistance;
+        const zoomDelta = deltaDistance * finalConfig.zoomSpeed * 0.005;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      // Check if mouse has moved more than threshold (to differentiate from click)
-      const distance = Math.sqrt(
-        Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2)
-      );
+        onZoom(zoomDelta, center.x, center.y);
 
-      if (!hasDragged && !hasPanned && distance > finalConfig.dragThreshold) {
-        if (e.shiftKey || zoom > 1) {
-          // Shift+drag to pan OR zoom > 1 (intuitive panning when zoomed in)
-          hasPanned = true;
-          setIsPanning(true);
-        } else {
-          // Regular drag to select location (only when zoom = 1)
-          hasDragged = true;
-          setIsDragging(true);
-          onDragStart?.();
-        }
-      }
+        setLastTouchDistance(distance);
+        setLastTouchCenter(center);
+      } else if (event.touches.length === 1 && isPanning && lastTouchCenter) {
+        // Single touch pan
+        const touch = event.touches[0];
+        const deltaX = touch.clientX - lastTouchCenter.x;
+        const deltaY = touch.clientY - lastTouchCenter.y;
 
-      if (hasPanned) {
-        // Pan the map
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
         const container = containerRef.current;
         if (container) {
           const rect = container.getBoundingClientRect();
@@ -201,46 +154,116 @@ export function useMapGestures({
           const newPanY = panY + deltaY / rect.height;
           setPan(newPanX, newPanY);
         }
-      } else if (hasDragged) {
-        // Select location
-        const newLocation = getLocationFromEvent(e);
-        onLocationChange(newLocation, true);
+
+        setLastTouchCenter({ x: touch.clientX, y: touch.clientY });
       }
-    };
+    },
+    [
+      lastTouchDistance,
+      lastTouchCenter,
+      isPanning,
+      panX,
+      panY,
+      containerRef,
+      setPan,
+      onZoom,
+      getTouchDistance,
+      getTouchCenter,
+      finalConfig.zoomSpeed,
+    ],
+  );
 
-    const handleMouseUp = (e: MouseEvent) => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+  const handleTouchEnd = useCallback(() => {
+    setLastTouchDistance(null);
+    setLastTouchCenter(null);
+    setIsPanning(false);
+  }, []);
 
-      if (hasPanned) {
-        setIsPanning(false);
-      } else if (hasDragged) {
-        // End of drag - get final location and notify parent
-        const finalLocation = getLocationFromEvent(e);
-        setIsDragging(false);
-        onDragEnd?.();
-        // Send final location as non-dragging to commit it
-        onLocationChange(finalLocation, false);
-      } else {
-        // It was just a click, handle it
-        onLocationChange(initialLocation, false);
-      }
-    };
+  // Mouse handlers
+  const handleMouseDown = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.button !== 0) return; // Only left mouse button
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-  }, [
-    zoom,
-    panX,
-    panY,
-    containerRef,
-    setPan,
-    onLocationChange,
-    onDragStart,
-    onDragEnd,
-    getLocationFromEvent,
-    finalConfig.dragThreshold,
-  ]);
+      event.preventDefault(); // Prevent default behavior
+
+      let hasDragged = false;
+      let hasPanned = false;
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const initialLocation = getLocationFromEvent(event);
+
+      const handleMouseMove = (e: MouseEvent) => {
+        // Check if mouse has moved more than threshold (to differentiate from click)
+        const distance = Math.sqrt(
+          Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2),
+        );
+
+        if (!hasDragged && !hasPanned && distance > finalConfig.dragThreshold) {
+          if (e.shiftKey || zoom > 1) {
+            // Shift+drag to pan OR zoom > 1 (intuitive panning when zoomed in)
+            hasPanned = true;
+            setIsPanning(true);
+          } else {
+            // Regular drag to select location (only when zoom = 1)
+            hasDragged = true;
+            setIsDragging(true);
+            onDragStart?.();
+          }
+        }
+
+        if (hasPanned) {
+          // Pan the map
+          const deltaX = e.clientX - startX;
+          const deltaY = e.clientY - startY;
+          const container = containerRef.current;
+          if (container) {
+            const rect = container.getBoundingClientRect();
+            const newPanX = panX + deltaX / rect.width;
+            const newPanY = panY + deltaY / rect.height;
+            setPan(newPanX, newPanY);
+          }
+        } else if (hasDragged) {
+          // Select location
+          const newLocation = getLocationFromEvent(e);
+          onLocationChange(newLocation, true);
+        }
+      };
+
+      const handleMouseUp = (e: MouseEvent) => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+
+        if (hasPanned) {
+          setIsPanning(false);
+        } else if (hasDragged) {
+          // End of drag - get final location and notify parent
+          const finalLocation = getLocationFromEvent(e);
+          setIsDragging(false);
+          onDragEnd?.();
+          // Send final location as non-dragging to commit it
+          onLocationChange(finalLocation, false);
+        } else {
+          // It was just a click, handle it
+          onLocationChange(initialLocation, false);
+        }
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [
+      zoom,
+      panX,
+      panY,
+      containerRef,
+      setPan,
+      onLocationChange,
+      onDragStart,
+      onDragEnd,
+      getLocationFromEvent,
+      finalConfig.dragThreshold,
+    ],
+  );
 
   const state: GestureState = {
     isDragging,

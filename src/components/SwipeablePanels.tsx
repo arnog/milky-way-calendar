@@ -1,6 +1,6 @@
-import { useState, useRef, ReactNode } from 'react';
-import { useSwipe } from '../hooks/useSwipe';
-import styles from './SwipeablePanels.module.css';
+import { useState, useRef, ReactNode } from "react";
+import { useSwipe } from "../hooks/useSwipe";
+import styles from "./SwipeablePanels.module.css";
 
 interface Panel {
   id: string;
@@ -19,7 +19,7 @@ export default function SwipeablePanels({
   panels,
   initialPanel = 0,
   className = "",
-  onPanelChange
+  onPanelChange,
 }: SwipeablePanelsProps) {
   const [currentPanel, setCurrentPanel] = useState(initialPanel);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,17 +34,21 @@ export default function SwipeablePanels({
     totalItems: panels.length,
     onSwipe: (_direction, newIndex) => {
       handlePanelChange(newIndex);
-    }
+    },
   });
 
   return (
     <div className={`${styles.container} ${className}`}>
       {/* Panel Dots Navigation */}
-      <div className={styles.panelDots} role="tablist" aria-label="Panel navigation">
+      <div
+        className={styles.panelDots}
+        role="tablist"
+        aria-label="Panel navigation"
+      >
         {panels.map((panel, index) => (
           <button
             key={panel.id}
-            className={`${styles.dot} ${index === currentPanel ? styles.activeDot : ''}`}
+            className={`${styles.dot} ${index === currentPanel ? styles.activeDot : ""}`}
             onClick={() => handlePanelChange(index)}
             role="tab"
             aria-label={`Go to ${panel.title}`}
@@ -53,22 +57,22 @@ export default function SwipeablePanels({
           />
         ))}
       </div>
-      
+
       {/* Swipeable Panels Container */}
-      <div 
+      <div
         ref={containerRef}
         className={styles.panelsContainer}
         {...handlers}
         style={{
-          transform: `translateX(calc(-${currentPanel * 100}% + ${state.isDragging ? state.translateX + 'px' : '0px'}))`,
-          transition: state.isDragging ? 'none' : 'transform 0.3s ease'
+          transform: `translateX(calc(-${currentPanel * 100}% + ${state.isDragging ? state.translateX + "px" : "0px"}))`,
+          transition: state.isDragging ? "none" : "transform 0.3s ease",
         }}
         role="tabpanel"
         aria-label="Swipeable panel content"
       >
         {panels.map((panel, index) => (
-          <div 
-            key={panel.id} 
+          <div
+            key={panel.id}
             className={styles.panel}
             id={`panel-${index}`}
             role="tabpanel"

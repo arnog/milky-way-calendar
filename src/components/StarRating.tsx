@@ -20,12 +20,12 @@ export default function StarRating({
         <span className={styles.dash}>—</span>
       </div>
     );
-    
+
     return reason ? (
-      <Tooltip content={reason ?? "No visibility"}>
-        {content}
-      </Tooltip>
-    ) : content;
+      <Tooltip content={reason ?? "No visibility"}>{content}</Tooltip>
+    ) : (
+      content
+    );
   }
 
   const sizeClass = {
@@ -44,22 +44,14 @@ export default function StarRating({
           isFilled ? styles.starFilled : styles.starEmpty
         }`}
       >
-        <use
-          href={`/icons.svg#${isFilled ? "star-black" : "star-white"}`}
-        />
-      </svg>
+        <use href={`/icons.svg#${isFilled ? "star-black" : "star-white"}`} />
+      </svg>,
     );
   }
 
   const content = (
-    <div className={`${styles.container} ${className}`}>
-      {stars}
-    </div>
+    <div className={`${styles.container} ${className}`}>{stars}</div>
   );
 
-  return reason ? (
-    <Tooltip content={reason}>
-      {content}
-    </Tooltip>
-  ) : content;
+  return reason ? <Tooltip content={reason}>{content}</Tooltip> : content;
 }

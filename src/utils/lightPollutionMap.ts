@@ -38,10 +38,7 @@ export interface MultipleDarkSitesResult {
 /**
  * Calculate geodesic distance between two coordinates using Haversine formula
  */
-function haversineDistance(
-  coord1: Coordinate,
-  coord2: Coordinate
-): number {
+function haversineDistance(coord1: Coordinate, coord2: Coordinate): number {
   const lat1Rad = (coord1.lat * Math.PI) / 180;
   const lat2Rad = (coord2.lat * Math.PI) / 180;
   const deltaLatRad = ((coord2.lat - coord1.lat) * Math.PI) / 180;
@@ -69,7 +66,7 @@ const EARTH_RADIUS_KM = 6371;
 export function coordToPixel(
   coord: Coordinate,
   imageWidth: number,
-  imageHeight: number
+  imageHeight: number,
 ): PixelCoordinate {
   // Map coverage: -65° to +75° latitude, -180° to +180° longitude
   const MAP_LAT_MIN = -65;
@@ -95,7 +92,7 @@ export function coordToPixel(
 export function pixelToCoord(
   pixel: PixelCoordinate,
   imageWidth: number,
-  imageHeight: number
+  imageHeight: number,
 ): Coordinate {
   // Map coverage: -65° to +75° latitude, -180° to +180° longitude
   const MAP_LAT_MIN = -65;
@@ -114,7 +111,7 @@ export function pixelToCoord(
  */
 export function coordToNormalized(
   lat: number,
-  lng: number
+  lng: number,
 ): { x: number; y: number } {
   // Map coverage: -65° to +75° latitude, -180° to +180° longitude
   const MAP_LAT_MIN = -65;
@@ -133,7 +130,7 @@ export function coordToNormalized(
  */
 export function normalizedToCoord(
   x: number,
-  y: number
+  y: number,
 ): { lat: number; lng: number } {
   // Map coverage: -65° to +75° latitude, -180° to +180° longitude
   const MAP_LAT_MIN = -65;
@@ -146,30 +143,28 @@ export function normalizedToCoord(
   return { lat, lng };
 }
 
-
-
 /**
  * Grayscale to Bortle scale lookup for the optimized grayscale format
  * This replaces the RGB colormap with a direct grayscale-to-Bortle mapping
  * for better performance and smaller file size.
  */
 const GRAYSCALE_TO_BORTLE = new Map([
-  [0, 9],     // Black (water/no-data)
-  [10, 1],    // Pristine dark sky
-  [20, 1.5],  // Excellent dark sky
-  [30, 2],    // Typical dark sky
-  [40, 2.5],  // Rural sky
-  [50, 3],    // Rural/suburban transition
-  [70, 3.5],  // Suburban sky
-  [90, 4],    // Suburban/urban transition
+  [0, 9], // Black (water/no-data)
+  [10, 1], // Pristine dark sky
+  [20, 1.5], // Excellent dark sky
+  [30, 2], // Typical dark sky
+  [40, 2.5], // Rural sky
+  [50, 3], // Rural/suburban transition
+  [70, 3.5], // Suburban sky
+  [90, 4], // Suburban/urban transition
   [110, 4.5], // Light suburban sky
-  [130, 5],   // Suburban sky
+  [130, 5], // Suburban sky
   [150, 5.5], // Bright suburban sky
-  [170, 6],   // Bright suburban sky
+  [170, 6], // Bright suburban sky
   [190, 6.5], // Suburban/urban transition
-  [210, 7],   // Urban sky
+  [210, 7], // Urban sky
   [230, 7.5], // City sky
-  [240, 8],   // Inner city sky
+  [240, 8], // Inner city sky
 ]);
 
 /**
@@ -221,7 +216,7 @@ export function rgbToBortleScale(r: number, g: number, b: number): number {
   for (const colorEntry of LIGHT_POLLUTION_COLORMAP) {
     const [mapR, mapG, mapB] = colorEntry;
     const distance = Math.sqrt(
-      (r - mapR) ** 2 + (g - mapG) ** 2 + (b - mapB) ** 2
+      (r - mapR) ** 2 + (g - mapG) ** 2 + (b - mapB) ** 2,
     );
 
     if (distance < minDistance) {
@@ -247,7 +242,7 @@ export function isDarkSky(bortleScale: number): boolean {
 export function isTooCloseToCity(
   coordinate: Coordinate,
   cities: Array<(string | number)[]>,
-  minDistanceKm: number = 50
+  minDistanceKm: number = 50,
 ): boolean {
   for (const city of cities) {
     const cityCoord = { lat: city[2] as number, lng: city[3] as number };
@@ -266,7 +261,7 @@ export function isTooCloseToCity(
 export function isValidDarkSite(
   coordinate: Coordinate,
   bortleScale: number,
-  cities?: Array<(string | number)[]>
+  cities?: Array<(string | number)[]>,
 ): boolean {
   // Must meet Bortle scale criteria
   if (!isDarkSky(bortleScale)) {
@@ -329,7 +324,7 @@ export async function loadLightPollutionMap(): Promise<{
  */
 export function getGrayscalePixelData(
   imageData: ImageData,
-  pixel: PixelCoordinate
+  pixel: PixelCoordinate,
 ): number {
   const index = (pixel.y * imageData.width + pixel.x) * 4;
   // For grayscale images, R, G, B channels are identical, so we just read R
@@ -341,7 +336,7 @@ export function getGrayscalePixelData(
  */
 export function getPixelData(
   imageData: ImageData,
-  pixel: PixelCoordinate
+  pixel: PixelCoordinate,
 ): { r: number; g: number; b: number; a: number } {
   const index = (pixel.y * imageData.width + pixel.x) * 4;
 
@@ -378,7 +373,7 @@ class PriorityQueue<T> {
  */
 export function findNearestKnownSite(
   targetCoord: Coordinate,
-  knownSites: ReadonlyArray<SpecialLocation> // DARK_SITES format: [fullName, shortName, lat, lng, optional slug]
+  knownSites: ReadonlyArray<SpecialLocation>, // DARK_SITES format: [fullName, shortName, lat, lng, optional slug]
 ): {
   name: string;
   fullName: string;
@@ -432,7 +427,7 @@ export async function findNearestDarkSky(
   startCoord: Coordinate,
   maxDistance: number = APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM, // Maximum search distance in km
   onProgress?: (progress: number) => void,
-  knownSites?: ReadonlyArray<SpecialLocation> // Optional known sites for secondary location
+  knownSites?: ReadonlyArray<SpecialLocation>, // Optional known sites for secondary location
 ): Promise<DarkSiteResult | null> {
   try {
     const { imageData, width, height } = await loadLightPollutionMap();
@@ -449,7 +444,7 @@ export async function findNearestDarkSky(
 
     const maxPixelDistance = Math.round(
       ((maxDistance / EARTH_RADIUS_KM) * Math.max(width, height)) /
-        (2 * Math.PI)
+        (2 * Math.PI),
     );
     let processedPixels = 0;
     const totalEstimatedPixels = Math.PI * maxPixelDistance * maxPixelDistance;
@@ -548,14 +543,14 @@ export async function findNearestDarkSky(
             const neighborCoord = pixelToCoord(neighbor, width, height);
             const neighborDistance = haversineDistance(
               startCoord,
-              neighborCoord
+              neighborCoord,
             );
 
             if (neighborDistance <= maxDistance) {
               // Priority is distance - closer pixels are processed first
               queue.enqueue(
                 { pixel: neighbor, distance: neighborDistance },
-                neighborDistance
+                neighborDistance,
               );
             }
           }
@@ -575,7 +570,7 @@ export async function findNearestDarkSky(
  * Get the Bortle scale rating for a specific location
  */
 export async function getBortleRatingForLocation(
-  coord: Coordinate
+  coord: Coordinate,
 ): Promise<number | null> {
   try {
     const { imageData, width, height } = await loadLightPollutionMap();
@@ -599,56 +594,62 @@ export async function getBortleRatingForLocation(
  */
 export async function findDarkestBortleInRadius(
   centerCoord: Coordinate,
-  radiusKm: number = 10
+  radiusKm: number = 10,
 ): Promise<number | null> {
   try {
     const { imageData, width, height } = await loadLightPollutionMap();
-    
+
     // Convert radius to approximate pixel distance
     const pixelsPerDegree = width / 360; // Approximate for longitude
-    const radiusDegrees = radiusKm / (111.32 * Math.cos((centerCoord.lat * Math.PI) / 180)); // Account for latitude
+    const radiusDegrees =
+      radiusKm / (111.32 * Math.cos((centerCoord.lat * Math.PI) / 180)); // Account for latitude
     const radiusPixels = Math.ceil(radiusDegrees * pixelsPerDegree);
-    
+
     const centerPixel = coordToPixel(centerCoord, width, height);
     let darkestBortle = Infinity;
     let validPixelsFound = 0;
-    
+
     // Search in a square around the center, then filter by actual distance
     for (let dx = -radiusPixels; dx <= radiusPixels; dx++) {
       for (let dy = -radiusPixels; dy <= radiusPixels; dy++) {
         const testPixel = {
           x: centerPixel.x + dx,
-          y: centerPixel.y + dy
+          y: centerPixel.y + dy,
         };
-        
+
         // Check bounds
-        if (testPixel.x < 0 || testPixel.x >= width || testPixel.y < 0 || testPixel.y >= height) {
+        if (
+          testPixel.x < 0 ||
+          testPixel.x >= width ||
+          testPixel.y < 0 ||
+          testPixel.y >= height
+        ) {
           continue;
         }
-        
+
         // Convert back to coordinates and check actual distance
         const testCoord = pixelToCoord(testPixel, width, height);
         const actualDistance = haversineDistance(centerCoord, testCoord);
-        
+
         if (actualDistance <= radiusKm) {
           const grayValue = getGrayscalePixelData(imageData, testPixel);
-          
+
           // Skip pure black pixels (water/no-data areas)
           if (grayValue === 0) {
             continue;
           }
-          
+
           const bortleScale = grayscaleToBortleScale(grayValue);
-          
+
           if (bortleScale < darkestBortle) {
             darkestBortle = bortleScale;
           }
-          
+
           validPixelsFound++;
         }
       }
     }
-    
+
     return validPixelsFound > 0 ? darkestBortle : null;
   } catch (error) {
     console.error("Error finding darkest Bortle in radius:", error);
@@ -663,7 +664,7 @@ export async function findMultipleDarkSites(
   startCoord: Coordinate,
   maxDistance: number = APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
   onProgress?: (progress: number) => void,
-  knownSites?: ReadonlyArray<SpecialLocation> // Optional known sites for secondary location>
+  knownSites?: ReadonlyArray<SpecialLocation>, // Optional known sites for secondary location>
 ): Promise<MultipleDarkSitesResult | null> {
   try {
     // First, find the nearest dark site
@@ -671,7 +672,7 @@ export async function findMultipleDarkSites(
       startCoord,
       maxDistance,
       (progress) => onProgress?.(progress * 0.4), // 40% for primary search
-      knownSites
+      knownSites,
     );
 
     if (!primary) return null;
@@ -707,7 +708,7 @@ export async function findMultipleDarkSites(
           height,
           [primary.coordinate, ...alternatives.map((alt) => alt.coordinate)], // Exclude primary and previous alternatives
           (progress) => onProgress?.(progressBase + progress * 0.12),
-          knownSites
+          knownSites,
         );
 
         if (result) {
@@ -716,7 +717,7 @@ export async function findMultipleDarkSites(
       } catch (error) {
         console.warn(
           `Failed to find dark site in direction ${bearing}°:`,
-          error
+          error,
         );
       }
     }
@@ -745,7 +746,7 @@ async function findDarkSiteInDirection(
   height: number,
   excludeCoords: Coordinate[], // coordinates to exclude from results
   onProgress?: (progress: number) => void,
-  knownSites?: ReadonlyArray<SpecialLocation>
+  knownSites?: ReadonlyArray<SpecialLocation>,
 ): Promise<DarkSiteResult | null> {
   const visited = new Set<string>();
   const queue = new PriorityQueue<{
@@ -769,14 +770,14 @@ async function findDarkSiteInDirection(
 
     const lat2Rad = Math.asin(
       Math.sin(lat1Rad) * Math.cos(searchDistance / R) +
-        Math.cos(lat1Rad) * Math.sin(searchDistance / R) * Math.cos(bearingRad)
+        Math.cos(lat1Rad) * Math.sin(searchDistance / R) * Math.cos(bearingRad),
     );
 
     const lng2Rad =
       lng1Rad +
       Math.atan2(
         Math.sin(bearingRad) * Math.sin(searchDistance / R) * Math.cos(lat1Rad),
-        Math.cos(searchDistance / R) - Math.sin(lat1Rad) * Math.sin(lat2Rad)
+        Math.cos(searchDistance / R) - Math.sin(lat1Rad) * Math.sin(lat2Rad),
       );
 
     const searchCoord = {
@@ -793,7 +794,7 @@ async function findDarkSiteInDirection(
   }
 
   const maxPixelDistance = Math.round(
-    ((maxDistance / 6371) * Math.max(width, height)) / (2 * Math.PI)
+    ((maxDistance / 6371) * Math.max(width, height)) / (2 * Math.PI),
   );
   let processedPixels = 0;
   const totalEstimatedPixels = Math.PI * maxPixelDistance * maxPixelDistance;
@@ -820,7 +821,7 @@ async function findDarkSiteInDirection(
 
     // Check if this coordinate is too close to excluded coordinates
     const tooClose = excludeCoords.some(
-      (excludeCoord) => haversineDistance(coord, excludeCoord) < 2 // 2km minimum separation
+      (excludeCoord) => haversineDistance(coord, excludeCoord) < 2, // 2km minimum separation
     );
 
     if (tooClose) continue;
@@ -887,7 +888,7 @@ async function findDarkSiteInDirection(
           if (neighborDistance <= maxDistance) {
             queue.enqueue(
               { pixel: neighbor, distance: neighborDistance },
-              neighborDistance
+              neighborDistance,
             );
           }
         }

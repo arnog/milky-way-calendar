@@ -124,7 +124,7 @@
     align-items: flex-start;
     gap: 0.25rem;
   }
-  
+
   .locationCount {
     align-self: flex-start;
   }
@@ -138,7 +138,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   height: fit-content;
-  
+
   /* Essential for CSS columns masonry */
   break-inside: avoid;
   margin-bottom: 1.5rem;
@@ -154,12 +154,20 @@
 
 /* Varied styling for different card sizes in masonry layout */
 .regionCard.large {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
   border-color: rgba(255, 255, 255, 0.15);
 }
 
 .regionCard.medium {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
   border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -344,7 +352,6 @@
   background-color: rgba(163, 196, 220, 0.2);
   box-shadow: 0 0 20px rgba(178, 227, 255, 0.3);
 }
-
 
 .progressContainer {
   display: flex;
@@ -582,11 +589,11 @@
   .alternativesGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .alternativeActions {
     justify-content: center;
   }
-  
+
   .alternativeActionButton {
     min-width: 80px;
   }

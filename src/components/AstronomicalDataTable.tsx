@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "../hooks/useLocation";
 import { useAstronomicalData } from "../hooks/useAstronomicalData";
-import { AstronomicalDataTableProps, AstronomicalDataItem } from "../types/astronomicalDataTable";
+import {
+  AstronomicalDataTableProps,
+  AstronomicalDataItem,
+} from "../types/astronomicalDataTable";
 import StarRating from "./StarRating";
 import { Icon } from "./Icon";
 import Tooltip from "./Tooltip";
@@ -21,9 +24,10 @@ export default function AstronomicalDataTable({
   className,
 }: AstronomicalDataTableProps) {
   const { location, isLoading: locationLoading } = useLocation();
-  const { items, isLoadingMore, error, canLoadMore, loadMore } = useAstronomicalData(currentDate, config);
+  const { items, isLoadingMore, error, canLoadMore, loadMore } =
+    useAstronomicalData(currentDate, config);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
-  
+
   // Refs for infinite scroll
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -31,9 +35,11 @@ export default function AstronomicalDataTable({
 
   // Default date formatter
   const defaultFormatDate = (date: Date, currentDate?: Date) => {
-    if (config.mode === 'daily') {
+    if (config.mode === "daily") {
       const today = currentDate || new Date();
-      const tomorrow = new Date(today.getTime() + APP_CONFIG.ASTRONOMY.MS_PER_DAY);
+      const tomorrow = new Date(
+        today.getTime() + APP_CONFIG.ASTRONOMY.MS_PER_DAY,
+      );
 
       if (date.toDateString() === today.toDateString()) {
         return "Today";
@@ -62,7 +68,7 @@ export default function AstronomicalDataTable({
   // Toggle expanded row (daily mode only)
   const toggleRow = (index: number) => {
     if (!config.showExpandableDetails) return;
-    
+
     const newExpandedRows = new Set(expandedRows);
     if (newExpandedRows.has(index)) {
       newExpandedRows.delete(index);
@@ -77,7 +83,7 @@ export default function AstronomicalDataTable({
     if (config.showExpandableDetails) {
       toggleRow(index);
     }
-    
+
     if (config.onRowClick) {
       config.onRowClick(item);
     }
@@ -85,8 +91,8 @@ export default function AstronomicalDataTable({
 
   // Dynamic background for weekly mode
   const getRowBackground = (visibility: number) => {
-    if (config.mode !== 'weekly') return {};
-    
+    if (config.mode !== "weekly") return {};
+
     const opacity = visibility * 0.15;
     return {
       background: `linear-gradient(to right, 
@@ -100,7 +106,7 @@ export default function AstronomicalDataTable({
 
   // Setup infinite scroll (weekly mode only)
   useEffect(() => {
-    if (config.mode !== 'weekly' || !config.enableInfiniteScroll) return;
+    if (config.mode !== "weekly" || !config.enableInfiniteScroll) return;
 
     const handleObserver = (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
@@ -142,7 +148,7 @@ export default function AstronomicalDataTable({
   }
 
   return (
-    <div className={`${styles.container} ${className || ''}`}>
+    <div className={`${styles.container} ${className || ""}`}>
       {config.title && <h2 className={styles.title}>{config.title}</h2>}
 
       <div className={styles.tableContainer}>
@@ -150,21 +156,25 @@ export default function AstronomicalDataTable({
           <tbody>
             {items.map((item, index) => {
               const isExpanded = expandedRows.has(index);
-              
-              // Generate structured data for weekly mode
-              const structuredData = config.mode === 'weekly' 
-                ? generateEventStructuredData({
-                    weekNumber: item.weekNumber!,
-                    startDate: item.startDate!,
-                    visibility: item.visibility,
-                    gcDuration: item.gcDuration!,
-                    moonIllumination: item.moonIllumination!,
-                    optimalWindow: item.optimalWindow,
-                    visibilityReason: item.visibilityReason,
-                  }, location)
-                : null;
 
-              if (config.mode === 'daily') {
+              // Generate structured data for weekly mode
+              const structuredData =
+                config.mode === "weekly"
+                  ? generateEventStructuredData(
+                      {
+                        weekNumber: item.weekNumber!,
+                        startDate: item.startDate!,
+                        visibility: item.visibility,
+                        gcDuration: item.gcDuration!,
+                        moonIllumination: item.moonIllumination!,
+                        optimalWindow: item.optimalWindow,
+                        visibilityReason: item.visibilityReason,
+                      },
+                      location,
+                    )
+                  : null;
+
+              if (config.mode === "daily") {
                 // Daily mode rendering
                 return (
                   <tr key={index}>
@@ -179,17 +189,30 @@ export default function AstronomicalDataTable({
                               {formatDate(item.date, currentDate)}
                             </div>
                             <div>
-                              <StarRating rating={item.visibility} reason={item.visibilityReason} />
+                              <StarRating
+                                rating={item.visibility}
+                                reason={item.visibilityReason}
+                              />
                             </div>
-                            <div className={`${styles.dailyTimeText} data-time`}>
-                              <FormattedTime 
-                                timeString={formatOptimalViewingTime(item.optimalWindow, location)}
+                            <div
+                              className={`${styles.dailyTimeText} data-time`}
+                            >
+                              <FormattedTime
+                                timeString={formatOptimalViewingTime(
+                                  item.optimalWindow,
+                                  location,
+                                )}
                                 className=""
                               />
-                              {formatOptimalViewingTime(item.optimalWindow, location) ? (
+                              {formatOptimalViewingTime(
+                                item.optimalWindow,
+                                location,
+                              ) ? (
                                 <>
                                   <span className="small-caps"> for </span>
-                                  {formatOptimalViewingDuration(item.optimalWindow)}
+                                  {formatOptimalViewingDuration(
+                                    item.optimalWindow,
+                                  )}
                                 </>
                               ) : (
                                 "Not visible"
@@ -260,15 +283,23 @@ export default function AstronomicalDataTable({
                                 <h4 className={styles.sectionTitle}>Moon</h4>
                                 <div className={styles.eventList}>
                                   <div className={styles.eventRow}>
-                                    <Tooltip content={getMoonPhaseName(item.moonPhase!)}>
+                                    <Tooltip
+                                      content={getMoonPhaseName(
+                                        item.moonPhase!,
+                                      )}
+                                    >
                                       <Icon
-                                        name={getMoonPhaseIcon(item.moonPhase!, location.lat)}
+                                        name={getMoonPhaseIcon(
+                                          item.moonPhase!,
+                                          location.lat,
+                                        )}
                                         size="sm"
                                         baselineOffset={2}
                                       />
                                     </Tooltip>
                                     <span className="small-caps">
-                                      {Math.round(item.moonIllumination! * 100)}% illuminated
+                                      {Math.round(item.moonIllumination! * 100)}
+                                      % illuminated
                                     </span>
                                   </div>
                                   {item.moonRise && (
@@ -296,7 +327,9 @@ export default function AstronomicalDataTable({
 
                               {/* Galactic Core Events */}
                               <div>
-                                <h4 className={styles.sectionTitle}>Galactic Core</h4>
+                                <h4 className={styles.sectionTitle}>
+                                  Galactic Core
+                                </h4>
                                 <div className={styles.eventList}>
                                   {item.gcRise && (
                                     <div className={styles.eventRow}>
@@ -308,22 +341,28 @@ export default function AstronomicalDataTable({
                                       </span>
                                     </div>
                                   )}
-                                  {item.optimalWindow.startTime && item.optimalWindow.endTime && (
-                                    <div className={styles.eventRow}>
-                                      <Tooltip content="Optimal Observation Time">
-                                        <Icon name="telescope" size="sm" />
-                                      </Tooltip>
-                                      <span>
-                                        <FormattedTime 
-                                          timeString={formatOptimalViewingTime(item.optimalWindow, location)}
-                                        />
-                                        <span className="small-caps">
-                                          {" for "}
-                                          {formatOptimalViewingDuration(item.optimalWindow)}
+                                  {item.optimalWindow.startTime &&
+                                    item.optimalWindow.endTime && (
+                                      <div className={styles.eventRow}>
+                                        <Tooltip content="Optimal Observation Time">
+                                          <Icon name="telescope" size="sm" />
+                                        </Tooltip>
+                                        <span>
+                                          <FormattedTime
+                                            timeString={formatOptimalViewingTime(
+                                              item.optimalWindow,
+                                              location,
+                                            )}
+                                          />
+                                          <span className="small-caps">
+                                            {" for "}
+                                            {formatOptimalViewingDuration(
+                                              item.optimalWindow,
+                                            )}
+                                          </span>
                                         </span>
-                                      </span>
-                                    </div>
-                                  )}
+                                      </div>
+                                    )}
                                   {item.gcTransit && (
                                     <div className={styles.eventRow}>
                                       <Tooltip content="Galactic Core Transit">
@@ -378,11 +417,18 @@ export default function AstronomicalDataTable({
                       {formatDate(item.startDate!, currentDate)}
                     </td>
                     <td className={styles.weeklyVisibilityCell}>
-                      <StarRating rating={item.visibility} size="md" reason={item.visibilityReason} />
+                      <StarRating
+                        rating={item.visibility}
+                        size="md"
+                        reason={item.visibilityReason}
+                      />
                     </td>
                     <td className={styles.weeklyTimeCell}>
-                      <FormattedTime 
-                        timeString={formatOptimalViewingTime(item.optimalWindow, location)}
+                      <FormattedTime
+                        timeString={formatOptimalViewingTime(
+                          item.optimalWindow,
+                          location,
+                        )}
                         className=""
                       />
                       <span className="small-caps"> for </span>
@@ -402,7 +448,7 @@ export default function AstronomicalDataTable({
           {isLoadingMore && (
             <div className={styles.loadingMoreContainer}>
               <div className={styles.smallSpinner}></div>
-              Loading more {config.mode === 'daily' ? 'days' : 'weeks'}...
+              Loading more {config.mode === "daily" ? "days" : "weeks"}...
             </div>
           )}
         </div>

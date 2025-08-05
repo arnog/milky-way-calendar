@@ -4,7 +4,7 @@
   --container-radius: 0.75rem;
   --container-padding: 0.25rem;
   --indicator-radius: calc(var(--container-radius) - var(--container-padding));
-  
+
   display: flex;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: var(--container-radius);
@@ -89,7 +89,7 @@
 .sm {
   --container-padding: 0.125rem;
   --indicator-radius: calc(var(--container-radius) - var(--container-padding));
-  
+
   padding: var(--container-padding);
 }
 
@@ -122,7 +122,7 @@
 .lg {
   --container-padding: 0.375rem;
   --indicator-radius: calc(var(--container-radius) - var(--container-padding));
-  
+
   padding: var(--container-padding);
 }
 
@@ -147,12 +147,12 @@
   .segmentedControl {
     flex-wrap: wrap;
   }
-  
+
   .segment {
     flex: 1 1 auto;
     min-width: fit-content;
   }
-  
+
   .label {
     font-size: 0.75rem;
   }

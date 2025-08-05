@@ -22,7 +22,9 @@ interface LocationPageProps {
 
 // Wrapper component that parses URL and provides location to context
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function LocationPageWrapper({ isDarkroomMode: _isDarkroomMode }: LocationPageProps) {
+function LocationPageWrapper({
+  isDarkroomMode: _isDarkroomMode,
+}: LocationPageProps) {
   const { locationSlug } = useParams<{ locationSlug: string }>();
   // Parse location synchronously - no need for loading state
   const parsedLocation = useMemo(() => {
@@ -115,7 +117,10 @@ function LocationPageContent() {
         <div className={styles.content}>
           <TonightCard currentDate={currentDate} />
           <DailyAstroTable currentDate={currentDate} />
-          <WeeklyAstroTable currentDate={currentDate} onDateClick={setCurrentDate} />
+          <WeeklyAstroTable
+            currentDate={currentDate}
+            onDateClick={setCurrentDate}
+          />
         </div>
       </div>
     </>

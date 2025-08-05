@@ -3,7 +3,7 @@ export type SpecialLocation = [
   slug: string,
   lat: number,
   lng: number,
-  areaId?: string
+  areaId?: string,
 ];
 export const LARGE_CITIES: readonly SpecialLocation[] = [
   ["Tokyo, Japan", "Tokyo", 35.68972, 139.69222],

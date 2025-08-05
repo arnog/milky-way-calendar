@@ -7,15 +7,14 @@ interface DarkSiteSuggestionProps {
   className?: string;
 }
 
-export default function DarkSiteSuggestion({ 
-  nearestDarkSite, 
-  className = "" 
+export default function DarkSiteSuggestion({
+  nearestDarkSite,
+  className = "",
 }: DarkSiteSuggestionProps) {
   return (
     <div className={`${styles.darkSiteSuggestion} ${className}`}>
       <p className={styles.suggestionText}>
-        Consider visiting a darker location for better Milky Way
-        visibility:
+        Consider visiting a darker location for better Milky Way visibility:
       </p>
       <div className={styles.suggestionSite}>
         <strong>

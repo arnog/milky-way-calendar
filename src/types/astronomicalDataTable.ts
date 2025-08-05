@@ -12,7 +12,7 @@ export interface AstronomicalDataItem {
   visibilityReason?: string;
   /** Optimal viewing window with quality metrics */
   optimalWindow: OptimalViewingWindow;
-  
+
   // Weekly-specific fields (undefined for daily mode)
   /** Week number (weekly mode only) */
   weekNumber?: number;
@@ -20,7 +20,7 @@ export interface AstronomicalDataItem {
   startDate?: Date;
   /** Formatted duration string (weekly mode only) */
   gcDuration?: string;
-  
+
   // Daily-specific detailed fields (undefined for weekly mode)
   /** Sunrise time */
   sunRise?: Date;
@@ -53,35 +53,35 @@ export interface AstronomicalDataItem {
  */
 export interface AstronomicalDataTableConfig {
   /** Display mode - determines data granularity and UI behavior */
-  mode: 'daily' | 'weekly';
-  
+  mode: "daily" | "weekly";
+
   /** Show expandable details for each row (daily mode only) */
   showExpandableDetails?: boolean;
-  
+
   /** Enable click navigation to date pages */
   enableNavigation?: boolean;
-  
+
   /** Enable infinite scroll loading (weekly mode only) */
   enableInfiniteScroll?: boolean;
-  
+
   /** Filter out items with zero visibility (weekly mode only) */
   filterZeroVisibility?: boolean;
-  
+
   /** Number of items to load initially */
   initialItemCount?: number;
-  
+
   /** Number of items to load per batch (infinite scroll) */
   itemsPerBatch?: number;
-  
+
   /** Maximum number of items to load total */
   maxItems?: number;
-  
+
   /** Custom title for the table */
   title?: string;
-  
+
   /** Custom date format function */
   formatDate?: (date: Date, currentDate?: Date) => string;
-  
+
   /** Callback when a row is clicked */
   onRowClick?: (item: AstronomicalDataItem) => void;
 }

@@ -1,7 +1,4 @@
-import { 
-  Location, 
-  AstronomicalEvents 
-} from "../types/astronomy";
+import { Location, AstronomicalEvents } from "../types/astronomy";
 import {
   Observer,
   SearchRiseSet,
@@ -18,14 +15,14 @@ import { APP_CONFIG } from "../config/appConfig";
 /**
  * Calculate all astronomical events for a given date and location
  * This is the single source of truth for astronomical event calculations
- * 
+ *
  * @param date - The date to calculate events for
  * @param location - The observer's location
  * @returns All astronomical events including visibility rating
  */
 export function calculateAstronomicalEvents(
   date: Date,
-  location: Location
+  location: Location,
 ): AstronomicalEvents {
   const observer = new Observer(location.lat, location.lng, 0);
 
@@ -40,7 +37,7 @@ export function calculateAstronomicalEvents(
     -1,
     date,
     1,
-    APP_CONFIG.ASTRONOMY.ASTRONOMICAL_TWILIGHT_ANGLE
+    APP_CONFIG.ASTRONOMY.ASTRONOMICAL_TWILIGHT_ANGLE,
   );
   const astronomicalDawn = SearchAltitude(
     Body.Sun,
@@ -48,7 +45,7 @@ export function calculateAstronomicalEvents(
     +1,
     new Date(date.getTime() + 24 * 60 * 60 * 1000),
     1,
-    APP_CONFIG.ASTRONOMY.ASTRONOMICAL_TWILIGHT_ANGLE
+    APP_CONFIG.ASTRONOMY.ASTRONOMICAL_TWILIGHT_ANGLE,
   );
 
   // Calculate moon data
@@ -67,7 +64,7 @@ export function calculateAstronomicalEvents(
     twilightData,
     location,
     date,
-    0.3 // Decent viewing threshold
+    0.3, // Decent viewing threshold
   );
 
   // Calculate visibility rating
@@ -76,7 +73,7 @@ export function calculateAstronomicalEvents(
   if (optimalWindow.startTime) {
     gcDataForRating = calculateGalacticCenterData(
       optimalWindow.startTime,
-      location
+      location,
     );
   }
 
@@ -85,7 +82,7 @@ export function calculateAstronomicalEvents(
     moonData,
     twilightData,
     location,
-    date
+    date,
   );
 
   // Return all events with visibility rating

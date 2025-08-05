@@ -49,7 +49,7 @@ function calculateIntegratedOptimalWindow(
   moonIllumination: number,
   gcRise: Date | null,
   gcSet: Date | null,
-  scoreThreshold: number = 0.5 // Minimum score for "good" viewing
+  scoreThreshold: number = 0.5, // Minimum score for "good" viewing
 ): OptimalViewingWindow {
   if (!nightStart || !nightEnd || !gcRise || !gcSet) {
     return {
@@ -99,7 +99,7 @@ function calculateIntegratedOptimalWindow(
   // Find continuous periods above threshold
   const qualityPeriods = findQualityPeriods(
     scoringResult.curve,
-    scoreThreshold
+    scoreThreshold,
   );
 
   if (qualityPeriods.length === 0) {
@@ -156,7 +156,7 @@ function calculateIntegratedOptimalWindow(
 
 function findQualityPeriods(
   curve: VisibilitySample[],
-  threshold: number
+  threshold: number,
 ): QualityPeriod[] {
   const periods: QualityPeriod[] = [];
   let currentPeriodStart: Date | null = null;
@@ -176,7 +176,7 @@ function findQualityPeriods(
       if (currentPeriodStart && currentPeriodSamples.length > 0) {
         const period = createQualityPeriod(
           currentPeriodStart,
-          currentPeriodSamples
+          currentPeriodSamples,
         );
         if (period.duration >= 0.25) {
           // At least 15 minutes
@@ -192,7 +192,7 @@ function findQualityPeriods(
   if (currentPeriodStart && currentPeriodSamples.length > 0) {
     const period = createQualityPeriod(
       currentPeriodStart,
-      currentPeriodSamples
+      currentPeriodSamples,
     );
     if (period.duration >= 0.25) {
       periods.push(period);
@@ -203,7 +203,7 @@ function findQualityPeriods(
 }
 
 function findBestAvailablePeriod(
-  curve: VisibilitySample[]
+  curve: VisibilitySample[],
 ): QualityPeriod | null {
   if (curve.length === 0) return null;
 
@@ -228,7 +228,7 @@ function findBestAvailablePeriod(
 
 function findBestPeriodWithMinDuration(
   curve: VisibilitySample[],
-  minDurationHours: number
+  minDurationHours: number,
 ): QualityPeriod | null {
   let bestPeriod: QualityPeriod | null = null;
   let bestScore = 0;
@@ -255,7 +255,7 @@ function findBestPeriodWithMinDuration(
 
 function createQualityPeriod(
   start: Date,
-  samples: VisibilitySample[]
+  samples: VisibilitySample[],
 ): QualityPeriod {
   const end = samples[samples.length - 1].time;
   const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60); // hours
@@ -290,7 +290,7 @@ function emptyWindow(description: string): OptimalViewingWindow {
 
 export function formatOptimalViewingTime(
   window: OptimalViewingWindow,
-  location?: Location
+  location?: Location,
 ): string {
   if (!window.startTime) {
     return "";
@@ -312,7 +312,7 @@ export function formatOptimalViewingTime(
 }
 
 export function formatOptimalViewingDuration(
-  window: OptimalViewingWindow
+  window: OptimalViewingWindow,
 ): string {
   if (window.duration <= 0 || !window.startTime) {
     return "";
@@ -340,7 +340,7 @@ export function getOptimalViewingWindow(
   twilightData: TwilightData,
   location: Location,
   date: Date,
-  qualityThreshold: number = APP_CONFIG.QUALITY.MIN_DECENT_VIEWING_SCORE // Minimum score for decent viewing
+  qualityThreshold: number = APP_CONFIG.QUALITY.MIN_DECENT_VIEWING_SCORE, // Minimum score for decent viewing
 ): OptimalViewingWindow {
   // First check basic requirements
   if (!gcData.riseTime) {
@@ -358,7 +358,7 @@ export function getOptimalViewingWindow(
     moonData.illumination,
     gcData.riseTime,
     gcData.setTime,
-    qualityThreshold
+    qualityThreshold,
   );
 
   // If integrated analysis found quality periods, use those results
@@ -373,8 +373,15 @@ export function getOptimalViewingWindow(
   const darkEnd = new Date(twilightData.nightEnd);
 
   // Calculate simple intersection
-  const windowStart = new Date(Math.max(gcStart.getTime(), darkStart.getTime()));
-  const windowEnd = new Date(Math.min(gcEnd?.getTime() || gcStart.getTime() + 8*60*60*1000, darkEnd.getTime()));
+  const windowStart = new Date(
+    Math.max(gcStart.getTime(), darkStart.getTime()),
+  );
+  const windowEnd = new Date(
+    Math.min(
+      gcEnd?.getTime() || gcStart.getTime() + 8 * 60 * 60 * 1000,
+      darkEnd.getTime(),
+    ),
+  );
 
   // If there's no overlap at all, return the scientific analysis result
   if (windowStart >= windowEnd) {
@@ -382,8 +389,9 @@ export function getOptimalViewingWindow(
   }
 
   // There is overlap, but conditions are poor - provide basic window with warning
-  const duration = (windowEnd.getTime() - windowStart.getTime()) / (1000 * 60 * 60);
-  
+  const duration =
+    (windowEnd.getTime() - windowStart.getTime()) / (1000 * 60 * 60);
+
   return {
     startTime: windowStart,
     endTime: windowEnd,
@@ -391,6 +399,6 @@ export function getOptimalViewingWindow(
     averageScore: 0.1, // Very low score to indicate poor conditions
     bestTime: integratedResult.bestTime,
     qualityPeriods: [],
-    description: "Poor viewing conditions (basic time overlap only)"
+    description: "Poor viewing conditions (basic time overlap only)",
   };
 }

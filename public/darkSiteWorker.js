@@ -1,6 +1,6 @@
 /**
  * Web Worker for Dark Site Search
- * 
+ *
  * This worker handles the heavy computation of finding dark sky sites
  * without blocking the main UI thread.
  */
@@ -21,22 +21,22 @@ const EARTH_RADIUS_KM = 6371;
 
 // Grayscale to Bortle scale lookup for the optimized grayscale format
 const GRAYSCALE_TO_BORTLE = new Map([
-  [0, 9],     // Black (water/no-data)
-  [10, 1],    // Pristine dark sky
-  [20, 1.5],  // Excellent dark sky
-  [30, 2],    // Typical dark sky
-  [40, 2.5],  // Rural sky
-  [50, 3],    // Rural/suburban transition
-  [70, 3.5],  // Suburban sky
-  [90, 4],    // Suburban/urban transition
+  [0, 9], // Black (water/no-data)
+  [10, 1], // Pristine dark sky
+  [20, 1.5], // Excellent dark sky
+  [30, 2], // Typical dark sky
+  [40, 2.5], // Rural sky
+  [50, 3], // Rural/suburban transition
+  [70, 3.5], // Suburban sky
+  [90, 4], // Suburban/urban transition
   [110, 4.5], // Light suburban sky
-  [130, 5],   // Suburban sky
+  [130, 5], // Suburban sky
   [150, 5.5], // Bright suburban sky
-  [170, 6],   // Bright suburban sky
+  [170, 6], // Bright suburban sky
   [190, 6.5], // Suburban/urban transition
-  [210, 7],   // Urban sky
+  [210, 7], // Urban sky
   [230, 7.5], // City sky
-  [240, 8],   // Inner city sky
+  [240, 8], // Inner city sky
 ]);
 
 // Legacy RGB colormap (kept for reference)
@@ -155,7 +155,7 @@ function rgbToBortleScale(r, g, b) {
   for (const colorEntry of LIGHT_POLLUTION_COLORMAP) {
     const [mapR, mapG, mapB] = colorEntry;
     const distance = Math.sqrt(
-      (r - mapR) ** 2 + (g - mapG) ** 2 + (b - mapB) ** 2
+      (r - mapR) ** 2 + (g - mapG) ** 2 + (b - mapB) ** 2,
     );
 
     if (distance < minDistance) {
@@ -245,25 +245,45 @@ function calculateBearing(from, to) {
 
 // Unified cache configuration (shared with main thread)
 const CACHE_CONFIG = {
-  NAME: 'milky-way-map-images-v1', // Updated to match unified cache service
+  NAME: "milky-way-map-images-v1", // Updated to match unified cache service
   MAX_AGE_MS: 7 * 24 * 60 * 60 * 1000, // 7 days
-  
+
   // All available map image formats in order of preference
   IMAGE_OPTIONS: [
     // Grayscale version for Bortle calculations (optimized, smallest size)
-    { path: '/world2024B-lg-grayscale.png', format: 'grayscale', size: 'large', priority: 1 },
-    
+    {
+      path: "/world2024B-lg-grayscale.png",
+      format: "grayscale",
+      size: "large",
+      priority: 1,
+    },
+
     // Color versions for visual display (fallbacks for grayscale calculations)
-    { path: '/world2024B-lg.png', format: 'color', size: 'large', priority: 2 },
-    { path: '/world2024B-md.webp', format: 'color', size: 'medium', priority: 3 },
-    { path: '/world2024B-md.jpg', format: 'color', size: 'medium', priority: 4 },
-    { path: '/world2024B-sm.webp', format: 'color', size: 'small', priority: 5 },
-    { path: '/world2024B-sm.jpg', format: 'color', size: 'small', priority: 6 },
+    { path: "/world2024B-lg.png", format: "color", size: "large", priority: 2 },
+    {
+      path: "/world2024B-md.webp",
+      format: "color",
+      size: "medium",
+      priority: 3,
+    },
+    {
+      path: "/world2024B-md.jpg",
+      format: "color",
+      size: "medium",
+      priority: 4,
+    },
+    {
+      path: "/world2024B-sm.webp",
+      format: "color",
+      size: "small",
+      priority: 5,
+    },
+    { path: "/world2024B-sm.jpg", format: "color", size: "small", priority: 6 },
   ],
-  
+
   // Default fallbacks
-  DEFAULT_GRAYSCALE: '/world2024B-lg-grayscale.png',
-  DEFAULT_COLOR: '/world2024B-md.jpg',
+  DEFAULT_GRAYSCALE: "/world2024B-lg-grayscale.png",
+  DEFAULT_COLOR: "/world2024B-md.jpg",
 };
 
 // In-memory cache for processed image data to avoid re-processing
@@ -277,7 +297,7 @@ async function openCache() {
   try {
     return await caches.open(CACHE_CONFIG.NAME);
   } catch (error) {
-    console.warn('Cache API not available, falling back to direct fetch');
+    console.warn("Cache API not available, falling back to direct fetch");
     return null;
   }
 }
@@ -287,14 +307,14 @@ async function openCache() {
  */
 async function getCachedResponse(url) {
   const cache = await openCache();
-  
+
   if (cache) {
     try {
       const cachedResponse = await cache.match(url);
-      
+
       if (cachedResponse) {
         // Check if cache is still valid
-        const cachedDate = cachedResponse.headers.get('cached-date');
+        const cachedDate = cachedResponse.headers.get("cached-date");
         if (cachedDate) {
           const age = Date.now() - parseInt(cachedDate);
           if (age < CACHE_CONFIG.MAX_AGE_MS) {
@@ -306,37 +326,37 @@ async function getCachedResponse(url) {
         }
       }
     } catch (error) {
-      console.warn('Error reading from cache:', error);
+      console.warn("Error reading from cache:", error);
     }
   }
-  
+
   // Fetch from network
   const response = await fetch(url);
-  
+
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  
+
   // Store in cache if available
   if (cache) {
     try {
       // Clone response and add cache timestamp
       const responseToCache = response.clone();
       const headers = new Headers(responseToCache.headers);
-      headers.set('cached-date', Date.now().toString());
-      
+      headers.set("cached-date", Date.now().toString());
+
       const cachedResponse = new Response(responseToCache.body, {
         status: responseToCache.status,
         statusText: responseToCache.statusText,
         headers: headers,
       });
-      
+
       await cache.put(url, cachedResponse);
     } catch (error) {
-      console.warn('Error storing in cache:', error);
+      console.warn("Error storing in cache:", error);
     }
   }
-  
+
   return response;
 }
 
@@ -352,48 +372,52 @@ async function clearImageCache() {
         await cache.delete(option.path);
       }
     }
-    
+
     // Clear in-memory cache
     imageDataCache = null;
     cacheTimestamp = null;
-    
+
     return true;
   } catch (error) {
-    console.warn('Error clearing image cache:', error);
+    console.warn("Error clearing image cache:", error);
     return false;
   }
 }
-
 
 /**
  * Get the best available image format based on cache and network conditions
  * Prioritizes grayscale format for Bortle calculations in worker context
  */
-async function getBestImagePath(format = 'grayscale', preferredSize = 'large') {
+async function getBestImagePath(format = "grayscale", preferredSize = "large") {
   const cache = await openCache();
-  
+
   // Filter images by format
-  let candidates = CACHE_CONFIG.IMAGE_OPTIONS.filter(opt => opt.format === format);
-  
+  let candidates = CACHE_CONFIG.IMAGE_OPTIONS.filter(
+    (opt) => opt.format === format,
+  );
+
   // Filter by preferred size if specified
   if (preferredSize) {
-    const sizeFiltered = candidates.filter(opt => opt.size === preferredSize);
+    const sizeFiltered = candidates.filter((opt) => opt.size === preferredSize);
     if (sizeFiltered.length > 0) {
       candidates = sizeFiltered;
     }
   }
-  
+
   // Sort by priority
   candidates.sort((a, b) => a.priority - b.priority);
-  
+
   if (cache) {
     // Check which images are already cached (prefer cached over network)
     for (const option of candidates) {
       try {
         const cachedResponse = await cache.match(option.path);
         if (cachedResponse) {
-          const cachedDate = cachedResponse.headers.get('cached-date');
-          if (cachedDate && (Date.now() - parseInt(cachedDate)) < CACHE_CONFIG.MAX_AGE_MS) {
+          const cachedDate = cachedResponse.headers.get("cached-date");
+          if (
+            cachedDate &&
+            Date.now() - parseInt(cachedDate) < CACHE_CONFIG.MAX_AGE_MS
+          ) {
             return option.path;
           }
         }
@@ -402,49 +426,62 @@ async function getBestImagePath(format = 'grayscale', preferredSize = 'large') {
       }
     }
   }
-  
+
   // No cached version available, use best candidate or fallback
   if (candidates.length > 0) {
     return candidates[0].path;
   }
-  
+
   // Fallback to defaults
-  return format === 'grayscale' ? CACHE_CONFIG.DEFAULT_GRAYSCALE : CACHE_CONFIG.DEFAULT_COLOR;
+  return format === "grayscale"
+    ? CACHE_CONFIG.DEFAULT_GRAYSCALE
+    : CACHE_CONFIG.DEFAULT_COLOR;
 }
 
 /**
  * Load the light pollution map image with caching and format selection
  */
-async function loadLightPollutionMap(preferredSize = 'large') {
+async function loadLightPollutionMap(preferredSize = "large") {
   // Check in-memory cache first
-  if (imageDataCache && cacheTimestamp && 
-      (Date.now() - cacheTimestamp) < CACHE_CONFIG.MAX_AGE_MS) {
+  if (
+    imageDataCache &&
+    cacheTimestamp &&
+    Date.now() - cacheTimestamp < CACHE_CONFIG.MAX_AGE_MS
+  ) {
     return imageDataCache;
   }
 
   return new Promise(async (resolve, reject) => {
     try {
       const canvas = new OffscreenCanvas(1, 1);
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
 
       if (!ctx) {
-        reject(new Error('Failed to get canvas context'));
+        reject(new Error("Failed to get canvas context"));
         return;
       }
 
       // Determine which image to load (prioritize grayscale for worker calculations)
-      const imagePath = await getBestImagePath('grayscale', preferredSize || 'large');
+      const imagePath = await getBestImagePath(
+        "grayscale",
+        preferredSize || "large",
+      );
 
       // Get cached or fresh response
       const response = await getCachedResponse(imagePath);
       const blob = await response.blob();
       const imageBitmap = await createImageBitmap(blob);
-      
+
       canvas.width = imageBitmap.width;
       canvas.height = imageBitmap.height;
       ctx.drawImage(imageBitmap, 0, 0);
 
-      const imageData = ctx.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
+      const imageData = ctx.getImageData(
+        0,
+        0,
+        imageBitmap.width,
+        imageBitmap.height,
+      );
 
       const result = {
         imageData,
@@ -479,7 +516,7 @@ async function findNearestDarkSky(startCoord, maxDistance, knownSites) {
 
     const maxPixelDistance = Math.round(
       ((maxDistance / EARTH_RADIUS_KM) * Math.max(width, height)) /
-        (2 * Math.PI)
+        (2 * Math.PI),
     );
     let processedPixels = 0;
     const totalEstimatedPixels = Math.PI * maxPixelDistance * maxPixelDistance;
@@ -498,7 +535,7 @@ async function findNearestDarkSky(startCoord, maxDistance, knownSites) {
       if (processedPixels % APP_CONFIG.SEARCH.PROGRESS_UPDATE_INTERVAL === 0) {
         const progress = Math.min(processedPixels / totalEstimatedPixels, 0.95);
         self.postMessage({
-          type: 'progress',
+          type: "progress",
           progress,
         });
       }
@@ -516,7 +553,7 @@ async function findNearestDarkSky(startCoord, maxDistance, knownSites) {
       if (isDarkSky(bortleScale)) {
         const actualDistance = haversineDistance(startCoord, coord);
 
-        self.postMessage({ type: 'progress', progress: 1 });
+        self.postMessage({ type: "progress", progress: 1 });
 
         const result = {
           coordinate: coord,
@@ -560,13 +597,13 @@ async function findNearestDarkSky(startCoord, maxDistance, knownSites) {
             const neighborCoord = pixelToCoord(neighbor, width, height);
             const neighborDistance = haversineDistance(
               startCoord,
-              neighborCoord
+              neighborCoord,
             );
 
             if (neighborDistance <= maxDistance) {
               queue.enqueue(
                 { pixel: neighbor, distance: neighborDistance },
-                neighborDistance
+                neighborDistance,
               );
             }
           }
@@ -574,7 +611,7 @@ async function findNearestDarkSky(startCoord, maxDistance, knownSites) {
       }
     }
 
-    self.postMessage({ type: 'progress', progress: 1 });
+    self.postMessage({ type: "progress", progress: 1 });
     return null;
   } catch (error) {
     throw new Error(`Error finding nearest dark sky: ${error.message}`);
@@ -592,7 +629,7 @@ async function findDarkSiteInDirection(
   width,
   height,
   excludeCoords,
-  knownSites
+  knownSites,
 ) {
   const visited = new Set();
   const queue = new PriorityQueue();
@@ -609,14 +646,14 @@ async function findDarkSiteInDirection(
 
     const lat2Rad = Math.asin(
       Math.sin(lat1Rad) * Math.cos(searchDistance / R) +
-        Math.cos(lat1Rad) * Math.sin(searchDistance / R) * Math.cos(bearingRad)
+        Math.cos(lat1Rad) * Math.sin(searchDistance / R) * Math.cos(bearingRad),
     );
 
     const lng2Rad =
       lng1Rad +
       Math.atan2(
         Math.sin(bearingRad) * Math.sin(searchDistance / R) * Math.cos(lat1Rad),
-        Math.cos(searchDistance / R) - Math.sin(lat1Rad) * Math.sin(lat2Rad)
+        Math.cos(searchDistance / R) - Math.sin(lat1Rad) * Math.sin(lat2Rad),
       );
 
     const searchCoord = {
@@ -633,7 +670,7 @@ async function findDarkSiteInDirection(
   }
 
   const maxPixelDistance = Math.round(
-    ((maxDistance / 6371) * Math.max(width, height)) / (2 * Math.PI)
+    ((maxDistance / 6371) * Math.max(width, height)) / (2 * Math.PI),
   );
   let processedPixels = 0;
   const totalEstimatedPixels = Math.PI * maxPixelDistance * maxPixelDistance;
@@ -654,7 +691,7 @@ async function findDarkSiteInDirection(
 
     // Check if this coordinate is too close to excluded coordinates
     const tooClose = excludeCoords.some(
-      (excludeCoord) => haversineDistance(coord, excludeCoord) < 2
+      (excludeCoord) => haversineDistance(coord, excludeCoord) < 2,
     );
 
     if (tooClose) continue;
@@ -710,7 +747,7 @@ async function findDarkSiteInDirection(
           if (neighborDistance <= maxDistance) {
             queue.enqueue(
               { pixel: neighbor, distance: neighborDistance },
-              neighborDistance
+              neighborDistance,
             );
           }
         }
@@ -727,7 +764,11 @@ async function findDarkSiteInDirection(
 async function findMultipleDarkSites(startCoord, maxDistance, knownSites) {
   try {
     // First, find the nearest dark site
-    const primary = await findNearestDarkSky(startCoord, maxDistance, knownSites);
+    const primary = await findNearestDarkSky(
+      startCoord,
+      maxDistance,
+      knownSites,
+    );
 
     if (!primary) return null;
 
@@ -758,18 +799,21 @@ async function findMultipleDarkSites(startCoord, maxDistance, knownSites) {
           width,
           height,
           [primary.coordinate, ...alternatives.map((alt) => alt.coordinate)],
-          knownSites
+          knownSites,
         );
 
         if (result) {
           alternatives.push(result);
         }
       } catch (error) {
-        console.warn(`Failed to find dark site in direction ${bearing}°:`, error);
+        console.warn(
+          `Failed to find dark site in direction ${bearing}°:`,
+          error,
+        );
       }
     }
 
-    self.postMessage({ type: 'progress', progress: 1 });
+    self.postMessage({ type: "progress", progress: 1 });
 
     return {
       primary,
@@ -788,12 +832,12 @@ async function getBortleRatingForLocation(coord) {
     const { imageData, width, height } = await loadLightPollutionMap();
     const pixel = coordToPixel(coord, width, height);
     const grayValue = getGrayscalePixelData(imageData, pixel);
-    
+
     // Skip pure black pixels (water/no-data areas)
     if (grayValue === 0) {
       return null;
     }
-    
+
     return grayscaleToBortleScale(grayValue);
   } catch (error) {
     throw new Error(`Error getting Bortle rating: ${error.message}`);
@@ -801,34 +845,34 @@ async function getBortleRatingForLocation(coord) {
 }
 
 // Message handler
-self.addEventListener('message', async (event) => {
+self.addEventListener("message", async (event) => {
   const { type, data, id } = event.data;
 
   try {
     let result;
 
     switch (type) {
-      case 'findNearestDarkSky':
+      case "findNearestDarkSky":
         result = await findNearestDarkSky(
           data.startCoord,
           data.maxDistance || APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
-          data.knownSites
+          data.knownSites,
         );
         break;
 
-      case 'findMultipleDarkSites':
+      case "findMultipleDarkSites":
         result = await findMultipleDarkSites(
           data.startCoord,
           data.maxDistance || APP_CONFIG.SEARCH.DEFAULT_RADIUS_KM,
-          data.knownSites
+          data.knownSites,
         );
         break;
 
-      case 'getBortleRatingForLocation':
+      case "getBortleRatingForLocation":
         result = await getBortleRatingForLocation(data.coord);
         break;
 
-      case 'clearImageCache':
+      case "clearImageCache":
         result = await clearImageCache();
         break;
 
@@ -838,14 +882,14 @@ self.addEventListener('message', async (event) => {
 
     // Send success response
     self.postMessage({
-      type: 'success',
+      type: "success",
       id,
       result,
     });
   } catch (error) {
     // Send error response
     self.postMessage({
-      type: 'error',
+      type: "error",
       id,
       error: error.message,
     });

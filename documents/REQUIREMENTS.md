@@ -258,7 +258,6 @@ The website should include a FAQ section:
   method:
 
   2.2. Preprocess the Map
-
   - Georeference the image so each pixel maps to a latitude/longitude.
   - If your image is an equirectangular projection (likely), then:
     - lon = (x / width) \* 360 - 180
@@ -285,7 +284,6 @@ The website should include a FAQ section:
   | 8            | <18.00            |
 
   2.3. Define “Darkness”
-
   - Convert RGB to brightness (e.g., grayscale luminance or custom mapping of
     colors to Bortle scale values).
 

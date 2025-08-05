@@ -22,7 +22,7 @@ interface UseLocationManagerReturn {
   handleInputChange: (value: string) => void;
   handleMapClick: (
     newLocation: Location,
-    isCurrentlyDragging?: boolean
+    isCurrentlyDragging?: boolean,
   ) => void;
   handleDragStart: () => void;
   handleDragEnd: () => void;
@@ -40,7 +40,7 @@ export function useLocationManager({
   const [inputValue, setInputValue] = useState("");
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [suggestedLocation, setSuggestedLocation] = useState<Location | null>(
-    null
+    null,
   );
   const [isNearbyMatch, setIsNearbyMatch] = useState<boolean>(false);
   const [dragLocation, setDragLocation] = useState<Location | null>(null);
@@ -60,8 +60,8 @@ export function useLocationManager({
       } else {
         setInputValue(
           `${savedLocationData.latlong.lat.toFixed(
-            1
-          )}, ${savedLocationData.latlong.lng.toFixed(1)}`
+            1,
+          )}, ${savedLocationData.latlong.lng.toFixed(1)}`,
         );
         setSuggestion(null);
       }
@@ -80,7 +80,7 @@ export function useLocationManager({
         setIsNearbyMatch(false);
       } else {
         setInputValue(
-          `${initialLocation.lat.toFixed(1)}, ${initialLocation.lng.toFixed(1)}`
+          `${initialLocation.lat.toFixed(1)}, ${initialLocation.lng.toFixed(1)}`,
         );
         setSuggestion(null);
         setIsNearbyMatch(false);
@@ -149,7 +149,7 @@ export function useLocationManager({
       const distanceThreshold = isFromGeolocation ? 5 : 100;
       const nearbyLocation = findNearestSpecialLocation(
         newLocation,
-        distanceThreshold
+        distanceThreshold,
       );
 
       // Show nearby location name if found, otherwise show coordinates
@@ -157,7 +157,7 @@ export function useLocationManager({
         setInputValue(nearbyLocation.matchedName);
       } else {
         setInputValue(
-          `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
+          `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`,
         );
       }
       setSuggestion(null);
@@ -165,7 +165,7 @@ export function useLocationManager({
       // Save with nearby location name for description purposes, but keep exact coordinates
       saveLocation(newLocation, nearbyLocation?.matchedName ?? null);
     },
-    [saveLocation]
+    [saveLocation],
   );
 
   const handleMapClick = useCallback(
@@ -175,7 +175,7 @@ export function useLocationManager({
         setDragLocation(newLocation);
         // Update input value to show coordinates during drag
         setInputValue(
-          `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`
+          `${newLocation.lat.toFixed(1)}, ${newLocation.lng.toFixed(1)}`,
         );
       } else {
         // Normal click or drag end - update everything
@@ -183,7 +183,7 @@ export function useLocationManager({
         onLocationChange(newLocation, true); // Close popover on map click
       }
     },
-    [updateLocationState, onLocationChange]
+    [updateLocationState, onLocationChange],
   );
 
   const handleDragStart = useCallback(() => {
@@ -246,7 +246,7 @@ export function useLocationManager({
       updateLocationState(location, true);
       onLocationChange(location, true); // Close popover
     },
-    [onLocationChange, updateLocationState]
+    [onLocationChange, updateLocationState],
   );
 
   return {

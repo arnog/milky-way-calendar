@@ -14,35 +14,40 @@ import {
  */
 export function useAstronomicalData(
   currentDate?: Date,
-  config: AstronomicalDataTableConfig = { mode: 'daily' }
+  config: AstronomicalDataTableConfig = { mode: "daily" },
 ): UseAstronomicalDataResult {
   const { location } = useLocation();
   const [items, setItems] = useState<AstronomicalDataItem[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [itemsLoaded, setItemsLoaded] = useState(0);
-  
+
   // Default config values
   const {
     mode,
-    initialItemCount = mode === 'daily' ? 7 : 12,
-    itemsPerBatch = mode === 'daily' ? 7 : 12,
-    maxItems = mode === 'daily' ? 30 : 260,
-    filterZeroVisibility = mode === 'weekly'
+    initialItemCount = mode === "daily" ? 7 : 12,
+    itemsPerBatch = mode === "daily" ? 7 : 12,
+    maxItems = mode === "daily" ? 30 : 260,
+    filterZeroVisibility = mode === "weekly",
   } = config;
 
   /**
    * Load daily astronomical data
    */
   const loadDailyData = useCallback(
-    async (startOffset: number, count: number): Promise<AstronomicalDataItem[]> => {
+    async (
+      startOffset: number,
+      count: number,
+    ): Promise<AstronomicalDataItem[]> => {
       if (!location) return [];
-      
+
       const today = currentDate || new Date();
       const data: AstronomicalDataItem[] = [];
 
       for (let i = 0; i < count; i++) {
-        const date = new Date(today.getTime() + (startOffset + i) * APP_CONFIG.ASTRONOMY.MS_PER_DAY);
+        const date = new Date(
+          today.getTime() + (startOffset + i) * APP_CONFIG.ASTRONOMY.MS_PER_DAY,
+        );
 
         try {
           const events = calculateAstronomicalEvents(date, location);
@@ -66,29 +71,35 @@ export function useAstronomicalData(
             moonIllumination: events.moonIllumination / 100, // Convert to 0-1 range
           });
         } catch (error) {
-          console.error(`Error calculating daily data for ${date.toDateString()}:`, error);
+          console.error(
+            `Error calculating daily data for ${date.toDateString()}:`,
+            error,
+          );
         }
       }
 
       return data;
     },
-    [location, currentDate]
+    [location, currentDate],
   );
 
   /**
    * Load weekly astronomical data
    */
   const loadWeeklyData = useCallback(
-    async (startWeek: number, count: number): Promise<AstronomicalDataItem[]> => {
+    async (
+      startWeek: number,
+      count: number,
+    ): Promise<AstronomicalDataItem[]> => {
       if (!location) return [];
-      
+
       const today = currentDate || new Date();
       const data: AstronomicalDataItem[] = [];
-      
+
       const currentWeekNumber =
         Math.floor(
           (today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) /
-            (7 * APP_CONFIG.ASTRONOMY.MS_PER_DAY)
+            (7 * APP_CONFIG.ASTRONOMY.MS_PER_DAY),
         ) + 1;
 
       for (let i = 0; i < count; i++) {
@@ -118,27 +129,33 @@ export function useAstronomicalData(
             data.push(item);
           }
         } catch (error) {
-          console.error(`Error calculating weekly data for week starting ${startDate.toDateString()}:`, error);
+          console.error(
+            `Error calculating weekly data for week starting ${startDate.toDateString()}:`,
+            error,
+          );
         }
       }
 
       return data;
     },
-    [location, currentDate, filterZeroVisibility]
+    [location, currentDate, filterZeroVisibility],
   );
 
   /**
    * Load data based on mode
    */
   const loadData = useCallback(
-    async (startIndex: number, count: number): Promise<AstronomicalDataItem[]> => {
-      if (mode === 'daily') {
+    async (
+      startIndex: number,
+      count: number,
+    ): Promise<AstronomicalDataItem[]> => {
+      if (mode === "daily") {
         return loadDailyData(startIndex, count);
       } else {
         return loadWeeklyData(startIndex + 1, count); // Weekly mode uses 1-based indexing
       }
     },
-    [mode, loadDailyData, loadWeeklyData]
+    [mode, loadDailyData, loadWeeklyData],
   );
 
   /**
@@ -158,8 +175,8 @@ export function useAstronomicalData(
       setItems(initialData);
       setItemsLoaded(initialItemCount);
     } catch (err) {
-      console.error('Error loading initial astronomical data:', err);
-      setError('Failed to load astronomical data');
+      console.error("Error loading initial astronomical data:", err);
+      setError("Failed to load astronomical data");
     }
   }, [location, loadData, initialItemCount]);
 
@@ -173,11 +190,11 @@ export function useAstronomicalData(
 
     try {
       const moreData = await loadData(itemsLoaded, itemsPerBatch);
-      setItems(prev => [...prev, ...moreData]);
-      setItemsLoaded(prev => prev + itemsPerBatch);
+      setItems((prev) => [...prev, ...moreData]);
+      setItemsLoaded((prev) => prev + itemsPerBatch);
     } catch (err) {
-      console.error('Error loading more astronomical data:', err);
-      setError('Failed to load more data');
+      console.error("Error loading more astronomical data:", err);
+      setError("Failed to load more data");
     } finally {
       setIsLoadingMore(false);
     }

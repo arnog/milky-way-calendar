@@ -5,20 +5,13 @@ interface DailyAstroTableProps {
   currentDate?: Date;
 }
 
-export default function DailyAstroTable({
-  currentDate,
-}: DailyAstroTableProps) {
+export default function DailyAstroTable({ currentDate }: DailyAstroTableProps) {
   const config: AstronomicalDataTableConfig = {
-    mode: 'daily',
+    mode: "daily",
     showExpandableDetails: true,
     title: "Next 7 Days",
     initialItemCount: 7,
   };
 
-  return (
-    <AstronomicalDataTable
-      currentDate={currentDate}
-      config={config}
-    />
-  );
+  return <AstronomicalDataTable currentDate={currentDate} config={config} />;
 }

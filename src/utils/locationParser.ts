@@ -34,7 +34,7 @@ export function parseLocationInput(input: string): ParsedLocation | null {
 
   // Try decimal degrees: "lat, lng" or "lat,lng" "or "lat lng"
   const decimalMatch = trimmed.match(
-    /^(-?\d+\.?\d*)\s*(?:,\s*|\s+)(-?\d+\.?\d*)$/
+    /^(-?\d+\.?\d*)\s*(?:,\s*|\s+)(-?\d+\.?\d*)$/,
   );
   if (decimalMatch) {
     const lat = parseFloat(decimalMatch[1]);
@@ -46,20 +46,20 @@ export function parseLocationInput(input: string): ParsedLocation | null {
 
   // Try DMS format: "37° 46' 30.64" N, 122° 25' 9.84" W"
   const dmsMatch = trimmed.match(
-    /(\d+)°\s*(\d+)'\s*([\d.]+)"\s*([NS])\s*(?:,\s*|\s+)(\d+)°\s*(\d+)'\s*([\d.]+)"\s*([EW])/i
+    /(\d+)°\s*(\d+)'\s*([\d.]+)"\s*([NS])\s*(?:,\s*|\s+)(\d+)°\s*(\d+)'\s*([\d.]+)"\s*([EW])/i,
   );
   if (dmsMatch) {
     const lat = dmsToDecimal(
       parseInt(dmsMatch[1]),
       parseInt(dmsMatch[2]),
       parseFloat(dmsMatch[3]),
-      dmsMatch[4].toUpperCase()
+      dmsMatch[4].toUpperCase(),
     );
     const lng = dmsToDecimal(
       parseInt(dmsMatch[5]),
       parseInt(dmsMatch[6]),
       parseFloat(dmsMatch[7]),
-      dmsMatch[8].toUpperCase()
+      dmsMatch[8].toUpperCase(),
     );
     if (isValidCoordinate(lat, lng)) {
       return { location: { lat, lng } };
@@ -68,18 +68,18 @@ export function parseLocationInput(input: string): ParsedLocation | null {
 
   // Try DDM format: "37° 46.510' N, 122° 25.164' W"
   const ddmMatch = trimmed.match(
-    /(\d+)°\s*([\d.]+)'\s*([NS])\s*(?:,\s*|\s+)(\d+)°\s*([\d.]+)'\s*([EW])/i
+    /(\d+)°\s*([\d.]+)'\s*([NS])\s*(?:,\s*|\s+)(\d+)°\s*([\d.]+)'\s*([EW])/i,
   );
   if (ddmMatch) {
     const lat = ddmToDecimal(
       parseInt(ddmMatch[1]),
       parseFloat(ddmMatch[2]),
-      ddmMatch[3].toUpperCase()
+      ddmMatch[3].toUpperCase(),
     );
     const lng = ddmToDecimal(
       parseInt(ddmMatch[4]),
       parseFloat(ddmMatch[5]),
-      ddmMatch[6].toUpperCase()
+      ddmMatch[6].toUpperCase(),
     );
     if (isValidCoordinate(lat, lng)) {
       return { location: { lat, lng } };
@@ -117,7 +117,7 @@ function findMatchingLocation(input: string): ParsedLocation | null {
     const wordMatches = words.every((word) => {
       const wordRegex = new RegExp(
         `\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
-        "i"
+        "i",
       );
       return wordRegex.test(normalizedFullName);
     });
@@ -142,7 +142,7 @@ function dmsToDecimal(
   degrees: number,
   minutes: number,
   seconds: number,
-  direction: string
+  direction: string,
 ): number {
   const decimal = degrees + minutes / 60 + seconds / 3600;
   return direction === "S" || direction === "W" ? -decimal : decimal;
@@ -152,7 +152,7 @@ function dmsToDecimal(
 function ddmToDecimal(
   degrees: number,
   minutes: number,
-  direction: string
+  direction: string,
 ): number {
   const decimal = degrees + minutes / 60;
   return direction === "S" || direction === "W" ? -decimal : decimal;
@@ -185,7 +185,7 @@ function toRad(deg: number): number {
 // Find nearest special location within threshold
 export function findNearestSpecialLocation(
   location: Location,
-  thresholdKm: number = 100
+  thresholdKm: number = 100,
 ): ParsedLocation | null {
   let nearest: ParsedLocation | null = null;
   let minDistance = thresholdKm;
@@ -215,7 +215,7 @@ export function findNearestSpecialLocation(
 // Get special location description by finding matching location identifier
 export function getSpecialLocationDescription(
   location: Location,
-  matchedLocationName?: string | null
+  matchedLocationName?: string | null,
 ): string | null {
   // Check for high latitude locations first (>60°N)
   if (location.lat > 60) {
@@ -247,11 +247,17 @@ export function getSpecialLocationDescription(
       if (matchedLocationName) {
         const locationSlug = loc[1] as string; // Short name/slug
         const locationFullName = loc[0] as string; // Full name
-        
+
         // Check if the matched name corresponds to this location
-        if (matchedLocationName === locationSlug || 
-            matchedLocationName.toLowerCase().includes(locationFullName.toLowerCase()) ||
-            locationFullName.toLowerCase().includes(matchedLocationName.toLowerCase())) {
+        if (
+          matchedLocationName === locationSlug ||
+          matchedLocationName
+            .toLowerCase()
+            .includes(locationFullName.toLowerCase()) ||
+          locationFullName
+            .toLowerCase()
+            .includes(matchedLocationName.toLowerCase())
+        ) {
           const identifier = loc[4];
           return SPECIAL_LOCATION_DESCRIPTIONS[identifier] || null;
         }

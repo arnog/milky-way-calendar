@@ -12,17 +12,15 @@
   --glow: #b2e3ff;
   --background: #0b0e16;
   --data-font-family: "Rubik", sans-serif;
-  
+
   /* Astronomical arc colors */
-  --sun-twilight: #FFA500; /* Orange */
+  --sun-twilight: #ffa500; /* Orange */
   --sun-night: #1a2744; /* Dark blue */
-  --sun-dawn: #FFD700; /* Yellow */
-  --moon-arc: #C0C0C0; /* Silver */
-  --gc-visible: #6EC6FF; /* Cyan - swapped */
-  --gc-optimal: #87CEEB; /* Light blue - swapped */
+  --sun-dawn: #ffd700; /* Yellow */
+  --moon-arc: #c0c0c0; /* Silver */
+  --gc-visible: #6ec6ff; /* Cyan - swapped */
+  --gc-optimal: #87ceeb; /* Light blue - swapped */
 }
-
-
 
 /* Common icon sizes */
 .global-icon-xs {
@@ -50,7 +48,6 @@
   height: 2.5rem;
 }
 
-
 /* Common icon colors */
 
 .color-accent {
@@ -76,21 +73,12 @@
   justify-content: center;
 }
 
-
-
-
-
-
-
 .global-text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
 }
 
-
-
 /* New button styles from UI refresh */
-
 
 /* Data presentation styles */
 

@@ -10,21 +10,23 @@ and this project adheres to
 
 ### Added
 
-- **Dual-location system** separating Home/Tonight location from Explore page location
-  for independent location management without disrupting astronomy planning context
+- **Dual-location system** separating Home/Tonight location from Explore page
+  location for independent location management without disrupting astronomy
+  planning context
 - **useExploreLocation hook** providing dedicated location state management for
   Explore page with automatic initialization from home location on first visit
 - **Enhanced storage service** with separate localStorage keys for home
   (`milkyway-home-location`) and explore (`milkyway-explore-location`) locations
-- **Find Me button improvement** showing actual user coordinates unless within 5km
-  of special locations (cities/dark sites), providing more accurate location display
+- **Find Me button improvement** showing actual user coordinates unless within
+  5km of special locations (cities/dark sites), providing more accurate location
+  display
 
-- **Production-ready AstronomicalClock component** with comprehensive accessibility,
-  interactive features, and robust collision handling
+- **Production-ready AstronomicalClock component** with comprehensive
+  accessibility, interactive features, and robust collision handling
 - **Centralized TypeScript type system** with `src/types/astronomicalClock.ts`
   containing complete interface definitions and EventType string union
-- **Configuration management system** with `src/config/clockConfig.ts` centralizing
-  all constants, thresholds, and styling parameters
+- **Configuration management system** with `src/config/clockConfig.ts`
+  centralizing all constants, thresholds, and styling parameters
 - **WCAG accessibility compliance** including ARIA labels, keyboard navigation,
   screen reader support, and focus management
 - **Bidirectional interactive highlighting** where event labels highlight
@@ -95,14 +97,15 @@ and this project adheres to
 - Star rating tooltip clipping issues in table views by adding proper padding to
   table containers
 - **Event label collision detection** completely rewritten with robust layered
-  positioning algorithm preventing overlaps and ensuring proper visual separation
+  positioning algorithm preventing overlaps and ensuring proper visual
+  separation
 - **Same-time event consolidation** now properly combines events occurring at
   identical times into single multi-icon labels
 - **Over-aggressive collision detection** fixed by optimizing thresholds and
   improving spatial analysis for more natural label positioning
-- **AstronomicalClock night arc color** changed from pure black to dark blue 
+- **AstronomicalClock night arc color** changed from pure black to dark blue
   (#1a2744) for better visibility and contrast
-- **Opacity logic for distant events** now correctly shows reduced opacity for 
+- **Opacity logic for distant events** now correctly shows reduced opacity for
   events before 6pm same day or after 6am next day
 
 ### Changed
@@ -123,10 +126,10 @@ and this project adheres to
   finding nearby locations for descriptive context
 - Star rating tooltips now use custom implementation matching the app's design
   system instead of browser tooltips
-- **AstronomicalClock time displays** now use global `.data-time` class with 
+- **AstronomicalClock time displays** now use global `.data-time` class with
   proper typography (letter-spacing: 0.03em, font-variant-numeric: tabular-nums)
-- **Event label sizing and spacing** improved with larger icons, tighter spacing,
-  and square layout for better visual hierarchy
+- **Event label sizing and spacing** improved with larger icons, tighter
+  spacing, and square layout for better visual hierarchy
 - **EventType from enum to string union** for better tree-shaking and modern
   TypeScript practices
 - **Centralized configuration system** replacing magic numbers with configurable
@@ -166,14 +169,15 @@ and this project adheres to
   management and event handling
 - Fixed table container overflow issues preventing tooltip clipping in Daily and
   Calendar views
-- **AstronomicalClock scalability improvements** with all radius calculations 
+- **AstronomicalClock scalability improvements** with all radius calculations
   now scaling proportionally with clock size for responsive design
 - **Enhanced CSS variables system** with dedicated astronomical arc colors:
-  --sun-twilight, --sun-night, --sun-dawn, --moon-arc, --gc-visible, --gc-optimal
-- **TypeScript improvements** with proper interface updates for moonPhase support
-  and removal of unused variables to eliminate lint warnings
-- **Architecture refactoring** with extracted event processing logic, centralized
-  types, and configuration management for improved maintainability
+  --sun-twilight, --sun-night, --sun-dawn, --moon-arc, --gc-visible,
+  --gc-optimal
+- **TypeScript improvements** with proper interface updates for moonPhase
+  support and removal of unused variables to eliminate lint warnings
+- **Architecture refactoring** with extracted event processing logic,
+  centralized types, and configuration management for improved maintainability
 - **Advanced collision detection** using greedy layer assignment algorithm with
   wrap-around handling and configurable separation thresholds
 - **Accessibility architecture** with semantic ARIA markup, keyboard navigation,
@@ -184,7 +188,7 @@ and this project adheres to
   and proper spacing in compact containers
 - **Touch optimization** with device detection, adaptive target sizing, and
   gesture threshold adjustments for mobile platforms
-- **Performance optimization** with efficient auto-refresh using state-based 
+- **Performance optimization** with efficient auto-refresh using state-based
   updates instead of constant re-rendering
 
 ## [1.0.0] - Previous Release

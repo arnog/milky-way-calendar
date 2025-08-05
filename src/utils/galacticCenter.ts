@@ -6,10 +6,9 @@ import { APP_CONFIG } from "../config/appConfig";
 const GALACTIC_CENTER_RA = 17.759; // hours (17h 45m 36s)
 const GALACTIC_CENTER_DEC = -29.007; // degrees (-29° 0' 25")
 
-
 export function calculateGalacticCenterData(
   date: Date,
-  location: Location
+  location: Location,
 ): GalacticCenterData {
   try {
     // Create observer
@@ -20,7 +19,7 @@ export function calculateGalacticCenterData(
       date,
       observer,
       GALACTIC_CENTER_RA,
-      GALACTIC_CENTER_DEC
+      GALACTIC_CENTER_DEC,
     );
 
     // Calculate rise, set, and transit times for the Galactic Core
@@ -50,7 +49,8 @@ export function calculateGalacticCenterData(
     //   • Aug - Sep -> 15°
     //   • Oct - Dec -> 10°
     const month = date.getMonth(); // 0 = January
-    const targetAltitude = month < 7 ? 20 : month < 9 ? 15 : APP_CONFIG.ASTRONOMY.MIN_GC_ALTITUDE;
+    const targetAltitude =
+      month < 7 ? 20 : month < 9 ? 15 : APP_CONFIG.ASTRONOMY.MIN_GC_ALTITUDE;
 
     try {
       // Search from 6 h before the given date to 36 h after,
@@ -70,7 +70,7 @@ export function calculateGalacticCenterData(
         startTime,
         observer,
         GALACTIC_CENTER_RA,
-        GALACTIC_CENTER_DEC
+        GALACTIC_CENTER_DEC,
       ).altitude;
 
       // If GC is already above the target altitude at start, treat startTime as rise.
@@ -89,7 +89,7 @@ export function calculateGalacticCenterData(
           currentTime,
           observer,
           GALACTIC_CENTER_RA,
-          GALACTIC_CENTER_DEC
+          GALACTIC_CENTER_DEC,
         );
 
         // Check for crossing 10° altitude
@@ -101,7 +101,7 @@ export function calculateGalacticCenterData(
           const delta = currentHorizontal.altitude - previousAltitude;
           const fraction = (targetAltitude - previousAltitude) / delta;
           const interpolatedTime = new Date(
-            time - 10 * 60 * 1000 + fraction * 10 * 60 * 1000
+            time - 10 * 60 * 1000 + fraction * 10 * 60 * 1000,
           );
           crossings.push({
             time: interpolatedTime,
@@ -116,7 +116,7 @@ export function calculateGalacticCenterData(
           const delta = currentHorizontal.altitude - previousAltitude;
           const fraction = (targetAltitude - previousAltitude) / delta;
           const interpolatedTime = new Date(
-            time - 10 * 60 * 1000 + fraction * 10 * 60 * 1000
+            time - 10 * 60 * 1000 + fraction * 10 * 60 * 1000,
           );
           crossings.push({
             time: interpolatedTime,
@@ -149,7 +149,7 @@ export function calculateGalacticCenterData(
           endTime,
           observer,
           GALACTIC_CENTER_RA,
-          GALACTIC_CENTER_DEC
+          GALACTIC_CENTER_DEC,
         );
         if (endHorizontal.altitude >= targetAltitude) {
           // Extend search to next day to find set time
@@ -157,7 +157,7 @@ export function calculateGalacticCenterData(
             endTime,
             observer,
             GALACTIC_CENTER_RA,
-            GALACTIC_CENTER_DEC
+            GALACTIC_CENTER_DEC,
           ).altitude;
           const nextDayEnd = new Date(endTime.getTime() + 36 * 60 * 60 * 1000);
           for (
@@ -170,7 +170,7 @@ export function calculateGalacticCenterData(
               currentTime,
               observer,
               GALACTIC_CENTER_RA,
-              GALACTIC_CENTER_DEC
+              GALACTIC_CENTER_DEC,
             );
 
             if (
@@ -208,4 +208,3 @@ export function calculateGalacticCenterData(
     };
   }
 }
-

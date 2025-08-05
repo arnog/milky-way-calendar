@@ -61,7 +61,7 @@ function getLocationName(location: Location): string {
 
 export function generateEventStructuredData(
   weekData: WeekData,
-  location: Location
+  location: Location,
 ): StructuredEventData | null {
   // Only generate structured data for weeks with optimal viewing windows
   if (

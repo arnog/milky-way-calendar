@@ -1,6 +1,6 @@
-import { useContext } from 'react';
-import { LocationContext } from '../contexts/LocationContext.context';
-import { Location } from '../types/astronomy';
+import { useContext } from "react";
+import { LocationContext } from "../contexts/LocationContext.context";
+import { Location } from "../types/astronomy";
 
 export interface LocationContextHookType {
   location: Location | null;
@@ -24,9 +24,9 @@ export interface GuaranteedLocationContextType {
 export function useLocation(): LocationContextHookType {
   const context = useContext(LocationContext);
   if (context === undefined) {
-    throw new Error('useLocation must be used within a LocationProvider');
+    throw new Error("useLocation must be used within a LocationProvider");
   }
-  
+
   return context;
 }
 
@@ -34,19 +34,23 @@ export function useLocation(): LocationContextHookType {
 export function useGuaranteedLocation(): GuaranteedLocationContextType {
   const context = useContext(LocationContext);
   if (context === undefined) {
-    throw new Error('useGuaranteedLocation must be used within a LocationProvider');
+    throw new Error(
+      "useGuaranteedLocation must be used within a LocationProvider",
+    );
   }
-  
+
   if (context.location === null) {
-    throw new Error('Location is not available yet. This usually means the user location is still being determined or there was an error loading the location.');
+    throw new Error(
+      "Location is not available yet. This usually means the user location is still being determined or there was an error loading the location.",
+    );
   }
-  
+
   return {
     location: context.location,
     setLocation: context.setLocation,
     updateLocation: context.updateLocation,
     isLoading: context.isLoading,
     geolocationFailed: context.geolocationFailed,
-    retryGeolocation: context.retryGeolocation
+    retryGeolocation: context.retryGeolocation,
   };
 }

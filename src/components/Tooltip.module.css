@@ -16,29 +16,31 @@
   min-width: 120px;
   text-align: center;
   z-index: 10000;
-  
+
   /* Enhanced visual styling */
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
-  
+
   /* Remove default browser styling */
   outline: none;
   margin: 0;
-  
+
   /* Prevent scrollbars */
   overflow: visible;
   box-sizing: border-box;
-  
+
   /* Initial positioning - will be overridden by JavaScript */
   position: fixed;
   top: 0;
   left: 0;
-  
+
   /* Animation for smooth appearance */
   opacity: 0;
   transform: scale(0.95);
-  transition: opacity 150ms ease-out, transform 150ms ease-out;
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms ease-out;
 }
 
 /* Show state for popovers */
@@ -58,7 +60,7 @@
 
 /* Small arrow indicators for placement (optional visual enhancement) */
 .tooltip--top::before {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -4px;
   left: 50%;
@@ -71,7 +73,7 @@
 }
 
 .tooltip--bottom::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -4px;
   left: 50%;
@@ -84,7 +86,7 @@
 }
 
 .tooltip--left::before {
-  content: '';
+  content: "";
   position: absolute;
   right: -4px;
   top: 50%;
@@ -97,7 +99,7 @@
 }
 
 .tooltip--right::before {
-  content: '';
+  content: "";
   position: absolute;
   left: -4px;
   top: 50%;
