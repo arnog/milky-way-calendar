@@ -90,12 +90,17 @@ export default function WorldMap({
     while (constrainedPanX < -1) constrainedPanX += 2;
     
     // For vertical (Y): Constrain to prevent showing areas beyond map bounds
-    // When zoomed in, we need to prevent panning too far up or down
-    const maxPanY = currentZoom > 1 ? (currentZoom - 1) / 2 : 0;
-    const minPanY = currentZoom > 1 ? -(currentZoom - 1) / 2 : 0;
-    const constrainedPanY = Math.max(minPanY, Math.min(maxPanY, newPanY));
-    
-    return { x: constrainedPanX, y: constrainedPanY };
+    if (currentZoom <= 1) {
+      // At zoom level 1 or less, always center the map vertically (no gaps)
+      return { x: constrainedPanX, y: 0 };
+    } else {
+      // When zoomed in, calculate maximum allowed pan distance
+      // This prevents showing empty space beyond the map bounds
+      const maxPanY = (currentZoom - 1) / 2;
+      const minPanY = -(currentZoom - 1) / 2;
+      const constrainedPanY = Math.max(minPanY, Math.min(maxPanY, newPanY));
+      return { x: constrainedPanX, y: constrainedPanY };
+    }
   }, []);
   
   // Helper function to get touch distance
@@ -164,16 +169,28 @@ export default function WorldMap({
     setZoom(prevZoom => {
       const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prevZoom + delta));
       
-      // Adjust pan to zoom toward the center point
-      if (centerX !== undefined && centerY !== undefined && newZoom !== prevZoom) {
-        const zoomFactor = newZoom / prevZoom;
-        const newPanX = (panX + zoomCenterX * (prevZoom - newZoom)) / zoomFactor;
-        const newPanY = (panY + zoomCenterY * (prevZoom - newZoom)) / zoomFactor;
-        
-        // Apply constraints
-        const constrained = constrainPan(newPanX, newPanY, newZoom);
-        setPanX(constrained.x);
-        setPanY(constrained.y);
+      if (newZoom !== prevZoom) {
+        if (newZoom <= 1) {
+          // When zooming to 1.0 or below, always center the map completely
+          // This prevents boundary gaps that can occur from pan calculations
+          setPanX(0);
+          setPanY(0);
+        } else if (centerX !== undefined && centerY !== undefined) {
+          // Normal zoom with center point - adjust pan to zoom toward the center point
+          const zoomFactor = newZoom / prevZoom;
+          const newPanX = (panX + zoomCenterX * (prevZoom - newZoom)) / zoomFactor;
+          const newPanY = (panY + zoomCenterY * (prevZoom - newZoom)) / zoomFactor;
+          
+          // Apply constraints
+          const constrained = constrainPan(newPanX, newPanY, newZoom);
+          setPanX(constrained.x);
+          setPanY(constrained.y);
+        } else {
+          // Zoom without center point - just apply constraints to current pan values
+          const constrained = constrainPan(panX, panY, newZoom);
+          setPanX(constrained.x);
+          setPanY(constrained.y);
+        }
       }
       
       return newZoom;
