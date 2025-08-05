@@ -2,8 +2,8 @@ import { useEffect, useMemo } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import TonightCard from "../components/TonightCard";
-import DailyVisibilityTable from "../components/DailyVisibilityTable";
-import Calendar from "../components/Calendar";
+import DailyAstroTable from "../components/DailyAstroTable";
+import WeeklyAstroTable from "../components/WeeklyAstroTable";
 import {
   slugToLocation,
   generateLocationTitle,
@@ -114,8 +114,8 @@ function LocationPageContent() {
       <div className={styles.container}>
         <div className={styles.content}>
           <TonightCard currentDate={currentDate} />
-          <DailyVisibilityTable currentDate={currentDate} />
-          <Calendar currentDate={currentDate} onDateClick={setCurrentDate} />
+          <DailyAstroTable currentDate={currentDate} />
+          <WeeklyAstroTable currentDate={currentDate} onDateClick={setCurrentDate} />
         </div>
       </div>
     </>

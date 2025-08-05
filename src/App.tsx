@@ -3,8 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import Header from "./components/Header";
 import TonightCard from "./components/TonightCard";
-import DailyVisibilityTable from "./components/DailyVisibilityTable";
-import Calendar from "./components/Calendar";
+import DailyAstroTable from "./components/DailyAstroTable";
+import WeeklyAstroTable from "./components/WeeklyAstroTable";
 import LocationPage from "./pages/LocationPage";
 import { LocationProvider } from "./contexts/LocationContext";
 import LocationErrorBoundary from "./components/LocationErrorBoundary";
@@ -70,8 +70,8 @@ function HomePage({ isDarkroomMode: _isDarkroomMode }: HomePageProps) {
           <TonightCard
             currentDate={currentDate}
           />
-          <DailyVisibilityTable currentDate={currentDate} />
-          <Calendar 
+          <DailyAstroTable currentDate={currentDate} />
+          <WeeklyAstroTable 
             currentDate={currentDate}
             onDateClick={setCurrentDate}
           />

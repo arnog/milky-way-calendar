@@ -1,12 +1,12 @@
 import AstronomicalDataTable from "./AstronomicalDataTable";
 import { AstronomicalDataTableConfig, AstronomicalDataItem } from "../types/astronomicalDataTable";
 
-interface CalendarProps {
+interface WeeklyAstroTableProps {
   currentDate?: Date;
   onDateClick?: (date: Date) => void;
 }
 
-export default function Calendar({ currentDate, onDateClick }: CalendarProps) {
+export default function WeeklyAstroTable({ currentDate, onDateClick }: WeeklyAstroTableProps) {
   const handleRowClick = (item: AstronomicalDataItem) => {
     if (onDateClick && item.startDate) {
       onDateClick(item.startDate);

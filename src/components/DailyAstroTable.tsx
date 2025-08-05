@@ -1,13 +1,13 @@
 import AstronomicalDataTable from "./AstronomicalDataTable";
 import { AstronomicalDataTableConfig } from "../types/astronomicalDataTable";
 
-interface DailyVisibilityTableProps {
+interface DailyAstroTableProps {
   currentDate?: Date;
 }
 
-export default function DailyVisibilityTable({
+export default function DailyAstroTable({
   currentDate,
-}: DailyVisibilityTableProps) {
+}: DailyAstroTableProps) {
   const config: AstronomicalDataTableConfig = {
     mode: 'daily',
     showExpandableDetails: true,
