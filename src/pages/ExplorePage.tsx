@@ -570,10 +570,6 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                 )}
               </div>
               <p className={exploreStyles.mapDescription}>
-                Click anywhere on the map to explore, or select a dark sky site
-                marked in blue.
-              </p>
-              <p className={exploreStyles.mapDescription}>
                 Light Pollution Map by{" "}
                 <a href="https://djlorenz.github.io/astronomy/lp/">
                   David J Lorenz
@@ -584,12 +580,12 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
             {/* Nearest Dark Site Finder */}
             <div className={exploreStyles.nearestDarkSiteSection}>
               <h2 className={exploreStyles.sectionTitle}>
-                Find Nearest Dark Sky Site
+                Nearby Dark Sky Site
               </h2>
               <p className={exploreStyles.sectionDescription}>
                 {userLocation
-                  ? "We've loaded your saved location and found the nearest dark sky areas automatically. Change location to search a different area."
-                  : "Select your location to automatically find the nearest dark sky areas with minimal light pollution."}
+                  ? "Here are some dark sky sites near you. Change location to explore a different area."
+                  : "Select a location to explore nearby dark sky sites with minimal light pollution."}
               </p>
 
               <div className={exploreStyles.locationFinderContainer}>

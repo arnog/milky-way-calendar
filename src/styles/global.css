@@ -22,6 +22,29 @@
   --gc-optimal: #87ceeb; /* Light blue - swapped */
 }
 
+a,
+a:visited {
+  color: var(--glow);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus,
+a:active {
+  color: var(--glow);
+  text-shadow: 0 0 5px var(--glow);
+  text-decoration: underline;
+}
+
+a:has(h1),
+a:hover:has(h1),
+a:focus:has(h1),
+a:active:has(h1) {
+  color: inherit;
+  text-decoration: none;
+  text-shadow: none;
+}
+
 /* Common icon sizes */
 .global-icon-xs {
   width: 1rem;

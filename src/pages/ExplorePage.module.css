@@ -131,12 +131,11 @@
 }
 
 .regionCard {
-  /* bg-white/5 rounded-lg p-4 */
-  background-color: rgba(255, 255, 255, 0.05);
+  /* background-color: rgba(255, 255, 255, 0.05); */
   border-radius: 0.5rem;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  /* border: 1px solid rgba(255, 255, 255, 0.1); */
+  /* transition: all 0.3s ease; */
   height: fit-content;
 
   /* Essential for CSS columns masonry */
@@ -146,11 +145,11 @@
   width: 100%;
 }
 
-.regionCard:hover {
+/* .regionCard:hover {
   background-color: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
+} */
 
 /* Varied styling for different card sizes in masonry layout */
 .regionCard.large {
@@ -162,7 +161,7 @@
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-.regionCard.medium {
+/* .regionCard.medium {
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.06) 0%,
@@ -174,7 +173,7 @@
 .regionCard.small {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
-}
+} */
 
 /* Large cards get special styling */
 .regionCard.large .regionTitle {
