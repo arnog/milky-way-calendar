@@ -42,6 +42,7 @@ export default function LocationPopover({
     left: 0,
     width: 0,
   });
+  const [isPositioned, setIsPositioned] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -75,6 +76,7 @@ export default function LocationPopover({
           left: left,
           width: desiredWidth,
         });
+        setIsPositioned(true);
       }
     };
 
@@ -117,10 +119,15 @@ export default function LocationPopover({
   }, [onClose, triggerRef]);
 
   // Watch for location changes from context (e.g., successful retry) and propagate to parent
+  // Only close if location changes from null to a value (successful geolocation)
+  const previousLocationRef = useRef(location);
   useEffect(() => {
-    if (location) {
+    // Only trigger if we went from no location to having a location
+    if (!previousLocationRef.current && location) {
       onLocationChange(location, true); // Close popover when location is successfully obtained
     }
+    
+    previousLocationRef.current = location;
   }, [location, onLocationChange]);
 
   // Enhanced geolocation with retry logic and user feedback
@@ -246,6 +253,7 @@ export default function LocationPopover({
         backgroundColor: "rgba(15, 23, 42, 0.85)",
         backdropFilter: "blur(32px)",
         WebkitBackdropFilter: "blur(32px)",
+        visibility: isPositioned ? "visible" : "hidden",
       }}
     >
       <div className={styles.header}>

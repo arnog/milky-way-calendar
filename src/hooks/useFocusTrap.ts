@@ -35,7 +35,7 @@ export function useFocusTrap(
       if (initialFocusRef?.current) {
         initialFocusRef.current.focus();
       } else {
-        const firstFocusable = getFocusableElements(containerRef.current!)[0];
+        const firstFocusable = getFocusableElements(containerRef.current)[0];
         if (firstFocusable) {
           firstFocusable.focus();
         }
@@ -119,7 +119,11 @@ export function useFocusTrap(
  * Gets all focusable elements within a container.
  * Includes standard focusable elements and those with tabindex >= 0.
  */
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
+function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
+  if (!container) {
+    return [];
+  }
+
   const focusableSelectors = [
     'button:not([disabled])',
     'input:not([disabled])',
