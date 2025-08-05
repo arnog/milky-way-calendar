@@ -312,25 +312,26 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const handleMapLocationChange = (location: Location) => {
     setSelectedLocation(location);
 
-    // Find if this location is near a dark site
-    for (const loc of DARK_SITES) {
-      const specialLat = loc[2] as number;
-      const specialLng = loc[3] as number;
+    // Update the explore location instead of navigating away
+    // This keeps the user on the explore page while updating their location
+    updateUserLocation(location);
 
-      if (
-        Math.abs(location.lat - specialLat) < 2 &&
-        Math.abs(location.lng - specialLng) < 2
-      ) {
-        const slug = locationNameToSlug(loc[1] as string);
-        navigate(`/location/${slug}`);
-        return;
-      }
+    // Clear previous dark site search results and reset auto-search flag
+    // so the system will automatically search for dark sites at the new location
+    setDarkSitesResult(null);
+    setSearchError(null);
+    setHasAutoSearched(false);
+
+    // Clear session storage for search results since we're starting fresh
+    try {
+      sessionStorage.removeItem(EXPLORE_SESSION_KEYS.DARK_SITES_RESULT);
+      sessionStorage.removeItem(EXPLORE_SESSION_KEYS.HAS_AUTO_SEARCHED);
+    } catch (error) {
+      console.warn(
+        "Failed to clear search results from sessionStorage:",
+        error
+      );
     }
-
-    // Navigate to coordinate-based location
-    navigate(
-      `/location/@${location.lat.toFixed(4)},${location.lng.toFixed(4)}`
-    );
   };
 
   const handleDarkSiteClick = (lat: number, lng: number) => {
@@ -802,7 +803,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                   </button>
                                 </Tooltip>
                                 {alt.nearestKnownSite && (
-                                  <Tooltip 
+                                  <Tooltip
                                     content={`Nearest accessible: ${
                                       alt.nearestKnownSite.fullName
                                     } (${alt.nearestKnownSite.distance.toFixed(
