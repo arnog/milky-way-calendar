@@ -42,6 +42,18 @@ export const CACHE_CONFIG = {
       priority: 5,
     },
     { path: "/world2024B-sm.jpg", format: "color", size: "small", priority: 6 },
+    {
+      path: "/world2024B-xs.webp",
+      format: "color",
+      size: "xsmall",
+      priority: 7,
+    },
+    {
+      path: "/world2024B-xs.jpg",
+      format: "color",
+      size: "xsmall",
+      priority: 8,
+    },
   ],
 
   // Default fallbacks
@@ -50,7 +62,7 @@ export const CACHE_CONFIG = {
 };
 
 export type ImageFormat = "grayscale" | "color";
-export type ImageSize = "small" | "medium" | "large";
+export type ImageSize = "xsmall" | "small" | "medium" | "large";
 
 export interface CacheableImage {
   path: string;
@@ -274,11 +286,25 @@ export class MapImageCacheService {
     const cacheKey = `blob-${imagePath}`;
     const cached = this.inMemoryCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_CONFIG.MAX_AGE_MS) {
-      return {
-        blob: cached.data.blob!,
-        objectUrl: cached.data.objectUrl!,
-        source: cached.data.source,
-      };
+      const blob = cached.data.blob!;
+
+      // Revoke any previous object URL stored in the cache entry to prevent leaks
+      if (cached.data.objectUrl && cached.data.objectUrl.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(cached.data.objectUrl);
+        } catch {
+          // Ignore URL revocation errors
+        }
+      }
+
+      // Always mint a fresh object URL from the cached Blob (the old one may have been revoked by the UI)
+      const objectUrl = URL.createObjectURL(blob);
+
+      // Update the cache entry with the new URL and timestamp
+      cached.data.objectUrl = objectUrl;
+      cached.timestamp = Date.now();
+
+      return { blob, objectUrl, source: cached.data.source };
     }
 
     // Get cached or fresh response
@@ -299,6 +325,44 @@ export class MapImageCacheService {
     });
 
     return { blob, objectUrl, source: imagePath };
+  }
+
+  /**
+   * Prefetch a specific tier into both the persistent cache and the in-memory blob cache.
+   * Does not create an object URL to avoid unnecessary memory pressure.
+   */
+  async prefetchImage(format: ImageFormat, size: ImageSize): Promise<void> {
+    try {
+      const imagePath = await this.getBestImagePath(format, size);
+      // Ensure it exists in the persistent Cache (or fetch it)
+      const response = await this.getCachedResponse(imagePath);
+      const blob = await response.blob();
+
+      // Warm the in-memory blob cache (no objectUrl creation here)
+      const cacheKey = `blob-${imagePath}`;
+      const entry = this.inMemoryCache.get(cacheKey);
+      if (entry) {
+        entry.data.blob = blob;
+        entry.data.source = imagePath;
+        // Defensive: if the cache entry held an objectUrl, revoke and clear it
+        if (entry.data.objectUrl?.startsWith("blob:")) {
+          try {
+            URL.revokeObjectURL(entry.data.objectUrl);
+          } catch {
+            // Ignore URL revocation errors
+          }
+          entry.data.objectUrl = undefined;
+        }
+        entry.timestamp = Date.now();
+      } else {
+        this.inMemoryCache.set(cacheKey, {
+          data: { blob, source: imagePath, width: 0, height: 0 },
+          timestamp: Date.now(),
+        });
+      }
+    } catch {
+      // Prefetch is best-effort; ignore failures and fall back to normal load
+    }
   }
 
   /**

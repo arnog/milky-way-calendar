@@ -1,4 +1,4 @@
-import { useState, useCallback, RefObject } from "react";
+import { useState, useCallback, useRef, useEffect, RefObject } from "react";
 import { Location } from "../types/astronomy";
 import { ZOOM_CONFIG, GESTURE_CONFIG } from "../config/mapConfig";
 
@@ -70,6 +70,31 @@ export function useMapGestures({
     y: number;
   } | null>(null);
 
+  // Refs to hold latest pan and zoom values
+  const panXRef = useRef(panX);
+  const panYRef = useRef(panY);
+  const zoomRef = useRef(zoom);
+
+  // Keep refs in sync with latest props/state
+  useEffect(() => {
+    panXRef.current = panX;
+  }, [panX]);
+  useEffect(() => {
+    panYRef.current = panY;
+  }, [panY]);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+  // rAF batching for panning
+  const panDeltaRef = useRef({ dx: 0, dy: 0 });
+  const panRafIdRef = useRef<number | null>(null);
+  const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
+
+  // rAF batching for pinch zoom
+  const pinchDeltaRef = useRef(0);
+  const pinchCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const pinchRafIdRef = useRef<number | null>(null);
+
   // Helper function to get touch distance
   const getTouchDistance = useCallback((touches: React.TouchList): number => {
     if (touches.length < 2) return 0;
@@ -116,10 +141,13 @@ export function useMapGestures({
         const center = getTouchCenter(event.touches);
         setLastTouchDistance(distance);
         setLastTouchCenter(center);
+        pinchDeltaRef.current = 0;
+        pinchCenterRef.current = center;
       } else if (event.touches.length === 1) {
         // Single touch pan
         const touch = event.touches[0];
         setLastTouchCenter({ x: touch.clientX, y: touch.clientY });
+        lastPointerRef.current = { x: touch.clientX, y: touch.clientY };
         setIsPanning(true);
       }
     },
@@ -131,29 +159,66 @@ export function useMapGestures({
       event.preventDefault();
 
       if (event.touches.length === 2 && lastTouchDistance && lastTouchCenter) {
-        // Pinch zoom
+        // Pinch zoom (rAF-batched)
         const distance = getTouchDistance(event.touches);
         const center = getTouchCenter(event.touches);
 
         const deltaDistance = distance - lastTouchDistance;
-        const zoomDelta = deltaDistance * finalConfig.zoomSpeed * ZOOM_CONFIG.TOUCH_SPEED_MULTIPLIER;
+        const zoomDelta =
+          deltaDistance *
+          finalConfig.zoomSpeed *
+          ZOOM_CONFIG.TOUCH_SPEED_MULTIPLIER;
 
-        onZoom(zoomDelta, center.x, center.y);
+        // rAF-batch pinch zoom to match wheel behavior
+        pinchDeltaRef.current += zoomDelta;
+        pinchCenterRef.current = center;
+        if (pinchRafIdRef.current == null) {
+          pinchRafIdRef.current = requestAnimationFrame(() => {
+            pinchRafIdRef.current = null;
+            const d = pinchDeltaRef.current;
+            const c = pinchCenterRef.current;
+            if (d !== 0 && c) {
+              onZoom(d, c.x, c.y);
+            }
+            pinchDeltaRef.current = 0;
+            pinchCenterRef.current = null;
+          });
+        }
 
         setLastTouchDistance(distance);
         setLastTouchCenter(center);
       } else if (event.touches.length === 1 && isPanning && lastTouchCenter) {
-        // Single touch pan
+        // Single touch pan (rAF-batched)
         const touch = event.touches[0];
-        const deltaX = touch.clientX - lastTouchCenter.x;
-        const deltaY = touch.clientY - lastTouchCenter.y;
+        const prev = lastPointerRef.current ?? {
+          x: touch.clientX,
+          y: touch.clientY,
+        };
+        const dx = touch.clientX - prev.x;
+        const dy = touch.clientY - prev.y;
+        lastPointerRef.current = { x: touch.clientX, y: touch.clientY };
 
-        const container = containerRef.current;
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          const newPanX = panX + deltaX / rect.width;
-          const newPanY = panY + deltaY / rect.height;
-          setPan(newPanX, newPanY);
+        panDeltaRef.current.dx += dx;
+        panDeltaRef.current.dy += dy;
+
+        if (panRafIdRef.current == null) {
+          panRafIdRef.current = requestAnimationFrame(() => {
+            panRafIdRef.current = null;
+            const container = containerRef.current;
+            if (container) {
+              const rect = container.getBoundingClientRect();
+              const { dx, dy } = panDeltaRef.current;
+              if (dx !== 0 || dy !== 0) {
+                const z = zoomRef.current;
+                const basePanX = panXRef.current;
+                const basePanY = panYRef.current;
+                const newPanX = basePanX + dx / (rect.width * z);
+                const newPanY = basePanY + dy / rect.height;
+                setPan(newPanX, newPanY);
+                panDeltaRef.current = { dx: 0, dy: 0 };
+              }
+            }
+          });
         }
 
         setLastTouchCenter({ x: touch.clientX, y: touch.clientY });
@@ -163,8 +228,6 @@ export function useMapGestures({
       lastTouchDistance,
       lastTouchCenter,
       isPanning,
-      panX,
-      panY,
       containerRef,
       setPan,
       onZoom,
@@ -178,6 +241,15 @@ export function useMapGestures({
     setLastTouchDistance(null);
     setLastTouchCenter(null);
     setIsPanning(false);
+    if (panRafIdRef.current != null) cancelAnimationFrame(panRafIdRef.current);
+    panRafIdRef.current = null;
+    panDeltaRef.current = { dx: 0, dy: 0 };
+    lastPointerRef.current = null;
+    if (pinchRafIdRef.current != null)
+      cancelAnimationFrame(pinchRafIdRef.current);
+    pinchRafIdRef.current = null;
+    pinchDeltaRef.current = 0;
+    pinchCenterRef.current = null;
   }, []);
 
   // Mouse handlers
@@ -204,6 +276,7 @@ export function useMapGestures({
             // Shift+drag to pan OR zoom > 1 (intuitive panning when zoomed in)
             hasPanned = true;
             setIsPanning(true);
+            lastPointerRef.current = { x: startX, y: startY };
           } else {
             // Regular drag to select location (only when zoom = 1)
             hasDragged = true;
@@ -213,15 +286,33 @@ export function useMapGestures({
         }
 
         if (hasPanned) {
-          // Pan the map
-          const deltaX = e.clientX - startX;
-          const deltaY = e.clientY - startY;
-          const container = containerRef.current;
-          if (container) {
-            const rect = container.getBoundingClientRect();
-            const newPanX = panX + deltaX / rect.width;
-            const newPanY = panY + deltaY / rect.height;
-            setPan(newPanX, newPanY);
+          // Pan the map (rAF-batched)
+          const prev = lastPointerRef.current ?? { x: e.clientX, y: e.clientY };
+          const dx = e.clientX - prev.x;
+          const dy = e.clientY - prev.y;
+          lastPointerRef.current = { x: e.clientX, y: e.clientY };
+
+          panDeltaRef.current.dx += dx;
+          panDeltaRef.current.dy += dy;
+
+          if (panRafIdRef.current == null) {
+            panRafIdRef.current = requestAnimationFrame(() => {
+              panRafIdRef.current = null;
+              const container = containerRef.current;
+              if (container) {
+                const rect = container.getBoundingClientRect();
+                const { dx, dy } = panDeltaRef.current;
+                if (dx !== 0 || dy !== 0) {
+                  const z = zoomRef.current;
+                  const basePanX = panXRef.current;
+                  const basePanY = panYRef.current;
+                  const newPanX = basePanX + dx / (rect.width * z);
+                  const newPanY = basePanY + dy / rect.height;
+                  setPan(newPanX, newPanY);
+                  panDeltaRef.current = { dx: 0, dy: 0 };
+                }
+              }
+            });
           }
         } else if (hasDragged) {
           // Select location
@@ -236,6 +327,11 @@ export function useMapGestures({
 
         if (hasPanned) {
           setIsPanning(false);
+          if (panRafIdRef.current != null)
+            cancelAnimationFrame(panRafIdRef.current);
+          panRafIdRef.current = null;
+          panDeltaRef.current = { dx: 0, dy: 0 };
+          lastPointerRef.current = null;
         } else if (hasDragged) {
           // End of drag - get final location and notify parent
           const finalLocation = getLocationFromEvent(e);
@@ -254,8 +350,6 @@ export function useMapGestures({
     },
     [
       zoom,
-      panX,
-      panY,
       containerRef,
       setPan,
       onLocationChange,

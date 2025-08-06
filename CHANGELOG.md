@@ -10,6 +10,17 @@ and this project adheres to
 
 ### Added
 
+- **Mouse-cursor-centered zoom** functionality for WorldMap component ensuring
+  zoom operations center on cursor position for intuitive interaction
+- **RequestAnimationFrame batching** for wheel events providing smooth zoom
+  operations and preventing frame drops
+- **Dynamic image tier selection** with new xsmall tier (1800px) optimizing
+  mobile device performance and reducing bandwidth usage
+- **Image prefetching system** loading next zoom level in background for seamless
+  zoom-in experience without visible loading delays
+- **Enhanced Safari iOS support** with gesture event prevention and touch-action
+  CSS optimizations for better mobile map interaction
+
 - **Dual-location system** separating Home/Tonight location from Explore page
   location for independent location management without disrupting astronomy
   planning context
@@ -144,6 +155,15 @@ and this project adheres to
   theming across sun, moon, and galactic center events
 
 ### Technical Improvements
+
+- **Zoom centering algorithm** using analytic formula `panXAfter = (mouseRelX - 0.5) / newZoom - (before.x - 0.5)` 
+  for precise cursor-locked zoom operations
+- **Simplified useMapState hook** eliminating complex constraint system in favor
+  of centralized constraint application using `applyZoomPan()` function
+- **Comprehensive test coverage** for zoom centering with round-trip coordinate
+  validation ensuring mathematical accuracy
+- **Performance optimizations** with memoized coordinate systems and marker
+  position calculations
 
 - **New Components**: AstronomicalClock, ClockTooltip with full TypeScript
   interfaces and CSS Modules styling

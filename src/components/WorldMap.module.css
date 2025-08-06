@@ -8,6 +8,8 @@
   border-radius: 0.75rem;
   background-color: rgb(17 24 39);
   aspect-ratio: 18 / 7;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .loadingOverlay {
@@ -34,6 +36,7 @@
   height: 100%;
   object-fit: contain;
   user-select: none;
+  touch-action: none;
 }
 
 .mapImageLoading {

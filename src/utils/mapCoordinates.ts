@@ -1,5 +1,5 @@
-import { RefObject } from 'react';
-import { PAN_CONFIG } from '../config/mapConfig';
+import { RefObject } from "react";
+import { PAN_CONFIG } from "../config/mapConfig";
 
 /**
  * Coordinate system utilities for map transformations
@@ -34,7 +34,7 @@ export class MapCoordinateSystem {
     private zoom: number,
     private panX: number,
     private panY: number,
-    private containerRef: RefObject<HTMLDivElement>
+    private containerRef: RefObject<HTMLDivElement>,
   ) {}
 
   /**
@@ -50,8 +50,8 @@ export class MapCoordinateSystem {
     const relativeY = (screenY - rect.top) / rect.height;
 
     // Account for zoom and pan
-    let x = (relativeX - 0.5) / this.zoom - this.panX / this.zoom + 0.5;
-    let y = (relativeY - 0.5) / this.zoom - this.panY / this.zoom + 0.5;
+    let x = 0.5 + (relativeX - 0.5) / this.zoom - this.panX;
+    let y = 0.5 + (relativeY - 0.5 - this.panY) / this.zoom;
 
     // Handle horizontal wrapping: normalize x to 0-1 range
     x = ((x % 1) + 1) % 1;
@@ -72,8 +72,8 @@ export class MapCoordinateSystem {
     const rect = container.getBoundingClientRect();
 
     // Reverse the transformation
-    const adjustedX = (normalizedX - 0.5) * this.zoom + this.panX / this.zoom + 0.5;
-    const adjustedY = (normalizedY - 0.5) * this.zoom + this.panY / this.zoom + 0.5;
+    const adjustedX = 0.5 + this.zoom * (normalizedX - 0.5 + this.panX);
+    const adjustedY = 0.5 + this.zoom * (normalizedY - 0.5) + this.panY;
 
     const screenX = adjustedX * rect.width + rect.left;
     const screenY = adjustedY * rect.height + rect.top;
@@ -88,9 +88,8 @@ export class MapCoordinateSystem {
   getMarkerPosition(
     normalizedX: number,
     normalizedY: number,
-    panOffset: number = 0
+    panOffset: number = 0,
   ): Point {
-
     // Start with the base normalized coordinates (0-1 range)
     // Convert to percentage coordinates
     let x = normalizedX * 100; // Convert to 0-100 range
@@ -99,7 +98,7 @@ export class MapCoordinateSystem {
     // Step 1: Apply translation (same as maps)
     const adjustedPanX = this.panX + panOffset;
     x += adjustedPanX * 100; // Same as map's translate(${adjustedPanX * 100}%, ...)
-    
+
     // For Y: match map's pixel-based Y translation, converted to percentage
     y += (this.panY / this.zoom) * 100; // Same as map's ${(panY * containerHeight) / zoom}px converted to %
 
@@ -114,7 +113,11 @@ export class MapCoordinateSystem {
   /**
    * Constrain pan values to valid ranges
    */
-  constrainPan(newPanX: number, newPanY: number, zoom: number = this.zoom): Point {
+  constrainPan(
+    newPanX: number,
+    newPanY: number,
+    zoom: number = this.zoom,
+  ): Point {
     // For horizontal (X): Wrap the pan value to keep within -1 to 1 range
     // This ensures we always stay within the 3-map strip
     let constrainedPanX = newPanX;
@@ -167,7 +170,7 @@ export function createMapCoordinateSystem(
   zoom: number,
   panX: number,
   panY: number,
-  containerRef: RefObject<HTMLDivElement>
+  containerRef: RefObject<HTMLDivElement>,
 ): MapCoordinateSystem {
   return new MapCoordinateSystem(zoom, panX, panY, containerRef);
 }
@@ -182,7 +185,7 @@ export const coordinateUtils = {
   getZoomCenter(
     centerX: number,
     centerY: number,
-    containerRef: RefObject<HTMLDivElement>
+    containerRef: RefObject<HTMLDivElement>,
   ): Point {
     const container = containerRef.current;
     if (!container) return { x: 0, y: 0 };
@@ -201,15 +204,17 @@ export const coordinateUtils = {
     currentPan: Point,
     zoomCenter: Point,
     oldZoom: number,
-    newZoom: number
+    newZoom: number,
   ): Point {
     if (newZoom <= 1) {
       return { x: 0, y: 0 }; // Center map when zoom is 1 or below
     }
 
     const zoomFactor = newZoom / oldZoom;
-    const newPanX = (currentPan.x + zoomCenter.x * (oldZoom - newZoom)) / zoomFactor;
-    const newPanY = (currentPan.y + zoomCenter.y * (oldZoom - newZoom)) / zoomFactor;
+    const newPanX =
+      (currentPan.x + zoomCenter.x * (oldZoom - newZoom)) / zoomFactor;
+    const newPanY =
+      (currentPan.y + zoomCenter.y * (oldZoom - newZoom)) / zoomFactor;
 
     return { x: newPanX, y: newPanY };
   },
@@ -217,7 +222,10 @@ export const coordinateUtils = {
   /**
    * Check if a point is within visible bounds
    */
-  isPointInBounds(point: Point, bounds: { minX: number; maxX: number; minY: number; maxY: number }) {
+  isPointInBounds(
+    point: Point,
+    bounds: { minX: number; maxX: number; minY: number; maxY: number },
+  ) {
     return (
       point.x >= bounds.minX &&
       point.x <= bounds.maxX &&

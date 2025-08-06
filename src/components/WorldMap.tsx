@@ -2,12 +2,12 @@ import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { flushSync } from "react-dom";
 import { Location } from "../types/astronomy";
 import { normalizedToCoord } from "../utils/lightPollutionMap";
-import { mapImageCache } from "../services/mapImageCache";
+import { ImageSize, mapImageCache } from "../services/mapImageCache";
 import { useMapState } from "../hooks/useMapState";
 import { useMapGestures } from "../hooks/useMapGestures";
 import { MAP_CONFIG, ZOOM_CONFIG, IMAGE_CONFIG } from "../config/mapConfig";
-import { MapCoordinateSystem, coordinateUtils } from "../utils/mapCoordinates";
-import { throttle, performanceMonitor } from "../utils/performance";
+import { MapCoordinateSystem } from "../utils/mapCoordinates";
+import { performanceMonitor } from "../utils/performance";
 import ZoomControls from "./ZoomControls";
 import MapImage from "./MapImage";
 import LocationMarker from "./LocationMarker";
@@ -21,6 +21,14 @@ interface WorldMapProps {
   onDragEnd?: () => void;
   markers?: WorldMapMarker[];
 }
+
+// Available map asset tiers (module-scoped for stable identity)
+const TIERS = [
+  { key: "xsmall" as const, width: 1800 },
+  { key: "small" as const, width: 3600 },
+  { key: "medium" as const, width: 7200 },
+  { key: "large" as const, width: 14400 },
+] as const;
 
 export default function WorldMap({
   location,
@@ -36,84 +44,117 @@ export default function WorldMap({
   const previousObjectUrlRef = useRef<string | null>(null);
   const zoomTimeoutRef = useRef<number | null>(null);
 
+  // rAF batching for wheel zoom
+  const wheelDeltaRef = useRef(0);
+  const wheelPosRef = useRef<{ x: number; y: number } | null>(null);
+  const wheelRafIdRef = useRef<number | null>(null);
+
+  const [imageTier, setImageTier] = useState<ImageSize | null>(null);
+
   // Map state management
-  const {
-    zoom,
-    panX,
-    panY,
-    setZoom,
-    setPan,
-    setZoomAndPan,
-  } = useMapState({
-    minZoom: ZOOM_CONFIG.MIN,
-    maxZoom: ZOOM_CONFIG.MAX,
-  });
+  const { zoom, panX, panY, setPan, setZoomAndPan } = useMapState();
 
   // Create coordinate system for transformations
   const coordinateSystem = useMemo(() => {
     return new MapCoordinateSystem(zoom, panX, panY, containerRef);
   }, [zoom, panX, panY]);
 
+  // Centralized helpers: always apply constraints in one place
+  const applyZoomPan = useCallback(
+    (z: number, px: number, py: number) => {
+      const constrained = coordinateSystem.constrainPan(px, py, z);
+      flushSync(() => {
+        setZoomAndPan(z, constrained.x, constrained.y);
+      });
+    },
+    [coordinateSystem, setZoomAndPan],
+  );
+
+  const setPanConstrained = useCallback(
+    (px: number, py: number) => {
+      const constrained = coordinateSystem.constrainPan(px, py, zoom);
+      flushSync(() => {
+        setPan(constrained.x, constrained.y);
+      });
+    },
+    [coordinateSystem, zoom, setPan],
+  );
+
   // Track loading state to prevent concurrent image loads
   const isLoadingRef = useRef(false);
 
+  // Only show the "Loading map" overlay when we have no image yet
+  const isInitialImageLoading = isImageLoading && !imageSrc;
+
   // Load cached image with automatic format selection and performance monitoring
-  const loadCachedImage = useCallback(async () => {
-    // Prevent concurrent image loading
-    if (isLoadingRef.current) {
-      return;
-    }
+  const loadCachedImage = useCallback(async (tierKey: ImageSize) => {
+    if (isLoadingRef.current) return;
 
     isLoadingRef.current = true;
-    const measurementId = `image-loading-${Date.now()}`;
-    performanceMonitor.startMeasurement(measurementId);
-    
+    // const t0 = performance.now();
+    // Use a unique key per invocation to avoid collisions with StrictMode/double effects
+    const measurementKey = `image-loading:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+    performanceMonitor.startMeasurement(measurementKey, { tier: tierKey });
+
     try {
       setIsImageLoading(true);
-      const screenWidth =
-        typeof window !== "undefined" ? window.innerWidth : 1920;
 
       const { objectUrl } = await mapImageCache.loadImageAsBlob(
         "color",
-        undefined, // Let cache service auto-select size
-        screenWidth,
+        tierKey,
       );
 
-      // Clean up previous object URL to prevent memory leaks
-      if (
-        previousObjectUrlRef.current &&
-        previousObjectUrlRef.current.startsWith("blob:")
-      ) {
-        URL.revokeObjectURL(previousObjectUrlRef.current);
+      // Pre-decode before swapping to avoid layout jank
+      try {
+        const img = new Image();
+        img.src = objectUrl;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (img as any).decode === "function") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (img as any).decode();
+        }
+      } catch {
+        // Ignore decode errors
       }
 
+      // Swap src, then defer revocation of the previous blob URL by 2 rAFs
+      const prevUrl = previousObjectUrlRef.current;
       setImageSrc(objectUrl);
       previousObjectUrlRef.current = objectUrl;
-    } catch (error) {
-      console.error("Failed to load cached map image:", error);
-      // Fallback to direct image loading
+      if (prevUrl?.startsWith("blob:")) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            URL.revokeObjectURL(prevUrl);
+          });
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load cached map image:", err);
       setImageSrc("/world2024B-md.jpg");
       previousObjectUrlRef.current = null;
     } finally {
       setIsImageLoading(false);
       isLoadingRef.current = false;
-      performanceMonitor.endMeasurement(measurementId);
+      performanceMonitor.endMeasurement(measurementKey);
     }
   }, []);
 
   // Convert screen coordinates to normalized coordinates using coordinate system
-  const screenToNormalized = useCallback((
-    screenX: number,
-    screenY: number,
-  ): { x: number; y: number } => {
-    return coordinateSystem.screenToNormalized(screenX, screenY);
-  }, [coordinateSystem]);
+  const screenToNormalized = useCallback(
+    (screenX: number, screenY: number): { x: number; y: number } => {
+      return coordinateSystem.screenToNormalized(screenX, screenY);
+    },
+    [coordinateSystem],
+  );
 
   // Zoom handler with performance monitoring
   const handleZoom = useCallback(
     (delta: number, centerX?: number, centerY?: number) => {
-      performanceMonitor.startMeasurement('zoom-operation', { delta, hasCenter: !!centerX });
-      
+      performanceMonitor.startMeasurement("zoom-operation", {
+        delta,
+        hasCenter: centerX !== undefined && centerY !== undefined,
+      });
+
       const currentZoom = zoom;
       const newZoom = Math.max(
         ZOOM_CONFIG.MIN,
@@ -123,49 +164,45 @@ export default function WorldMap({
       if (newZoom !== currentZoom) {
         // Set zooming state to disable transitions
         setIsZooming(true);
-        
+
         // Clear any existing zoom timeout
         if (zoomTimeoutRef.current) {
           clearTimeout(zoomTimeoutRef.current);
         }
-        
+
         // Calculate pan adjustments if zooming around a specific point
         if (centerX !== undefined && centerY !== undefined && newZoom > 1) {
-          const zoomCenter = coordinateUtils.getZoomCenter(centerX, centerY, containerRef);
-          const newPan = coordinateUtils.calculateZoomPan(
-            { x: panX, y: panY },
-            zoomCenter,
-            currentZoom,
-            newZoom
-          );
+          // Lock zoom to keep the point under cursor fixed (analytic, matches MapImage transform)
+          const before = coordinateSystem.screenToNormalized(centerX, centerY);
+          const container = containerRef.current;
+          if (container) {
+            const rect = container.getBoundingClientRect();
+            const mouseRelX = (centerX - rect.left) / rect.width; // 0..1
+            const mouseRelY = (centerY - rect.top) / rect.height; // 0..1
 
-          // Use flushSync to ensure synchronous state updates and prevent marker lag
-          // This ensures zoom and pan are updated together in the same render cycle
-          flushSync(() => {
-            setZoomAndPan(newZoom, newPan.x, newPan.y);
-          });
+            // Using rX = 0.5 + z*(nx - 0.5 + panX)  and  rY = 0.5 + z*(ny - 0.5) + panY
+            const panXAfter = (mouseRelX - 0.5) / newZoom - (before.x - 0.5);
+            const panYAfter = mouseRelY - 0.5 - newZoom * (before.y - 0.5);
+
+            // Constrain pan after zoom to avoid gaps and keep wrapping consistent
+            // Apply constrained zoom+pan centrally
+            applyZoomPan(newZoom, panXAfter, panYAfter);
+          } else {
+            applyZoomPan(newZoom, panX, panY);
+          }
         } else {
-          // Simple zoom without pan adjustment
-          flushSync(() => {
-            setZoom(newZoom);
-          });
+          applyZoomPan(newZoom, panX, panY);
         }
-        
+
         // Re-enable transitions after a short delay
         zoomTimeoutRef.current = setTimeout(() => {
           setIsZooming(false);
         }, 50);
       }
 
-      performanceMonitor.endMeasurement('zoom-operation');
+      performanceMonitor.endMeasurement("zoom-operation");
     },
-    [zoom, panX, panY, setZoom, setZoomAndPan],
-  );
-
-  // Throttled zoom handler for high-frequency events
-  const throttledZoom = useMemo(() => 
-    throttle(handleZoom, 16), // ~60fps
-    [handleZoom]
+    [zoom, panX, panY, applyZoomPan, coordinateSystem],
   );
 
   // Gesture handlers using the hook
@@ -181,7 +218,7 @@ export default function WorldMap({
     zoom,
     panX,
     panY,
-    setPan,
+    setPan: setPanConstrained,
     onZoom: handleZoom,
     onLocationChange,
     onDragStart,
@@ -195,90 +232,233 @@ export default function WorldMap({
   });
 
   // Memoized coordinate systems for different pan offsets
-  const coordinateSystems = useMemo(() => ({
-    primary: coordinateSystem,
-    left: new MapCoordinateSystem(zoom, panX - 1, panY, containerRef),
-    right: new MapCoordinateSystem(zoom, panX + 1, panY, containerRef),
-  }), [coordinateSystem, zoom, panX, panY]);
+  const coordinateSystems = useMemo(
+    () => ({
+      primary: coordinateSystem,
+      left: new MapCoordinateSystem(zoom, panX - 1, panY, containerRef),
+      right: new MapCoordinateSystem(zoom, panX + 1, panY, containerRef),
+    }),
+    [coordinateSystem, zoom, panX, panY],
+  );
 
   // Optimized marker position calculator with memoization
-  const getMarkerPositionForPan = useCallback((
-    normalizedX: number,
-    normalizedY: number,
-    customPanX: number,
-  ): { x: number; y: number } => {
-    // Use pre-computed coordinate systems for common offsets
-    if (customPanX === panX) {
-      return coordinateSystems.primary.getMarkerPosition(normalizedX, normalizedY);
-    } else if (customPanX === panX - 1) {
-      return coordinateSystems.left.getMarkerPosition(normalizedX, normalizedY);
-    } else if (customPanX === panX + 1) {
-      return coordinateSystems.right.getMarkerPosition(normalizedX, normalizedY);
-    }
-    
-    // Fallback for custom offsets (rare case)
-    const tempCoordSystem = new MapCoordinateSystem(zoom, customPanX, panY, containerRef);
-    return tempCoordSystem.getMarkerPosition(normalizedX, normalizedY);
-  }, [coordinateSystems, panX, zoom, panY]);
-
-  // Load cached image on mount and resize
-  useEffect(() => {
-    // Initial load
-    loadCachedImage();
-
-    // Update on resize with debouncing
-    let resizeTimeout: number;
-    const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        loadCachedImage();
-      }, IMAGE_CONFIG.RESIZE_DEBOUNCE_MS); // Debounce resize events
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      clearTimeout(resizeTimeout);
-      
-      // Clean up zoom timeout
-      if (zoomTimeoutRef.current) {
-        clearTimeout(zoomTimeoutRef.current);
+  const getMarkerPositionForPan = useCallback(
+    (
+      normalizedX: number,
+      normalizedY: number,
+      customPanX: number,
+    ): { x: number; y: number } => {
+      // Use pre-computed coordinate systems for common offsets
+      if (customPanX === panX) {
+        return coordinateSystems.primary.getMarkerPosition(
+          normalizedX,
+          normalizedY,
+        );
+      } else if (customPanX === panX - 1) {
+        return coordinateSystems.left.getMarkerPosition(
+          normalizedX,
+          normalizedY,
+        );
+      } else if (customPanX === panX + 1) {
+        return coordinateSystems.right.getMarkerPosition(
+          normalizedX,
+          normalizedY,
+        );
       }
 
-      // Clean up object URL on unmount
-      if (
-        previousObjectUrlRef.current &&
-        previousObjectUrlRef.current.startsWith("blob:")
-      ) {
+      // Fallback for custom offsets (rare case)
+      const tempCoordSystem = new MapCoordinateSystem(
+        zoom,
+        customPanX,
+        panY,
+        containerRef,
+      );
+      return tempCoordSystem.getMarkerPosition(normalizedX, normalizedY);
+    },
+    [coordinateSystems, panX, zoom, panY],
+  );
+
+  // Load cached image on mount and when the DPR-adjusted container width crosses a bucket
+  // Load when DPR-adjusted container width * zoom suggests a new asset tier
+  useEffect(() => {
+    const computeTier = () => {
+      const node = containerRef.current;
+      if (!node) return null;
+
+      const cssWidth = node.clientWidth; // only the container
+      if (!cssWidth) {
+        return null; // ignore transient zero widths
+      }
+
+      const dpr =
+        typeof window !== "undefined" && window.devicePixelRatio
+          ? window.devicePixelRatio
+          : 1;
+
+      const effective = cssWidth * dpr * Math.max(1, zoom);
+
+      // Bias toward a lower tier at base zoom to save bandwidth on modest viewports
+      const DOWNSHIFT = 0.85;
+      const target = effective * DOWNSHIFT;
+
+      const tier =
+        TIERS.find((t) => t.width >= target) ?? TIERS[TIERS.length - 1];
+      const chosen = tier.key;
+      return chosen as ImageSize;
+    };
+
+    let debounceId: number | null = null;
+
+    const maybeLoad = () => {
+      const tier = computeTier();
+      if (!tier) return; // wait until container has a non-zero width
+      if (tier !== imageTier) {
+        if (debounceId) clearTimeout(debounceId);
+        debounceId = setTimeout(() => {
+          setImageTier(tier);
+          loadCachedImage(tier);
+        }, 120) as unknown as number;
+      }
+    };
+    // initial (defer to next frame so layout has settled)
+    if (containerRef.current) requestAnimationFrame(maybeLoad);
+
+    // resize listener
+    const onResize = () => {
+      if (debounceId) clearTimeout(debounceId);
+      debounceId = setTimeout(
+        maybeLoad,
+        IMAGE_CONFIG.RESIZE_DEBOUNCE_MS,
+      ) as unknown as number;
+    };
+
+    window.addEventListener("resize", onResize);
+
+    // ResizeObserver for container size changes
+    const container = containerRef.current;
+    let ro: ResizeObserver | null = null;
+    if (container && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => {
+        const w = containerRef.current?.clientWidth ?? 0;
+        if (w === 0) return; // ignore transient zero widths
+        if (debounceId) clearTimeout(debounceId);
+        debounceId = setTimeout(
+          maybeLoad,
+          IMAGE_CONFIG.RESIZE_DEBOUNCE_MS,
+        ) as unknown as number;
+      });
+      ro.observe(container);
+    }
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (debounceId) clearTimeout(debounceId);
+      if (ro) {
+        ro.disconnect();
+      }
+      // existing cleanup you already had:
+      if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current);
+    };
+  }, [loadCachedImage, imageTier, zoom]);
+
+  // Prefetch the next tier in the background to reduce visible loading when zooming in
+  useEffect(() => {
+    if (!imageTier) return;
+    const order = TIERS.map((t) => t.key);
+    const idx = order.indexOf(imageTier);
+    const next = order[idx + 1];
+    if (next) {
+      // Fire and forget
+      mapImageCache.prefetchImage("color", next);
+    }
+  }, [imageTier]);
+
+  // Revoke the current blob URL only on component unmount to avoid breaking in-flight images
+  useEffect(() => {
+    return () => {
+      if (previousObjectUrlRef.current?.startsWith("blob:")) {
         URL.revokeObjectURL(previousObjectUrlRef.current);
       }
     };
-  }, [loadCachedImage]);
+  }, []);
 
-  // Add native wheel event listener to prevent page scrolling
+  // Add native wheel event listener to prevent page scrolling with rAF batching
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const handleNativeWheel = (event: WheelEvent) => {
+    const onWheel = (event: WheelEvent) => {
       event.preventDefault();
       event.stopPropagation();
 
-      const delta = -event.deltaY * ZOOM_CONFIG.SPEED * ZOOM_CONFIG.WHEEL_SPEED_MULTIPLIER;
-      throttledZoom(delta, event.clientX, event.clientY);
+      const delta =
+        -event.deltaY * ZOOM_CONFIG.SPEED * ZOOM_CONFIG.WHEEL_SPEED_MULTIPLIER;
+
+      // Accumulate deltas and update last mouse position
+      wheelDeltaRef.current += delta;
+      wheelPosRef.current = { x: event.clientX, y: event.clientY };
+
+      // Schedule one rAF to apply the accumulated delta
+      if (wheelRafIdRef.current == null) {
+        wheelRafIdRef.current = requestAnimationFrame(() => {
+          wheelRafIdRef.current = null;
+          const d = wheelDeltaRef.current;
+          const pos = wheelPosRef.current;
+          if (d !== 0 && pos) {
+            handleZoom(d, pos.x, pos.y);
+          }
+          wheelDeltaRef.current = 0;
+          wheelPosRef.current = null;
+        });
+      }
     };
 
-    container.addEventListener("wheel", handleNativeWheel, { passive: false });
+    container.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      container.removeEventListener("wheel", onWheel);
+      if (wheelRafIdRef.current != null)
+        cancelAnimationFrame(wheelRafIdRef.current);
+      wheelRafIdRef.current = null;
+      wheelDeltaRef.current = 0;
+      wheelPosRef.current = null;
+    };
+  }, [handleZoom]);
+
+  // Prevent iOS Safari page zoom during pinch gestures inside the map container.
+  // Safari dispatches non-standard `gesture*` events when two-finger pinching.
+  // We call preventDefault() on those events to keep the pinch zoom behavior
+  // localized to the map (so the page itself does not zoom).
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const prevent = (e: Event) => {
+      e.preventDefault();
+    };
+
+    const opts = { passive: false } as AddEventListenerOptions;
+    // These events are only fired by Safari
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    el.addEventListener("gesturestart", prevent, opts as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    el.addEventListener("gesturechange", prevent, opts as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    el.addEventListener("gestureend", prevent, opts as any);
 
     return () => {
-      container.removeEventListener("wheel", handleNativeWheel);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      el.removeEventListener("gesturestart", prevent as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      el.removeEventListener("gesturechange", prevent as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      el.removeEventListener("gestureend", prevent as any);
     };
-  }, [throttledZoom]);
+  }, []);
 
   return (
     <div ref={containerRef} className={styles.container}>
       {/* Loading state */}
-      {isImageLoading && (
+      {isInitialImageLoading && (
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingText}>Loading map...</div>
         </div>
@@ -291,7 +471,7 @@ export default function WorldMap({
         maxZoom={ZOOM_CONFIG.MAX}
         zoomSpeed={ZOOM_CONFIG.SPEED}
         onZoom={handleZoom}
-        isVisible={!isImageLoading}
+        isVisible={!isInitialImageLoading}
       />
 
       {/* Map images */}
@@ -305,7 +485,7 @@ export default function WorldMap({
         isDragging={isDragging}
         isPanning={isPanning}
         isZooming={isZooming}
-        isImageLoading={isImageLoading}
+        isImageLoading={isInitialImageLoading}
         containerRef={containerRef}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
@@ -323,7 +503,7 @@ export default function WorldMap({
         isDragging={isDragging}
         isPanning={isPanning}
         isZooming={isZooming}
-        isImageLoading={isImageLoading}
+        isImageLoading={isInitialImageLoading}
         containerRef={containerRef}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
@@ -341,7 +521,7 @@ export default function WorldMap({
         isDragging={isDragging}
         isPanning={isPanning}
         isZooming={isZooming}
-        isImageLoading={isImageLoading}
+        isImageLoading={isInitialImageLoading}
         containerRef={containerRef}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
