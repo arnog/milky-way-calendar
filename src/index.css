@@ -15,7 +15,7 @@
 @layer base {
   body {
     background-color: var(--background);
-    color: var(--highlight);
+    color: var(--text-bright);
     font-family: "Inter", system-ui, sans-serif;
     position: relative;
   }
@@ -54,25 +54,69 @@
   box-sizing: content-box;
 }
 
-.darkroom-mode,
-.darkroom-mode * {
+.field-mode,
+.field-mode * {
   color: #ff4444 !important;
 }
 
-.darkroom-mode .text-gray-300,
-.darkroom-mode .text-gray-400,
-.darkroom-mode .text-sm,
-.darkroom-mode .text-xs {
+.field-mode .text-gray-300,
+.field-mode .text-gray-400,
+.field-mode .text-sm,
+.field-mode .text-xs {
   color: #ff6666 !important;
 }
 
-.darkroom-mode input::placeholder {
+.field-mode input::placeholder {
   color: #cc3333 !important;
 }
 
-.darkroom-mode .text-blue-200,
-.darkroom-mode .data-time {
+.field-mode .text-blue-200,
+.field-mode .data-time {
   color: #ff8888 !important;
+}
+
+/* Simple Page Transitions - Universal browser support */
+@media (prefers-reduced-motion: no-preference) {
+  /* Default state - page visible */
+  [data-page] {
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  /* Fade out when navigating away */
+  .page-fade-out [data-page] {
+    opacity: 0;
+  }
+
+  /* Fade in when navigating to new page */
+  .page-fade-in [data-page] {
+    opacity: 0;
+    animation: fade-in 0.2s ease-in-out forwards;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  [data-page] {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .page-fade-out [data-page],
+  .page-fade-in [data-page] {
+    opacity: 1 !important;
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 /* Location description HTML formatting */

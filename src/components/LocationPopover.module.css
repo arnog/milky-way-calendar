@@ -6,7 +6,7 @@
   padding: 18px;
   border-radius: 24px;
   box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
   background-color: rgba(15, 23, 42, 0.1);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -35,7 +35,7 @@
 
 .closeButton {
   border-radius: 16px;
-  color: rgb(156 163 175);
+  color: var(--neutral-400);
   transition-property: color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
@@ -50,7 +50,7 @@
 }
 
 .closeButton:hover {
-  color: var(--highlight);
+  color: var(--neutral-200);
 }
 
 .closeIcon {
@@ -88,8 +88,8 @@
   padding-right: 48px;
   border-radius: 12px;
   color: white;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   transition-property: border-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
@@ -105,7 +105,7 @@
 }
 
 .input::placeholder {
-  color: rgb(156 163 175);
+  color: var(--neutral-400);
 }
 
 .input:focus {
@@ -120,7 +120,7 @@
   top: 50%;
   transform: translateY(-50%);
   padding: 0.25rem;
-  color: rgb(156 163 175);
+  color: var(--neutral-400);
   transition-property: color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
@@ -136,7 +136,7 @@
 }
 
 .clearButton:disabled {
-  color: rgb(75 85 99);
+  color: var(--neutral-600);
   cursor: not-allowed;
 }
 
@@ -188,13 +188,13 @@
 }
 
 .suggestionButton:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--glass-bg);
 }
 
 .suggestionHint {
   font-size: 18px;
   line-height: 12px;
-  color: rgb(156 163 175);
+  color: var(--neutral-400);
   margin-left: 8px;
 }
 
@@ -236,29 +236,6 @@
   background: rgba(234, 179, 8, 0.1);
   border: 1px solid rgba(234, 179, 8, 0.3);
   color: rgb(254, 240, 138);
-}
-
-.spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(147, 197, 253, 0.3);
-  border-top: 2px solid rgb(147, 197, 253);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.buttonSpinner {
-  width: 18px;
-  height: 18px;
-  margin: 0;
 }
 
 .retryInfo {

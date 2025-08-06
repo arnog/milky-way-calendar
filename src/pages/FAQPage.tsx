@@ -44,7 +44,7 @@ export default function FAQPage() {
         />
       </Helmet>
 
-      <div className={styles.container}>
+      <div className={styles.container} data-page="faq">
         <div className={styles.content}>
           <section
             id="milky-way-faq"

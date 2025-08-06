@@ -5,21 +5,242 @@
 
 /* Color palette variables */
 :root {
-  --primary: #a3c4dc;
-  --accent: #6ec6ff;
-  --highlight: #f5f5f5;
-  --secondary: #273b4a;
-  --glow: #b2e3ff;
-  --background: #0b0e16;
+  --red-25: #fff8f7;
+  --red-50: #fff1ef;
+  --red-100: #ffeae6;
+  --red-200: #ffcac1;
+  --red-300: #ffa495;
+  --red-400: #ff7865;
+  --red-500: #f21c0d;
+  --red-600: #e50018;
+  --red-700: #d30024;
+  --red-800: #bd002c;
+  --red-900: #a1002f;
+  --orange-25: #fffbf8;
+  --orange-50: #fff7f1;
+  --orange-100: #fff3ea;
+  --orange-200: #ffe1c9;
+  --orange-300: #ffcca2;
+  --orange-400: #ffb677;
+  --orange-500: #fe9310;
+  --orange-600: #f58700;
+  --orange-700: #ea7c00;
+  --orange-800: #dc6d00;
+  --orange-900: #ca5b00;
+  --brown-25: #fff8ef;
+  --brown-50: #fff1df;
+  --brown-100: #ffe9ce;
+  --brown-200: #ebcca6;
+  --brown-300: #cdaf8a;
+  --brown-400: #af936f;
+  --brown-500: #856a47;
+  --brown-600: #7f5e34;
+  --brown-700: #78511f;
+  --brown-800: #6e4200;
+  --brown-900: #593200;
+  --yellow-25: #fffdf9;
+  --yellow-50: #fffcf2;
+  --yellow-100: #fffaec;
+  --yellow-200: #fff2ce;
+  --yellow-300: #ffe8ab;
+  --yellow-400: #ffdf85;
+  --yellow-500: #ffcf33;
+  --yellow-600: #f1c000;
+  --yellow-700: #dfb200;
+  --yellow-800: #c9a000;
+  --yellow-900: #ad8a00;
+  --lime-25: #f4ffee;
+  --lime-50: #e9ffdd;
+  --lime-100: #ddffca;
+  --lime-200: #a8fb6f;
+  --lime-300: #94e659;
+  --lime-400: #80d142;
+  --lime-500: #63b215;
+  --lime-600: #45a000;
+  --lime-700: #268e00;
+  --lime-800: #007417;
+  --lime-900: #005321;
+  --green-25: #f5fff5;
+  --green-50: #ebffea;
+  --green-100: #e0ffdf;
+  --green-200: #a7ffa7;
+  --green-300: #5afa65;
+  --green-400: #45e953;
+  --green-500: #17cf36;
+  --green-600: #00b944;
+  --green-700: #00a34a;
+  --green-800: #008749;
+  --green-900: #00653e;
+  --teal-25: #f3ffff;
+  --teal-50: #e6fffe;
+  --teal-100: #d9fffe;
+  --teal-200: #8dfffe;
+  --teal-300: #57f4f4;
+  --teal-400: #43e5e5;
+  --teal-500: #17cfcf;
+  --teal-600: #00c2c0;
+  --teal-700: #00b5b1;
+  --teal-800: #00a49e;
+  --teal-900: #009087;
+  --cyan-25: #f7fcff;
+  --cyan-50: #eff8ff;
+  --cyan-100: #e7f5ff;
+  --cyan-200: #c2e6ff;
+  --cyan-300: #95d5ff;
+  --cyan-400: #61c4ff;
+  --cyan-500: #13a7ec;
+  --cyan-600: #069eda;
+  --cyan-700: #0095c9;
+  --cyan-800: #0088b2;
+  --cyan-900: #0a7897;
+  --blue-25: #f7faff;
+  --blue-50: #eef5ff;
+  --blue-100: #e5f1ff;
+  --blue-200: #bfdbff;
+  --blue-300: #92c2ff;
+  --blue-400: #63a8ff;
+  --blue-500: #0d80f2;
+  --blue-600: #0077db;
+  --blue-700: #006dc4;
+  --blue-800: #0060a7;
+  --blue-900: #094668;
+  --indigo-25: #f8f7ff;
+  --indigo-50: #f1efff;
+  --indigo-100: #eae7ff;
+  --indigo-200: #ccc3ff;
+  --indigo-300: #ac99ff;
+  --indigo-400: #916aff;
+  --indigo-500: #63c;
+  --indigo-600: #5a21b2;
+  --indigo-700: #4e0b99;
+  --indigo-800: #3b0071;
+  --indigo-900: #220040;
+  --purple-25: #fbf7ff;
+  --purple-50: #f8f0ff;
+  --purple-100: #f4e8ff;
+  --purple-200: #e4c4ff;
+  --purple-300: #d49aff;
+  --purple-400: #c36aff;
+  --purple-500: #a219e6;
+  --purple-600: #9000c4;
+  --purple-700: #7c009f;
+  --purple-800: #600073;
+  --purple-900: #3d0043;
+  --magenta-25: #fff8fb;
+  --magenta-50: #fff2f6;
+  --magenta-100: #ffebf2;
+  --magenta-200: #ffcddf;
+  --magenta-300: #ffa8cb;
+  --magenta-400: #ff7fb7;
+  --magenta-500: #eb4799;
+  --magenta-600: #da3689;
+  --magenta-700: #c82179;
+  --magenta-800: #b00065;
+  --magenta-900: #8a004c;
+
+  --neutral-1000: black;
+  --neutral-900: #302e33;
+  --neutral-800: #3b3a3f;
+  --neutral-700: hsl(255, 3%, 30%);
+  --neutral-600: #5d5c60;
+  --neutral-500: #818384;
+  --neutral-400: hsl(240, 6%, 72%);
+  --neutral-300: hsl(240, 12%, 85%);
+  --neutral-200: hsl(225, 18%, 92%);
+  --neutral-100: hsl(225, 18%, 94%);
+  --neutral-75: hsl(225, 25%, 96%);
+  --neutral-50: hsl(225, 25%, 98%);
+  --neutral-25: hsl(225, 25%, 100%);
+  --neutral-0: white;
+
+  /* For informational messages */
+  --semantic-blue: var(--blue-700);
+  --semantic-bg-blue: var(--blue-25);
+
+  /* For error conditions */
+  --semantic-red: var(--red-400);
+  --semantic-bg-red: var(--red-25);
+
+  /* For warnings or alerts */
+  --semantic-orange: var(--orange-400);
+  --semantic-bg-orange: var(--orange-25);
+
+  /* For success messages */
+  --semantic-green: var(--green-700);
+  --semantic-bg-green: var(--green-25);
+
+  --primary: var(--blue-200);
+  --accent: var(--blue-300);
+  --secondary: var(--neutral-800);
+  --glow: var(--blue-100);
+  --background: var(--blue-900);
   --data-font-family: "Rubik", sans-serif;
 
   /* Astronomical arc colors */
-  --sun-twilight: #ffa500; /* Orange */
-  --sun-night: #1a2744; /* Dark blue */
-  --sun-dawn: #ffd700; /* Yellow */
-  --moon-arc: #c0c0c0; /* Silver */
-  --gc-visible: #6ec6ff; /* Cyan - swapped */
-  --gc-optimal: #87ceeb; /* Light blue - swapped */
+  --sun-twilight: var(--orange-400);
+  --sun-night: var(--blue-900);
+  --sun-dawn: var(--yellow-900);
+  --moon-arc: var(--neutral-100);
+  --gc-visible: var(--blue-700);
+  --gc-optimal: var(--cyan-300);
+
+  /* Essential Glassmorphism/Transparency Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-hover: rgba(255, 255, 255, 0.3);
+  --glass-active: rgba(255, 255, 255, 0.4);
+
+  /* Essential Text Tokens */
+  --text: rgba(255, 255, 255, 0.8);
+  --text-bright: var(--neutral-75);
+  --text-muted: rgba(255, 255, 255, 0.6);
+
+  /* Essential Shadow Tokens */
+  --shadow-medium: rgba(0, 0, 0, 0.2);
+  --shadow-dark: rgba(0, 0, 0, 0.3);
+  --dark-bg: rgba(0, 0, 0, 0.95);
+
+  /* Button System */
+  --button-bg-primary: var(--blue-600);
+  --button-bg-primary-hover: var(--blue-700);
+  --button-border: var(--blue-500);
+
+  /* Warning System Additions */
+  --warning-bg-subtle: rgba(249, 115, 22, 0.1);
+  --warning-border: rgba(249, 115, 22, 0.3);
+  --warning-border-active: rgba(249, 115, 22, 0.5);
+
+  /* Utility Tokens */
+  --error-border-light: rgba(239, 68, 68, 0.3);
+  --link: var(--blue-400);
+  --text-accent: var(--blue-100);
+  --spinner-ring: var(--neutral-500);
+  --spinner-arc: var(--neutral-300);
+
+  /* Arc glow and effect tokens */
+  --glow-orange: rgba(255, 165, 0, 0.4);
+  --glow-orange-strong: rgba(255, 165, 0, 0.8);
+  --glow-yellow: rgba(255, 215, 0, 0.4);
+  --glow-silver: rgba(192, 192, 192, 0.3);
+  --glow-silver-strong: rgba(192, 192, 192, 0.8);
+  --glow-sky-blue: rgba(135, 206, 235, 0.4);
+  --glow-sky-blue-strong: rgba(135, 206, 235, 0.8);
+  --glow-cyan: rgba(110, 198, 255, 0.5);
+  --glow-dark-blue: rgba(11, 14, 22, 0.6);
+
+  /* Event label background tokens */
+  --event-bg: rgba(0, 0, 0, 0.7);
+  --event-bg-hover: rgba(0, 0, 0, 0.9);
+
+  /* Gradient System */
+  --gradient-primary: var(--blue-800);
+  --gradient-secondary: var(--blue-600);
+
+  /* Tooltips */
+  --tooltip-bg: rgba(0, 0, 0, 0.8);
+  --tooltip-text: rgba(255, 255, 255, 0.9);
+  --tooltip-border: rgba(255, 255, 255, 0.2);
+  --tooltip-shadow: rgba(0, 0, 0, 0.4);
 }
 
 a,
@@ -78,15 +299,15 @@ a:active:has(h1) {
 }
 
 .color-gray-300 {
-  color: rgb(209 213 219);
+  color: var(--neutral-400);
 }
 
 .color-orange-400 {
-  color: rgb(251 146 60);
+  color: var(--orange-400);
 }
 
 .color-yellow-200 {
-  color: rgb(254 240 138);
+  color: var(--yellow-200);
 }
 
 /* Common flex layouts */

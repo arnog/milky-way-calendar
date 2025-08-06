@@ -1,5 +1,8 @@
 import { type CalculatedArc } from "../types/astronomicalClock";
-import { ARC_CONFIG, getColorFromCSSVariable } from "../config/clockConfig";
+import {
+  ARC_CONFIG,
+  getColorFromCSSVariable as cssVariable,
+} from "../config/clockConfig";
 
 /**
  * Generate SVG path for a circular arc
@@ -136,8 +139,8 @@ function createGradientArc(
     end: string,
     factor: number,
   ): string => {
-    const startColor = getColorFromCSSVariable(start);
-    const endColor = getColorFromCSSVariable(end);
+    const startColor = cssVariable(start);
+    const endColor = cssVariable(end);
 
     // Convert hex to RGB
     const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
@@ -269,8 +272,8 @@ function createColorGradientArc(
     end: string,
     factor: number,
   ): string => {
-    const startColorHex = getColorFromCSSVariable(start);
-    const endColorHex = getColorFromCSSVariable(end);
+    const startColorHex = cssVariable(start);
+    const endColorHex = cssVariable(end);
 
     // Convert hex to RGB
     const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
@@ -338,8 +341,8 @@ export function createSunArc(
         sunsetAngle,
         twilightEndAngle,
         radius,
-        "var(--sun-twilight)",
-        "var(--sun-night)",
+        "sun-twilight",
+        "sun-night",
         30,
         centerX,
         centerY,
@@ -358,7 +361,7 @@ export function createSunArc(
         centerX,
         centerY,
       ),
-      color: getColorFromCSSVariable("var(--sun-night)"),
+      color: cssVariable("sun-night"),
       className: "sun-night",
     });
   }
@@ -370,8 +373,8 @@ export function createSunArc(
         twilightStartAngle,
         sunriseAngle,
         radius,
-        "var(--sun-night)",
-        "var(--sun-dawn)",
+        "sun-night",
+        "sun-dawn",
         30,
         centerX,
         centerY,
@@ -405,7 +408,7 @@ export function createMoonArc(
 
   return {
     path: createArcPath(moonriseAngle, moonsetAngle, radius, centerX, centerY),
-    color: getColorFromCSSVariable("var(--moon-arc)"),
+    color: cssVariable("moon-arc"),
     opacity: opacity,
     className: "moon-arc",
   };
@@ -437,7 +440,7 @@ export function createGalacticCenterVisibilityArc(
       gcRiseAngle,
       fadeInEndAngle,
       radius,
-      getColorFromCSSVariable("var(--gc-visible)"),
+      cssVariable("gc-visible"),
       0, // Start transparent
       1, // End fully opaque
       15,
@@ -457,7 +460,7 @@ export function createGalacticCenterVisibilityArc(
         centerX,
         centerY,
       ),
-      color: getColorFromCSSVariable("var(--gc-visible)"),
+      color: cssVariable("gc-visible"),
       opacity: 1,
       className: "gc-visible",
     });
@@ -469,7 +472,7 @@ export function createGalacticCenterVisibilityArc(
       fadeOutStartAngle,
       gcSetAngle,
       radius,
-      getColorFromCSSVariable("var(--gc-visible)"),
+      cssVariable("gc-visible"),
       1, // Start fully opaque
       0, // End transparent
       15,
@@ -508,8 +511,8 @@ export function createOptimalViewingArc(
       optimalExtendedStartAngle,
       optimalStartAngle,
       radius,
-      "var(--gc-visible)", // Start with cyan
-      "var(--gc-optimal)", // End with light blue
+      "gc-visible", // Start with cyan
+      "gc-optimal", // End with light blue
       10,
       centerX,
       centerY,
@@ -530,7 +533,7 @@ export function createOptimalViewingArc(
         centerX,
         centerY,
       ),
-      color: getColorFromCSSVariable("var(--gc-optimal)"),
+      color: cssVariable("gc-optimal"),
       opacity: Math.max(0.8, qualityScore), // Quality-based opacity
       strokeWidth: ARC_CONFIG.EMPHASIZED_STROKE_WIDTH, // Thicker for emphasis
       className: "gc-optimal",
@@ -541,8 +544,8 @@ export function createOptimalViewingArc(
       optimalEndAngle,
       optimalExtendedEndAngle,
       radius,
-      "var(--gc-optimal)", // Start with light blue
-      "var(--gc-visible)", // End with cyan
+      "gc-optimal", // Start with light blue
+      "gc-visible", // End with cyan
       10,
       centerX,
       centerY,

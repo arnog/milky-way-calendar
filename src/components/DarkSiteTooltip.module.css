@@ -7,13 +7,13 @@
 }
 
 .tooltipContent {
-  background-color: rgba(0, 0, 0, 0.9);
-  color: white;
+  background-color: var(--tooltip-bg);
+  color: var(--tooltip-text);
   font-size: 0.875rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.375rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--tooltip-border);
+  box-shadow: 0 4px 16px var(--tooltip-shadow);
   backdrop-filter: blur(8px);
   min-width: 180px;
 }
@@ -27,7 +27,7 @@
 .tooltipBortle {
   font-family: var(--data-font-family);
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--tooltip-text);
   display: flex;
   align-items: center;
   gap: 0.25rem;

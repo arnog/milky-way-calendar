@@ -9,6 +9,7 @@ import StarRating from "./StarRating";
 import { Icon } from "./Icon";
 import Tooltip from "./Tooltip";
 import FormattedTime from "./FormattedTime";
+import Spinner from "./Spinner";
 import { APP_CONFIG } from "../config/appConfig";
 import {
   formatOptimalViewingTime,
@@ -24,7 +25,7 @@ export default function AstronomicalDataTable({
   className,
 }: AstronomicalDataTableProps) {
   const { location, isLoading: locationLoading } = useLocation();
-  const { items, isLoadingMore, error, canLoadMore, loadMore } =
+  const { items, isLoadingMore, canLoadMore, loadMore } =
     useAstronomicalData(currentDate, config);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
@@ -88,11 +89,14 @@ export default function AstronomicalDataTable({
     if (config.mode !== "weekly") return {};
 
     const opacity = visibility * 0.15;
+    // Using CSS variables from global.css - gradient-primary (blue-800) and gradient-secondary (blue-600)
+    // Since these map to hex values, we'll use the actual color values for now
+    // TODO: Once we have CSS color-mix support, we can use: color-mix(in srgb, var(--gradient-primary) ${opacity * 100}%, transparent)
     return {
       background: `linear-gradient(to right, 
-        rgba(42, 56, 144, ${opacity}), 
-        rgba(56, 88, 176, ${opacity * 0.4}), 
-        rgba(42, 56, 144, ${opacity * 0.3}))`,
+        rgba(0, 96, 167, ${opacity}), 
+        rgba(0, 119, 219, ${opacity * 0.4}), 
+        rgba(0, 96, 167, ${opacity * 0.3}))`,
       backgroundSize: "200% 100%",
       animation: visibility >= 3 ? "shimmer 6s ease-in-out infinite" : "none",
     };
@@ -127,14 +131,6 @@ export default function AstronomicalDataTable({
     return null;
   }
 
-  // Show error if something went wrong
-  if (error) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingText}>{error}</div>
-      </div>
-    );
-  }
 
   // Don't render if no items
   if (items.length === 0) {
@@ -434,7 +430,7 @@ export default function AstronomicalDataTable({
         <div ref={loadMoreRef} className={styles.loadMoreSection}>
           {isLoadingMore && (
             <div className={styles.loadingMoreContainer}>
-              <div className={styles.smallSpinner}></div>
+              <Spinner size="sm" />
             </div>
           )}
         </div>

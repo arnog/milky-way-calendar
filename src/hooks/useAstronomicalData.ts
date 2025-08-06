@@ -19,7 +19,6 @@ export function useAstronomicalData(
   const { location } = useLocation();
   const [items, setItems] = useState<AstronomicalDataItem[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [itemsLoaded, setItemsLoaded] = useState(0);
 
   // Default config values
@@ -168,15 +167,14 @@ export function useAstronomicalData(
       return;
     }
 
-    setError(null);
-
     try {
       const initialData = await loadData(0, initialItemCount);
       setItems(initialData);
       setItemsLoaded(initialItemCount);
     } catch (err) {
       console.error("Error loading initial astronomical data:", err);
-      setError("Failed to load astronomical data");
+      // Just don't show the table on error - cleaner UX
+      setItems([]);
     }
   }, [location, loadData, initialItemCount]);
 
@@ -194,7 +192,7 @@ export function useAstronomicalData(
       setItemsLoaded((prev) => prev + itemsPerBatch);
     } catch (err) {
       console.error("Error loading more astronomical data:", err);
-      setError("Failed to load more data");
+      // Silently fail on loadMore errors - existing data remains visible
     } finally {
       setIsLoadingMore(false);
     }
@@ -220,7 +218,6 @@ export function useAstronomicalData(
   return {
     items,
     isLoadingMore,
-    error,
     itemsLoaded,
     canLoadMore,
     loadMore,

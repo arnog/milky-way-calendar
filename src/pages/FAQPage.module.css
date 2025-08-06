@@ -37,7 +37,7 @@
 
 .questionsContainer article {
   /* border-b border-white/20 pb-6 last:border-b-0 */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid var(--glass-border);
   padding-bottom: 1.5rem;
 }
 

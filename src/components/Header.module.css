@@ -137,7 +137,7 @@
   transition-property: color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
   padding: 4px 2px;
   width: 3.5rem;
@@ -160,7 +160,7 @@
 
 .navLinkActive {
   /* text-white font-semibold */
-  color: var(--highlight);
+  color: var(--text-bright);
   font-weight: 600;
 }
 
@@ -178,7 +178,7 @@
   display: flex;
   align-items: center;
   padding: 0.5rem 4px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
   transition-property: color, background-color, border-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -199,7 +199,7 @@
 .darkModeButtonNormal {
   /* bg-white/10 border-white/30 text-white hover:bg-white/20 */
   background-color: transparent;
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--glass-hover);
   color: white;
 }
 

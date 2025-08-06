@@ -16,13 +16,8 @@ import { findNearestSpecialLocation } from "../utils/locationParser";
 import { storageService } from "../services/storageService";
 import styles from "../App.module.css";
 
-interface LocationPageProps {
-  isDarkroomMode: boolean;
-}
-
 // Wrapper component that parses URL and provides location to context
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function LocationPageWrapper(_props: LocationPageProps) {
+function LocationPageWrapper() {
   const { locationSlug } = useParams<{ locationSlug: string }>();
   // Parse location synchronously - no need for loading state
   const parsedLocation = useMemo(() => {
@@ -111,7 +106,7 @@ function LocationPageContent() {
         <meta name="twitter:description" content={pageDescription} />
       </Helmet>
 
-      <div className={styles.container}>
+      <div className={styles.container} data-page="home">
         <div className={styles.content}>
           <TonightCard currentDate={currentDate} />
           <DailyAstroTable currentDate={currentDate} />

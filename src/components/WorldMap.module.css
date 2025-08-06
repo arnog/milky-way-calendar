@@ -4,7 +4,7 @@
   /* relative overflow-hidden border border-white/20 rounded-xl bg-gray-900 */
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
   border-radius: 18px;
   background-color: rgb(17 24 39);
   aspect-ratio: 18 / 7;
@@ -123,7 +123,7 @@
   z-index: 10;
   /* background: rgba(17, 24, 39, 0.8); */
   /* backdrop-filter: blur(8px); */
-  /* border: 1px solid rgba(255, 255, 255, 0.1); */
+  /* border: 1px solid var(--glass-bg); */
   /* border-radius: 0.5rem; */
   padding: 8px;
 }
@@ -132,8 +132,8 @@
   width: 42px;
   height: 42px;
   border-radius: 21px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-border);
   backdrop-filter: blur(4px);
   color: white;
   font-size: 24px;
@@ -154,12 +154,12 @@
 }
 
 .zoomButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.4);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--glass-active);
+  border-color: var(--glass-hover);
 }
 
 .zoomButton:active:not(:disabled) {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--glass-hover);
 }
 
 .zoomButton:disabled {

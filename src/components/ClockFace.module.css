@@ -2,7 +2,7 @@
   max-width: 700px; /* Limit SVG size */
   width: 100%;
   height: auto;
-  /* filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3)); */
+  /* filter: drop-shadow(0 2px 8px var(--shadow-dark)); */
   overflow: visible; /* Allow tooltips to extend beyond SVG boundaries */
 }
 
@@ -12,7 +12,7 @@
 }
 
 .hourLine {
-  stroke: var(--highlight);
+  stroke: var(--neutral-600);
   stroke-width: 0.5;
   opacity: 0.6;
 }
@@ -21,33 +21,33 @@
   font-family: var(--data-font-family);
   font-size: 26px;
   font-weight: 100;
-  fill: var(--highlight);
+  fill: var(--neutral-600);
   opacity: 0.8;
 }
 
 /* Arc styling */
 .sunArcs .sun-twilight {
-  filter: drop-shadow(0 0 3px rgba(255, 165, 0, 0.4));
+  filter: drop-shadow(0 0 3px var(--glow-orange));
 }
 
 .sunArcs .sun-night {
-  filter: drop-shadow(0 0 2px rgba(11, 14, 22, 0.6));
+  filter: drop-shadow(0 0 2px var(--glow-dark-blue));
 }
 
 .sunArcs .sun-dawn {
-  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.4));
+  filter: drop-shadow(0 0 3px var(--glow-yellow));
 }
 
 .moonArcs .moon-arc {
-  filter: drop-shadow(0 0 4px rgba(192, 192, 192, 0.3));
+  filter: drop-shadow(0 0 4px var(--glow-silver));
 }
 
 .gcArcs .gc-visible {
-  filter: drop-shadow(0 0 3px rgba(135, 206, 235, 0.4));
+  filter: drop-shadow(0 0 3px var(--glow-sky-blue));
 }
 
 .gcArcs .gc-optimal {
-  filter: drop-shadow(0 0 6px rgba(110, 198, 255, 0.5));
+  filter: drop-shadow(0 0 6px var(--glow-cyan));
   stroke-linecap: round;
 }
 
@@ -153,22 +153,22 @@
   gap: 0;
   padding: 4px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--event-bg);
+  border: 1px solid var(--glass-bg);
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   text-align: center;
   outline: none;
   transition: all 0.2s ease;
-  color: var(--highlight);
+  color: var(--text-bright);
 
   backdrop-filter: blur(8px);
 }
 
 .eventLabelContent:hover,
 .eventLabelContent:focus {
-  background: rgba(0, 0, 0, 0.9);
+  background: var(--event-bg-hover);
   border-color: var(--accent);
   transform: scale(1.05);
   box-shadow: 0 0 12px rgba(var(--accent), 0.4);
@@ -191,33 +191,33 @@
 
 /* Event type specific styling */
 .sunEvent .eventLabelContent {
-  border-color: rgba(255, 165, 0, 0.3);
+  border-color: var(--glow-orange);
 }
 
 .sunEvent .eventLabelContent:hover,
 .sunEvent .eventLabelContent:focus {
-  border-color: rgba(255, 165, 0, 0.8);
-  box-shadow: 0 0 12px rgba(255, 165, 0, 0.4);
+  border-color: var(--glow-orange-strong);
+  box-shadow: 0 0 12px var(--glow-orange);
 }
 
 .moonEvent .eventLabelContent {
-  border-color: rgba(192, 192, 192, 0.3);
+  border-color: var(--glow-silver);
 }
 
 .moonEvent .eventLabelContent:hover,
 .moonEvent .eventLabelContent:focus {
-  border-color: rgba(192, 192, 192, 0.8);
-  box-shadow: 0 0 12px rgba(192, 192, 192, 0.4);
+  border-color: var(--glow-silver-strong);
+  box-shadow: 0 0 12px var(--glow-silver);
 }
 
 .gcEvent .eventLabelContent {
-  border-color: rgba(135, 206, 235, 0.3);
+  border-color: var(--glow-sky-blue);
 }
 
 .gcEvent .eventLabelContent:hover,
 .gcEvent .eventLabelContent:focus {
-  border-color: rgba(135, 206, 235, 0.8);
-  box-shadow: 0 0 12px rgba(135, 206, 235, 0.4);
+  border-color: var(--glow-sky-blue-strong);
+  box-shadow: 0 0 12px var(--glow-sky-blue);
 }
 
 /* Distant event styling (low opacity when outside 6pm-6am window) */

@@ -98,7 +98,7 @@ export const HOUR_MARKER_CONFIG = {
 
   /** Line styling */
   LINE_STYLE: {
-    stroke: "var(--highlight)",
+    stroke: "var(--neutral-600)",
     strokeWidth: 2,
     opacity: 0.6,
   },
@@ -107,7 +107,7 @@ export const HOUR_MARKER_CONFIG = {
   TEXT_STYLE: {
     fontSize: 18,
     fontWeight: 600,
-    fill: "var(--highlight)",
+    fill: "var(--neutral-600)",
     opacity: 0.8,
   },
 } as const;
@@ -239,30 +239,42 @@ export const EVENT_STYLES: Record<EventType, EventStyleConfig> = {
 } as const;
 
 /**
- * Helper function to convert CSS variable names to actual hex color values
- * This centralizes the color mapping that was previously duplicated in arcCalculation.ts
+ * Helper function to get CSS variable values from the DOM
+ * Takes a token name (e.g., 'sun-night') and returns the computed CSS variable value
+ *
+ * @param token - CSS variable name without '--' prefix (e.g., 'sun-night', 'gc-visible')
+ * @returns The computed CSS variable value from the DOM, or a fallback color
  */
-export function getColorFromCSSVariable(varName: string): string {
-  // Map CSS variables to actual hex values
-  switch (varName) {
-    case "var(--sun-twilight)":
-      return "#FFA500"; // Orange
-    case "var(--sun-night)":
-      return "#1a2744"; // Dark blue
-    case "var(--sun-dawn)":
-      return "#FFD700"; // Yellow
-    case "var(--moon-arc)":
-      return "#C0C0C0"; // Silver
-    case "var(--gc-visible)":
-      return "rgba(61, 141, 194, 1)"; // Blue
-    case "var(--gc-optimal)":
-      return "#00CEEB"; // Cyan
-    case "var(--accent)":
-      return "#6ec6ff"; // Accent color for current time
-    default:
-      // If it's already a hex color or other format, return as-is
-      return varName;
+export function getColorFromCSSVariable(token: string): string {
+  // Handle both formats: 'sun-night' or 'var(--sun-night)'
+  let cssVarName: string;
+
+  if (token.startsWith("var(--")) {
+    // Extract token from var(--token) format
+    cssVarName = token.slice(4, -1); // Remove 'var(--' and ')'
+  } else if (token.startsWith("--")) {
+    // Remove leading '--' if present
+    cssVarName = token.slice(2);
+  } else {
+    // Plain token name
+    cssVarName = token;
   }
+
+  // Try to get the actual CSS variable value from the DOM
+  if (typeof document !== "undefined") {
+    const computed = getComputedStyle(document.documentElement);
+    const value = computed.getPropertyValue(`--${cssVarName}`).trim();
+
+    if (value) {
+      return value;
+    }
+  }
+
+  console.error(
+    `CSS variable --${cssVarName} not found, returning fallback color`,
+  );
+
+  return "#ffffff"; // White as ultimate fallback
 }
 
 /**

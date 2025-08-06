@@ -15,7 +15,7 @@
   height: 12px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--glass-hover);
   cursor: pointer;
   transition: all 0.2s ease;
 }

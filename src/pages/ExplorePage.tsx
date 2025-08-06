@@ -22,9 +22,6 @@ import { getDarkSiteBortleWithFallback } from "../data/darkSiteBortle";
 import styles from "../App.module.css";
 import exploreStyles from "./ExplorePage.module.css";
 
-interface ExplorePageProps {
-  isDarkroomMode: boolean;
-}
 
 // Session storage keys for ExplorePage state persistence
 const EXPLORE_SESSION_KEYS = {
@@ -32,8 +29,7 @@ const EXPLORE_SESSION_KEYS = {
   HAS_AUTO_SEARCHED: "explore_has_auto_searched",
 } as const;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
+function ExplorePage() {
   const navigate = useNavigate();
   const { findMultipleDarkSites } = useDarkSiteWorker();
   const {
@@ -528,7 +524,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
         />
       </Helmet>
 
-      <div className={styles.container}>
+      <div className={styles.container} data-page="explore">
         <div className={styles.content}>
           <div className={exploreStyles.contentWrapper}>
             <h1 className={exploreStyles.mainTitle}>Explore Dark Sky Sites</h1>

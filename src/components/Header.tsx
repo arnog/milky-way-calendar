@@ -1,17 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
+import { useFieldMode } from "../hooks/useFieldMode";
+import { useSimpleTransitions } from "../hooks/useSimpleTransitions";
 import Tooltip from "./Tooltip";
 import styles from "./Header.module.css";
 
-interface HeaderProps {
-  isDarkroomMode: boolean;
-  onToggleDarkroomMode: () => void;
-}
-
-export default function Header({
-  isDarkroomMode,
-  onToggleDarkroomMode,
-}: HeaderProps) {
+export default function Header() {
   const location = useLocation();
+  const { isFieldMode, toggleFieldMode } = useFieldMode();
+  const { handleClick } = useSimpleTransitions();
 
   return (
     <header className={styles.header}>
@@ -20,6 +16,7 @@ export default function Header({
           <div className={styles.navLinks}>
             <Link
               to="/"
+              onClick={handleClick("/")}
               className={`${styles.navLink} ${
                 location.pathname === "/" ||
                 location.pathname.startsWith("/location")
@@ -31,6 +28,7 @@ export default function Header({
             </Link>
             <Link
               to="/explore"
+              onClick={handleClick("/explore")}
               className={`${styles.navLink} ${
                 location.pathname === "/explore"
                   ? styles.navLinkActive
@@ -41,6 +39,7 @@ export default function Header({
             </Link>
             <Link
               to="/faq"
+              onClick={handleClick("/faq")}
               className={`${styles.navLink} ${
                 location.pathname === "/faq"
                   ? styles.navLinkActive
@@ -54,14 +53,14 @@ export default function Header({
 
         <Tooltip
           content={
-            isDarkroomMode ? "Switch to Dark Mode" : "Switch to Field Mode"
+            isFieldMode ? "Switch to Dark Mode" : "Switch to Field Mode"
           }
           placement="bottom"
         >
           <button
-            onClick={onToggleDarkroomMode}
+            onClick={toggleFieldMode}
             className={`${styles.darkModeButton} ${
-              isDarkroomMode
+              isFieldMode
                 ? styles.darkModeButtonActive
                 : styles.darkModeButtonNormal
             }`}
@@ -77,7 +76,7 @@ export default function Header({
                 clipRule="evenodd"
               />
             </svg>
-            {isDarkroomMode ? "Field" : "Dark"}
+            {isFieldMode ? "Field" : "Dark"}
           </button>
         </Tooltip>
       </div>

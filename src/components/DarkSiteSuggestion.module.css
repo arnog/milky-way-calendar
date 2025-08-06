@@ -21,7 +21,7 @@
 }
 
 .suggestionSite strong {
-  color: var(--highlight);
+  color: var(--text-bright);
   font-size: 1rem;
 }
 

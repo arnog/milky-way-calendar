@@ -94,8 +94,6 @@ export interface UseAstronomicalDataResult {
   items: AstronomicalDataItem[];
   /** Loading state for additional items (infinite scroll) */
   isLoadingMore: boolean;
-  /** Error message if loading failed */
-  error: string | null;
   /** Number of items currently loaded */
   itemsLoaded: number;
   /** Whether more items can be loaded */

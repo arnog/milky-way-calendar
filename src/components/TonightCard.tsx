@@ -9,6 +9,7 @@ import StarRating from "./StarRating";
 import { Icon } from "./Icon";
 import AstronomicalClock from "./AstronomicalClock";
 import Tooltip from "./Tooltip";
+import Spinner from "./Spinner";
 // import DarkSiteSuggestion from "./DarkSiteSuggestion";
 import styles from "./TonightCard.module.css";
 
@@ -68,7 +69,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
             your area
           </p>
           <div className={styles.loadingActions}>
-            <div className={styles.spinner}></div>
+            <Spinner size="lg" />
             <p className={styles.permissionHint}>
               Waiting for location permission...
             </p>

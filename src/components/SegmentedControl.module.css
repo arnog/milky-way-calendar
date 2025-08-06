@@ -6,11 +6,11 @@
   --indicator-radius: calc(var(--container-radius) - var(--container-padding));
 
   display: flex;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--glass-bg);
   border-radius: var(--container-radius);
   padding: var(--container-padding);
   gap: 0.125rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
   backdrop-filter: blur(8px);
   position: relative;
 }
@@ -60,16 +60,16 @@
 .count {
   font-family: var(--data-font-family);
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  background-color: var(--glass-bg);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
   flex-shrink: 0;
 }
 
 .segment.active .count {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.8);
+  background-color: var(--glass-border);
+  color: var(--text);
 }
 
 /* Sliding indicator */
@@ -79,7 +79,7 @@
   height: calc(100% - 2px); /* 1px padding from top and bottom */
   background-color: rgba(255, 255, 255, 0.15);
   border-radius: var(--indicator-radius);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px var(--shadow-medium);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
   pointer-events: none; /* Don't interfere with button clicks */

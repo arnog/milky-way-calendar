@@ -3,7 +3,7 @@
 .container {
   /* min-h-screen p-4 */
   min-height: 100vh;
-  padding: 1rem;
+  padding: 16px;
 }
 
 .content {
@@ -13,39 +13,13 @@
   margin-right: auto;
 }
 
-.loadingContainer {
-  height: 16rem;
-}
-
-.loadingText {
-  color: rgba(255, 255, 255, 0.7);
-}
-
 /* Code splitting loading component */
 .loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  color: rgba(255, 255, 255, 0.8);
+  padding: 64px 32px;
 }
 
-.loadingSpinner {
-  width: 2rem;
-  height: 2rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-top: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}

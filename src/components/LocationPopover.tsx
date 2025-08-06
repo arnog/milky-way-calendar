@@ -5,6 +5,7 @@ import WorldMap from "./WorldMap";
 import { useLocationManager } from "../hooks/useLocationManager";
 import { Icon } from "./Icon";
 import Tooltip from "./Tooltip";
+import Spinner from "./Spinner";
 import styles from "./LocationPopover.module.css";
 
 
@@ -377,9 +378,7 @@ export default function LocationPopover({
               className={styles.clearButton}
             >
               {geoLoading ? (
-                <div
-                  className={`${styles.spinner} ${styles.buttonSpinner}`}
-                ></div>
+                <Spinner size="sm" />
               ) : (
                 <Icon name="current-location" className={styles.clearIcon} />
               )}
