@@ -46,6 +46,9 @@ export function useLocationManager({
   const [dragLocation, setDragLocation] = useState<Location | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Track if we've already attempted geolocation to prevent infinite loops
+  const [hasAttemptedGeolocation, setHasAttemptedGeolocation] = useState(false);
+
   // Load saved location from storage on mount
   useEffect(() => {
     const savedLocationData = storageService.getLocation("home");
@@ -65,8 +68,10 @@ export function useLocationManager({
         );
         setSuggestion(null);
       }
-    } else if (!initialLocation) {
-      getCurrentLocation();
+    } else if (!initialLocation && !hasAttemptedGeolocation) {
+      // Only attempt geolocation once to prevent infinite loops
+      setHasAttemptedGeolocation(true);
+      retryGeolocation(); // Call retryGeolocation directly instead of getCurrentLocation
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -94,7 +99,7 @@ export function useLocationManager({
 
   const getCurrentLocation = useCallback(() => {
     // Use the context's retry function which has proper error handling
-    // and doesn't fallback to Death Valley
+    // and applies default location on failure
     retryGeolocation();
   }, [retryGeolocation]);
 

@@ -358,14 +358,12 @@
   margin-top: 1rem;
 }
 
-
 .permissionHint {
   font-size: 0.875rem;
   color: var(--text-muted);
   margin: 0;
   text-align: center;
 }
-
 
 .manualLocationButton {
   display: flex;
@@ -388,4 +386,19 @@
   background: var(--glass-bg);
   opacity: 1;
   transform: translateY(-1px);
+}
+
+.chooseLocationButton {
+  appearance: none;
+  background: var(--button-bg-primary);
+  color: var(--button-text);
+  border: 1px solid var(--button-border);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.chooseLocationButton:hover {
+  background: var(--button-bg-hover);
 }

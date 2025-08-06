@@ -102,7 +102,8 @@ export function LocationProvider({
           // Simulate async behavior
           setTimeout(() => {
             setGeolocationFailed(true);
-            setIsLoading(false);
+            // Apply default location when geolocation fails
+            applyDefaultLocation(updateLocation, setIsLoading);
           }, 100);
           return;
         }
@@ -139,7 +140,8 @@ export function LocationProvider({
             });
 
             setGeolocationFailed(true);
-            setIsLoading(false);
+            // Apply default location when geolocation fails
+            applyDefaultLocation(updateLocation, setIsLoading);
           },
           options,
         );
@@ -162,7 +164,8 @@ export function LocationProvider({
                 "Geolocation permission denied, using default location",
               );
               setGeolocationFailed(true);
-              setIsLoading(false);
+              // Apply default location when permission denied
+              applyDefaultLocation(updateLocation, setIsLoading);
             }
           })
           .catch(() => {
@@ -258,7 +261,8 @@ export function LocationProvider({
         });
 
         setGeolocationFailed(true);
-        setIsLoading(false);
+        // Apply default location when retry fails
+        applyDefaultLocation(updateLocation, setIsLoading);
       },
       options,
     );

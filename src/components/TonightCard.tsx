@@ -10,6 +10,7 @@ import { Icon } from "./Icon";
 import AstronomicalClock from "./AstronomicalClock";
 import Tooltip from "./Tooltip";
 import Spinner from "./Spinner";
+import { APP_CONFIG } from "../config/appConfig";
 // import DarkSiteSuggestion from "./DarkSiteSuggestion";
 import styles from "./TonightCard.module.css";
 
@@ -29,9 +30,17 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
   const [showLocationPopover, setShowLocationPopover] = useState(false);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Auto-open LocationPopover when geolocation fails
+  // Check if we're using the default location (Death Valley)
+  const isUsingDefaultLocation =
+    location &&
+    Math.abs(location.lat - APP_CONFIG.DEFAULT_LOCATION.COORDINATES.lat) <
+      0.001 &&
+    Math.abs(location.lng - APP_CONFIG.DEFAULT_LOCATION.COORDINATES.lng) <
+      0.001;
+
+  // Auto-open LocationPopover when geolocation fails AND no location is available
   useEffect(() => {
-    if (geolocationFailed && !showLocationPopover) {
+    if (geolocationFailed && !location && !showLocationPopover) {
       setShowLocationPopover(true);
       // Auto-open the popover using native API
       const popover = document.getElementById(
@@ -41,7 +50,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
         popover.showPopover?.();
       }
     }
-  }, [geolocationFailed, showLocationPopover]);
+  }, [geolocationFailed, location, showLocationPopover]);
 
   // Handle location changes with navigation
   const handleLocationChange = (
@@ -49,11 +58,12 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
     shouldClose?: boolean,
   ) => {
     updateLocation(newLocation);
-    const slug = locationToSlug(newLocation);
-    navigate(`/location/${slug}`, { replace: true });
 
-    // Close popover if requested
+    // Only navigate to location-specific URL if user explicitly closed the popover
+    // This prevents navigation during automatic geolocation attempts
     if (shouldClose) {
+      const slug = locationToSlug(newLocation);
+      navigate(`/location/${slug}`, { replace: true });
       setShowLocationPopover(false);
     }
   };
@@ -70,20 +80,17 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           </p>
           <div className={styles.loadingActions}>
             <Spinner size="lg" />
-            <p className={styles.permissionHint}>
-              Waiting for location permission...
-            </p>
           </div>
           <button
             ref={locationButtonRef}
             className={styles.manualLocationButton}
-            popovertarget="tonight-location-popover"
+            popovertarget="tonight-location-popover-loading"
           >
             <Icon name="location" />
             Choose Manually
           </button>
           <LocationPopover
-            id="tonight-location-popover"
+            id="tonight-location-popover-loading"
             onClose={() => setShowLocationPopover(false)}
             onLocationChange={handleLocationChange}
           />
@@ -92,8 +99,9 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
     );
   }
 
-  // Show location picker if geolocation failed or no location available
-  if (geolocationFailed || !location) {
+  // Show location picker only if no location is available
+  // (geolocationFailed state is irrelevant if we have a default location)
+  if (!location) {
     return (
       <div className={styles.container}>
         <h2 className={styles.title}>Tonight</h2>
@@ -162,8 +170,25 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           )}
         </div>
 
+        {/* Default location notice when geolocation failed */}
+        {geolocationFailed && isUsingDefaultLocation && (
+          <div className={styles.nearestLocationSuggestion}>
+            <p className={styles.nearestLocationText}>
+              <Icon name="info" size="sm" className="color-accent" /> Location
+              Services could not determine your location. Using "Death Valley"
+              as an example.
+            </p>
+            <button
+              className={styles.chooseLocationButton}
+              popovertarget="tonight-location-popover-main"
+            >
+              Select your location →
+            </button>
+          </div>
+        )}
+
         {/* Nearest Known Location for coordinate inputs */}
-        {locationData?.nearestKnownLocation && (
+        {locationData?.nearestKnownLocation && !isUsingDefaultLocation && (
           <div className={styles.nearestLocationSuggestion}>
             <p className={styles.nearestLocationText}>
               Near <strong>{locationData.nearestKnownLocation.name}</strong> (
