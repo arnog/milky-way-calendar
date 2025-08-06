@@ -930,6 +930,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                   value={bortleFilter}
                   onChange={setBortleFilter}
                   size="sm"
+                  showCounts={true}
                 />
               </div>
               <div className={exploreStyles.regionsGrid}>

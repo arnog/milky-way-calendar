@@ -7,15 +7,8 @@ import { locationToSlug } from "../utils/urlHelpers";
 import LocationPopover from "./LocationPopover";
 import StarRating from "./StarRating";
 import { Icon } from "./Icon";
-import SegmentedControl, { SegmentedControlOption } from "./SegmentedControl";
-import {
-  formatOptimalViewingTime,
-  formatOptimalViewingDuration,
-} from "../utils/integratedOptimalViewing";
-import FormattedTime from "./FormattedTime";
 import AstronomicalClock from "./AstronomicalClock";
 import Tooltip from "./Tooltip";
-import { getMoonPhaseIcon, getMoonPhaseName } from "../utils/moonPhase";
 // import DarkSiteSuggestion from "./DarkSiteSuggestion";
 import styles from "./TonightCard.module.css";
 
@@ -34,10 +27,6 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
   const { events, locationData, error } = useTonightEvents(currentDate);
   const [showLocationPopover, setShowLocationPopover] = useState(false);
   const locationButtonRef = useRef<HTMLButtonElement>(null);
-
-  // View toggle state - clock or list view
-  type ViewMode = "clock" | "list";
-  const [viewMode, setViewMode] = useState<ViewMode>("clock");
 
   // Auto-open LocationPopover when geolocation fails
   useEffect(() => {
@@ -133,47 +122,13 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
 
   if (!events) return null;
 
-  // Create view toggle options
-  const viewToggleOptions: SegmentedControlOption<ViewMode>[] = [
-    {
-      value: "clock",
-      label: "",
-      icon: <Icon name="clock-view" size="md" />,
-    },
-    {
-      value: "list",
-      label: "",
-      icon: <Icon name="list-view" size="md" />,
-    },
-  ];
-
   return (
     <div className={styles.container}>
       <div className={styles.centerColumn}>
         <div className={styles.headerRow}>
-          <h2 className={styles.title}>
-            Tonight
-            <div>
-              {events && events.visibility > 0 && (
-                <StarRating
-                  rating={events.visibility}
-                  size="lg"
-                  reason={events.visibilityReason}
-                />
-              )}
-            </div>
-          </h2>
-
-          <SegmentedControl
-            options={viewToggleOptions}
-            value={viewMode}
-            onChange={setViewMode}
-            size="sm"
-            showCounts={false}
-          />
+          <h2 className={styles.title}>Tonight</h2>
         </div>
       </div>
-
       <div className={styles.locationSection}>
         <Tooltip content="Change location">
           <button
@@ -188,13 +143,23 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
               baselineOffset={4}
             />{" "}
             {locationData?.displayName ?? "Loading location..."}
+            {locationData?.bortleRating !== null && (
+              <Link to="/faq#bortle-scale" className={styles.bortleRating}>
+                Bortle {locationData?.bortleRating?.toFixed(1)}
+              </Link>
+            )}
           </button>
         </Tooltip>
-        {locationData?.bortleRating !== null && (
-          <Link to="/faq#bortle-scale" className={styles.bortleRating}>
-            Bortle {locationData?.bortleRating?.toFixed(1)}
-          </Link>
-        )}
+
+        <div>
+          {events && events.visibility > 0 && (
+            <StarRating
+              rating={events.visibility}
+              size="lg"
+              reason={events.visibilityReason}
+            />
+          )}
+        </div>
 
         {/* Nearest Known Location for coordinate inputs */}
         {locationData?.nearestKnownLocation && (
@@ -221,193 +186,7 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           )}
             */}
       </div>
-
-      {/* Conditional rendering based on view mode */}
-      {viewMode === "clock" ? (
-        /* Astronomical Clock View */
-        <AstronomicalClock
-          events={events}
-          currentDate={currentDate}
-          size={600}
-        />
-      ) : (
-        /* Event List View */
-        <div className={styles.eventGrid}>
-          {/* Sun Events */}
-          <div className={styles.eventSection}>
-            <h3 className={styles.sectionTitle}>Sun</h3>
-            {(events.sunSet || events.nightStart) && (
-              <div className={styles.eventRow}>
-                {events.sunSet && (
-                  <>
-                    <Tooltip content="Sunset (Civil Twilight)">
-                      <Icon
-                        name="sunset"
-                        size="lg"
-                        className="color-orange-400"
-                      />
-                    </Tooltip>
-                    <FormattedTime date={events.sunSet} />
-                  </>
-                )}
-                {events.nightStart && (
-                  <>
-                    <Tooltip content="Astronomical Night Start">
-                      <Icon name="night-rise" size="lg" />
-                    </Tooltip>
-                    <FormattedTime date={events.nightStart} />
-                  </>
-                )}
-              </div>
-            )}
-            {(events.nightEnd || events.sunRise) && (
-              <div className={styles.eventRow}>
-                {events.nightEnd && (
-                  <>
-                    <Tooltip content="Astronomical Night End">
-                      <Icon name="night-set" size="lg" />
-                    </Tooltip>
-                    <FormattedTime date={events.nightEnd} />
-                  </>
-                )}
-                {events.sunRise && (
-                  <>
-                    <Tooltip content="Sunrise (Civil Dawn)">
-                      <Icon
-                        name="sunrise"
-                        size="lg"
-                        className="color-yellow-200"
-                      />
-                    </Tooltip>
-                    <FormattedTime date={events.sunRise} />
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Moon Events */}
-          <div className={styles.eventSection}>
-            <h3 className={styles.sectionTitle}>
-              Moon{" "}
-              <Tooltip content={getMoonPhaseName(events.moonPhase)}>
-                <Icon
-                  name={getMoonPhaseIcon(events.moonPhase, location.lat)}
-                  size="md"
-                  className="color-gray-300"
-                  baselineOffset={2}
-                />
-              </Tooltip>{" "}
-              <span className={styles.moonIllumination}>
-                {events.moonIllumination.toFixed(0)}%
-              </span>
-            </h3>
-            {events.moonRise && (
-              <div className={styles.eventRowWide}>
-                <Tooltip content="Moonrise">
-                  <Icon
-                    name="moonrise"
-                    size="lg"
-                    className="color-gray-300"
-                    baselineOffset={-2}
-                  />
-                </Tooltip>
-                <FormattedTime date={events.moonRise} />
-              </div>
-            )}
-            {events.moonSet && (
-              <div className={styles.eventRowWide}>
-                <Tooltip content="Moonset">
-                  <Icon
-                    name="moonset"
-                    size="lg"
-                    className="color-gray-300"
-                    baselineOffset={-2}
-                  />
-                </Tooltip>
-                <FormattedTime date={events.moonSet} />
-              </div>
-            )}
-          </div>
-
-          {/* Galactic Core Events - only show if there's an optimal viewing window */}
-          {(events.optimalWindow.startTime ||
-            events.gcRise ||
-            events.gcTransit ||
-            events.gcSet ||
-            events.maxGcAltitude > 0) && (
-            <div className={styles.eventSection}>
-              <h3 className={styles.sectionTitle}>Galactic Core</h3>
-              {events.gcRise && (
-                <div className={styles.eventRowWide}>
-                  <Tooltip content="Galactic Core Rise (≥10°)">
-                    <Icon
-                      name="galaxy-rise"
-                      size="lg"
-                      className="color-gray-300"
-                    />
-                  </Tooltip>
-                  <FormattedTime date={events.gcRise} />
-                </div>
-              )}
-              {events.optimalWindow.startTime && (
-                <div className={styles.eventRowWide}>
-                  <Tooltip content="Optimal Viewing Window">
-                    <Icon
-                      name="telescope"
-                      size="lg"
-                      className="color-gray-300"
-                    />
-                  </Tooltip>
-                  <span className="data-time">
-                    <FormattedTime
-                      timeString={formatOptimalViewingTime(
-                        events.optimalWindow,
-                        location,
-                      )}
-                      className=""
-                    />
-                    <span className="small-caps"> for </span>
-                    {formatOptimalViewingDuration(events.optimalWindow)}
-                    {events.optimalWindow.averageScore && (
-                      <span className="small-caps">
-                        {" "}
-                        ({Math.round(events.optimalWindow.averageScore * 100)}%
-                        quality)
-                      </span>
-                    )}
-                  </span>
-                </div>
-              )}
-              {events.gcTransit && events.maxGcAltitude > 0 && (
-                <div className={styles.eventRowWide}>
-                  <Tooltip content="Galactic Core Transit">
-                    <Icon name="apex" size="lg" className="color-gray-300" />
-                  </Tooltip>
-                  <span className="data-time">
-                    <FormattedTime date={events.gcTransit} />
-                    <span className="small-caps"> at </span>
-                    {events.maxGcAltitude.toFixed(0)}°
-                  </span>
-                </div>
-              )}
-              {events.gcSet && (
-                <div className={styles.eventRowWide}>
-                  <Tooltip content="Galactic Core Set (≤10°)">
-                    <Icon
-                      name="galaxy-set"
-                      size="lg"
-                      className="color-gray-300"
-                    />
-                  </Tooltip>
-                  <FormattedTime date={events.gcSet} />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
+      <AstronomicalClock events={events} currentDate={currentDate} size={600} />
       <div className={styles.footerSection}>
         {locationData?.description && (
           <div
@@ -416,7 +195,6 @@ export default function TonightCard({ currentDate }: TonightCardProps) {
           />
         )}
       </div>
-
       <LocationPopover
         id="tonight-location-popover-main"
         onClose={() => setShowLocationPopover(false)}

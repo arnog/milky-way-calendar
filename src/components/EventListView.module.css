@@ -1,6 +1,9 @@
 .listView {
-  width: 100%;
-  padding: 1rem;
+  width: calc(100% - 32px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .panelTitle {
@@ -20,43 +23,46 @@
 .listEventItem {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
+  gap: 16px;
+  padding: 0 0 16px 0;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 400px;
 }
 
-.listEventItem:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
+.listEventItem:last-child {
+  border-bottom: none;
 }
 
 .listEventContent {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  flex-direction: row;
+  gap: 16px;
   flex: 1;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .listEventTitle {
   font-weight: 500;
+  opacity: 0.7;
   color: var(--highlight);
   font-size: 1rem;
 }
 
 .listEventDetails {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
 }
 
 .listEventExtra {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
+  gap: 8px;
+  font-size: 14px;
   color: var(--primary);
   opacity: 0.8;
 }

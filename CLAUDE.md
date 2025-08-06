@@ -99,6 +99,25 @@ ensure consistency and accuracy:
 - **Timezone Conversion**: All times displayed in location's local timezone
   using proper IANA timezone lookup with `tz-lookup` library
 
+### Tonight Events Calculation Strategy
+
+For "Tonight" events displayed in TonightCard, the app uses a **6pm fulcrum
+approach** implemented in `calculateTonightEvents()`:
+
+- **Fulcrum Point**: 6pm is used as the reference time for finding the most
+  relevant astronomical events for tonight's observation session
+- **Event Selection**: For each type of event (sunset, moonrise, GC transit,
+  etc.), the system finds the occurrence closest to 6pm, ensuring chronological
+  consistency
+- **Chronological Order**: Events are guaranteed to be in proper sequence:
+  - Galactic Core transit occurs between rise and set times
+  - Astronomical night end occurs before sunrise
+  - All events follow logical astronomical progression
+- **Edge Case Handling**: For times after midnight but before 6am, the system
+  uses the previous day's 6pm as the fulcrum to maintain consistency
+- **Implementation**: `src/utils/calculateTonightEvents.ts` replaces the
+  original approach that caused chronological inconsistencies in event ordering
+
 ## Location Management Architecture
 
 The app implements a **dual-location system** that separates the home "Tonight"

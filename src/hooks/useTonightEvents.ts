@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AstronomicalEvents } from "../types/astronomy";
 import { useLocation } from "./useLocation";
-import { calculateAstronomicalEvents } from "../utils/calculateAstronomicalEvents";
+import { calculateTonightEvents } from "../utils/calculateTonightEvents";
 import { DarkSiteResult } from "../utils/lightPollutionMap";
 import { useDarkSiteWorker } from "./useDarkSiteWorker";
 import {
@@ -167,55 +167,9 @@ export function useTonightEvents(currentDate?: Date): UseTonightEventsResult {
       try {
         const now = currentDate || new Date();
 
-        // Calculate all astronomical events (this is synchronous and fast)
-        const events = calculateAstronomicalEvents(now, location);
-
-        // Calculate tomorrow's events for sunrise if needed
-        let tomorrowSunrise: Date | undefined;
-        if (!events.sunRise || events.sunRise <= now) {
-          const tomorrowEvents = calculateAstronomicalEvents(
-            new Date(now.getTime() + APP_CONFIG.ASTRONOMY.MS_PER_DAY),
-            location,
-          );
-          tomorrowSunrise = tomorrowEvents.sunRise;
-        }
-
-        // For "Tonight" viewing, show events from today onwards
-        const todayStart = new Date(now);
-        todayStart.setHours(0, 0, 0, 0); // Start of today
-
-        // Filter events to only show future or today's events
-        const tonightEvents: AstronomicalEvents = {
-          sunRise:
-            events.sunRise && events.sunRise > now
-              ? events.sunRise
-              : tomorrowSunrise,
-          sunSet:
-            events.sunSet && events.sunSet > now ? events.sunSet : undefined,
-          nightStart:
-            events.nightStart && events.nightStart > now
-              ? events.nightStart
-              : undefined,
-          nightEnd: events.nightEnd,
-          moonRise:
-            events.moonRise && events.moonRise > now
-              ? events.moonRise
-              : undefined,
-          moonSet:
-            events.moonSet && events.moonSet > now ? events.moonSet : undefined,
-          gcRise:
-            events.gcRise && events.gcRise >= todayStart
-              ? events.gcRise
-              : undefined,
-          gcTransit: events.gcTransit,
-          gcSet: events.gcSet && events.gcSet > now ? events.gcSet : undefined,
-          maxGcAltitude: events.maxGcAltitude,
-          moonPhase: events.moonPhase,
-          moonIllumination: events.moonIllumination,
-          visibility: events.visibility,
-          visibilityReason: events.visibilityReason,
-          optimalWindow: events.optimalWindow,
-        };
+        // Calculate all astronomical events for tonight
+        // This function properly handles the time window for "tonight"
+        const tonightEvents = calculateTonightEvents(now, location);
 
         setEvents(tonightEvents);
       } catch (error) {

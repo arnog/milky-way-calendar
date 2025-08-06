@@ -1,5 +1,5 @@
 import { type CalculatedArc } from "../types/astronomicalClock";
-import { getColorFromCSSVariable } from "../config/clockConfig";
+import { ARC_CONFIG, getColorFromCSSVariable } from "../config/clockConfig";
 
 /**
  * Generate SVG path for a circular arc
@@ -17,20 +17,21 @@ export function createArcPath(
   centerX: number = 200,
   centerY: number = 200,
 ): string {
-  // Handle the case where arc spans more than 180 degrees
-  const angleSpan =
-    endAngle >= startAngle
-      ? endAngle - startAngle
-      : 360 - startAngle + endAngle;
+  // Handle raw angles (can be > 360°) by calculating the actual span
+  const rawAngleSpan = endAngle - startAngle;
+  const angleSpan = rawAngleSpan > 0 ? rawAngleSpan : 360 + rawAngleSpan;
 
   if (angleSpan >= 360) {
     // Full circle
     return createFullCirclePath(radius, centerX, centerY);
   }
 
-  // Convert angles to radians
-  const startRad = (startAngle * Math.PI) / 180;
-  const endRad = (endAngle * Math.PI) / 180;
+  // Convert angles to radians (normalize to 0-360 for trigonometry)
+  const normalizedStart = ((startAngle % 360) + 360) % 360;
+  const normalizedEnd = ((endAngle % 360) + 360) % 360;
+
+  const startRad = (normalizedStart * Math.PI) / 180;
+  const endRad = (normalizedEnd * Math.PI) / 180;
 
   // Calculate start and end points
   const startX = centerX + radius * Math.sin(startRad);
@@ -165,13 +166,22 @@ function createGradientArc(
   };
 
   for (let i = 0; i < segments; i++) {
-    const segmentStart = (startAngle + i * segmentAngle) % 360;
-    const segmentEnd = (startAngle + (i + 1) * segmentAngle) % 360;
+    // Calculate raw angles first to maintain continuity across midnight
+    const rawSegmentStart = startAngle + i * segmentAngle;
+    const rawSegmentEnd = startAngle + (i + 1) * segmentAngle;
+
+    // Pass raw angles to createArcPath - it will handle normalization
     const factor = i / (segments - 1);
     const color = interpolateColor(startColor, endColor, factor);
 
     arcs.push({
-      path: createArcPath(segmentStart, segmentEnd, radius, centerX, centerY),
+      path: createArcPath(
+        rawSegmentStart,
+        rawSegmentEnd,
+        radius,
+        centerX,
+        centerY,
+      ),
       color: color,
       className: className,
       opacity: 1,
@@ -204,15 +214,23 @@ function createOpacityFadeArc(
   const segmentAngle = angleSpan / segments;
 
   for (let i = 0; i < segments; i++) {
-    const segmentStart = (startAngle + i * segmentAngle) % 360;
-    const segmentEnd = (startAngle + (i + 1) * segmentAngle) % 360;
+    // Calculate raw angles first to maintain continuity across midnight
+    const rawSegmentStart = startAngle + i * segmentAngle;
+    const rawSegmentEnd = startAngle + (i + 1) * segmentAngle;
 
+    // Pass raw angles to createArcPath - it will handle normalization
     // Use the midpoint of the segment for opacity calculation
     const factor = (i + 0.5) / segments;
     const opacity = startOpacity + (endOpacity - startOpacity) * factor;
 
     arcs.push({
-      path: createArcPath(segmentStart, segmentEnd, radius, centerX, centerY),
+      path: createArcPath(
+        rawSegmentStart,
+        rawSegmentEnd,
+        radius,
+        centerX,
+        centerY,
+      ),
       color: color,
       className: className,
       opacity: Math.max(0, Math.min(1, opacity)),
@@ -394,31 +412,24 @@ export function createMoonArc(
 }
 
 /**
- * Create Galactic Center arc with optimal viewing highlight
+ * Create simple Galactic Center visibility arc from rise to set
  */
-export function createGalacticCenterArc(
+export function createGalacticCenterVisibilityArc(
   gcRiseAngle: number,
-  optimalStartAngle: number,
-  optimalEndAngle: number,
   gcSetAngle: number,
-  qualityScore: number,
   radius: number,
   centerX: number = 200,
   centerY: number = 200,
 ): CalculatedArc[] {
   const arcs: CalculatedArc[] = [];
 
-  // Calculate angles for timing offsets
-  // 1 hour = 15 degrees, 20 minutes = 5 degrees (360 degrees / 24 hours / 3)
+  // Calculate angles for timing offsets WITHOUT modulo to maintain continuity
+  // 1 hour = 15 degrees
   const oneHourDegrees = 15;
-  const twentyMinDegrees = 5;
 
-  const fadeInEndAngle = (gcRiseAngle + oneHourDegrees) % 360;
-  const fadeOutStartAngle = (gcSetAngle - oneHourDegrees + 360) % 360;
-
-  const optimalExtendedStartAngle =
-    (optimalStartAngle - twentyMinDegrees + 360) % 360;
-  const optimalExtendedEndAngle = (optimalEndAngle + twentyMinDegrees) % 360;
+  // Use raw angles to maintain proper direction across midnight
+  const fadeInEndAngle = gcRiseAngle + oneHourDegrees;
+  const fadeOutStartAngle = gcSetAngle - oneHourDegrees;
 
   // GC rise with opacity fade in (0 to 1 opacity over 1 hour)
   arcs.push(
@@ -436,77 +447,11 @@ export function createGalacticCenterArc(
     ),
   );
 
-  // Full opacity section (1 hour after rise to 20min before optimal start)
-  if (optimalExtendedStartAngle !== fadeInEndAngle) {
+  // Full opacity section (1 hour after rise to 1 hour before set)
+  if (fadeOutStartAngle !== fadeInEndAngle) {
     arcs.push({
       path: createArcPath(
         fadeInEndAngle,
-        optimalExtendedStartAngle,
-        radius,
-        centerX,
-        centerY,
-      ),
-      color: getColorFromCSSVariable("var(--gc-visible)"),
-      opacity: 1,
-      className: "gc-visible",
-    });
-  }
-
-  // Optimal viewing window with gradient transitions (extends 20min before/after)
-  if (optimalExtendedEndAngle !== optimalExtendedStartAngle) {
-    // Gradient fade in: GC color to optimal color (20min before optimal start)
-    const fadeInGradient = createColorGradientArc(
-      optimalExtendedStartAngle,
-      optimalStartAngle,
-      radius,
-      "var(--gc-visible)", // Start with cyan
-      "var(--gc-optimal)", // End with light blue
-      10,
-      centerX,
-      centerY,
-      "gc-optimal",
-    );
-    // Set stroke width for optimal window
-    fadeInGradient.forEach((arc) => (arc.strokeWidth = 60));
-    arcs.push(...fadeInGradient);
-
-    // Core optimal window (solid optimal color, thicker)
-    arcs.push({
-      path: createArcPath(
-        optimalStartAngle,
-        optimalEndAngle,
-        radius,
-        centerX,
-        centerY,
-      ),
-      color: getColorFromCSSVariable("var(--gc-optimal)"),
-      opacity: Math.max(0.8, qualityScore), // Quality-based opacity
-      strokeWidth: 60, // Thicker for emphasis
-      className: "gc-optimal",
-    });
-
-    // Gradient fade out: optimal color to GC color (20min after optimal end)
-    const fadeOutGradient = createColorGradientArc(
-      optimalEndAngle,
-      optimalExtendedEndAngle,
-      radius,
-      "var(--gc-optimal)", // Start with light blue
-      "var(--gc-visible)", // End with cyan
-      10,
-      centerX,
-      centerY,
-      "gc-optimal",
-    );
-    // Set stroke width for optimal window
-    fadeOutGradient.forEach((arc) => (arc.strokeWidth = 60));
-    arcs.push(...fadeOutGradient);
-  }
-
-  // Full opacity section (20min after optimal end to 1 hour before set)
-  if (fadeOutStartAngle !== optimalExtendedEndAngle) {
-    arcs.push({
-      path: createArcPath(
-        optimalExtendedEndAngle,
         fadeOutStartAngle,
         radius,
         centerX,
@@ -533,6 +478,82 @@ export function createGalacticCenterArc(
       "gc-visible",
     ),
   );
+
+  return arcs;
+}
+
+/**
+ * Create optimal viewing arc superimposed on the GC visibility arc
+ */
+export function createOptimalViewingArc(
+  optimalStartAngle: number,
+  optimalEndAngle: number,
+  qualityScore: number,
+  radius: number,
+  centerX: number = 200,
+  centerY: number = 200,
+): CalculatedArc[] {
+  const arcs: CalculatedArc[] = [];
+
+  // 20 minutes = 5 degrees (360 degrees / 24 hours / 3)
+  const twentyMinDegrees = 5;
+
+  const optimalExtendedStartAngle = optimalStartAngle - twentyMinDegrees;
+  const optimalExtendedEndAngle = optimalEndAngle + twentyMinDegrees;
+
+  // Optimal viewing window with gradient transitions (extends 20min before/after)
+  if (optimalExtendedEndAngle !== optimalExtendedStartAngle) {
+    // Gradient fade in: GC color to optimal color (20min before optimal start)
+    const fadeInGradient = createColorGradientArc(
+      optimalExtendedStartAngle,
+      optimalStartAngle,
+      radius,
+      "var(--gc-visible)", // Start with cyan
+      "var(--gc-optimal)", // End with light blue
+      10,
+      centerX,
+      centerY,
+      "gc-optimal",
+    );
+    // Set stroke width for optimal window
+    fadeInGradient.forEach(
+      (arc) => (arc.strokeWidth = ARC_CONFIG.EMPHASIZED_STROKE_WIDTH),
+    );
+    arcs.push(...fadeInGradient);
+
+    // Core optimal window (solid optimal color, thicker)
+    arcs.push({
+      path: createArcPath(
+        optimalStartAngle,
+        optimalEndAngle,
+        radius,
+        centerX,
+        centerY,
+      ),
+      color: getColorFromCSSVariable("var(--gc-optimal)"),
+      opacity: Math.max(0.8, qualityScore), // Quality-based opacity
+      strokeWidth: ARC_CONFIG.EMPHASIZED_STROKE_WIDTH, // Thicker for emphasis
+      className: "gc-optimal",
+    });
+
+    // Gradient fade out: optimal color to GC color (20min after optimal end)
+    const fadeOutGradient = createColorGradientArc(
+      optimalEndAngle,
+      optimalExtendedEndAngle,
+      radius,
+      "var(--gc-optimal)", // Start with light blue
+      "var(--gc-visible)", // End with cyan
+      10,
+      centerX,
+      centerY,
+      "gc-optimal",
+    );
+    // Set stroke width for optimal window
+    fadeOutGradient.forEach(
+      (arc) => (arc.strokeWidth = ARC_CONFIG.EMPHASIZED_STROKE_WIDTH),
+    );
+    arcs.push(...fadeOutGradient);
+  }
 
   return arcs;
 }

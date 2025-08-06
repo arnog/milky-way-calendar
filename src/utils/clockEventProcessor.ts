@@ -2,7 +2,6 @@ import { Location } from "../types/astronomy";
 import { timeToAngle, isEventDistant } from "./timeConversion";
 import { type ClockEvent } from "../types/astronomicalClock";
 import { type AstronomicalEvents } from "../types/astronomy";
-import { EVENT_LABEL_CONFIG } from "../config/clockConfig";
 
 /**
  * Calculate angular difference between two angles, handling wrap-around
@@ -73,79 +72,56 @@ function consolidateSameTimeEvents(events: ClockEvent[]): ClockEvent[] {
 }
 
 /**
- * Handles label collision detection and adjustment using layered positioning
+ * Handles label collision detection and adjustment using angular offsets
  * @param events - Array of clock events to check for collisions
- * @param baseRadius - Base radius for event label positioning
- * @param size - Clock size for calculating adjustment offset
- * @returns Array of events with adjusted radii for colliding events
+ * @returns Array of events with adjusted angles for colliding events
  */
-export function adjustEventRadii(
-  events: ClockEvent[],
-  baseRadius: number,
-  size: number,
-): ClockEvent[] {
+function adjustEventAngles(events: ClockEvent[]): ClockEvent[] {
   if (events.length <= 1) return events;
 
   const adjustedEvents = [...events];
-  const collisionThreshold = EVENT_LABEL_CONFIG.COLLISION_THRESHOLD;
-  const radiusStep = size * EVENT_LABEL_CONFIG.COLLISION_RADIUS_STEP;
+  const collisionThreshold = 30; // 30 degrees - close enough to cause visual overlap
+  const angleOffset = 5; // 5 degrees offset
 
-  // Sort events by angle for consistent processing
+  // Sort events by original angle for consistent processing
   adjustedEvents.sort((a, b) => a.angle - b.angle);
 
-  // Initialize all events at base layer
-  adjustedEvents.forEach((event) => {
-    event.adjustedRadius = undefined; // Reset any previous adjustments
-  });
+  // Check each pair of events for potential collisions
+  for (let i = 0; i < adjustedEvents.length - 1; i++) {
+    for (let j = i + 1; j < adjustedEvents.length; j++) {
+      const event1 = adjustedEvents[i];
+      const event2 = adjustedEvents[j];
 
-  // Use a more robust spacing algorithm
-  // Check each event against ALL other events, not just layer-by-layer
-  for (let i = 0; i < adjustedEvents.length; i++) {
-    const currentEvent = adjustedEvents[i];
-    let layer = 0;
-    let hasCollision = true;
+      const angularDiff = getAngularDifference(event1.angle, event2.angle);
 
-    // Keep trying layers until we find one without collisions
-    while (hasCollision && layer < 5) {
-      // Max 5 layers to prevent infinite loops
-      hasCollision = false;
-      const currentRadius = baseRadius + radiusStep * layer;
-
-      // Check against all other events
-      for (let j = 0; j < adjustedEvents.length; j++) {
-        if (i === j) continue;
-
-        const otherEvent = adjustedEvents[j];
-        const otherRadius = otherEvent.adjustedRadius || baseRadius;
-
-        // Only check collision if events are on the same layer (same radius)
-        if (Math.abs(currentRadius - otherRadius) < 1) {
-          // Within 1px tolerance
-          const angularDiff = getAngularDifference(
-            currentEvent.angle,
-            otherEvent.angle,
-          );
-          if (angularDiff < collisionThreshold) {
-            hasCollision = true;
-            break;
+      // If events are too close, apply offset
+      if (angularDiff < collisionThreshold) {
+        // Apply offset: smaller angle gets -5°, larger angle gets +5°
+        if (event1.angle < event2.angle) {
+          // Handle wrap-around at 0°
+          event1.angle = event1.angle - angleOffset;
+          if (event1.angle < 0) {
+            event1.angle += 360;
           }
+          
+          event2.angle = (event2.angle + angleOffset) % 360;
+        } else {
+          // Handle case where event2 has smaller angle
+          event2.angle = event2.angle - angleOffset;
+          if (event2.angle < 0) {
+            event2.angle += 360;
+          }
+          
+          event1.angle = (event1.angle + angleOffset) % 360;
         }
       }
-
-      if (!hasCollision) {
-        // Found a layer without collisions
-        if (layer > 0) {
-          currentEvent.adjustedRadius = baseRadius + radiusStep * layer;
-        }
-        break;
-      }
-
-      layer++;
     }
   }
 
   return adjustedEvents;
+
 }
+
 
 /**
  * Processes astronomical events into clock events with proper positioning and styling
@@ -325,6 +301,8 @@ export function processAstronomicalEvents(
   // First consolidate same-time events
   const consolidatedEvents = consolidateSameTimeEvents(eventList);
 
-  // Return without collision adjustment since events are inside the arcs
-  return consolidatedEvents;
+  // Apply angular collision detection and adjustment
+  const adjustedEvents = adjustEventAngles(consolidatedEvents);
+
+  return adjustedEvents;
 }

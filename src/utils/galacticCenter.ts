@@ -27,20 +27,7 @@ export function calculateGalacticCenterData(
     let setTime: Date | null = null;
     let transitTime: Date | null = null;
 
-    // Use more efficient calculation based on local sidereal time
-    // GC transits when Local Sidereal Time = RA of GC
-    const localSiderealTime =
-      Astronomy.SiderealTime(date) + location.lng / 15.0; // Convert longitude to hours
-
-    // Calculate hour angle at current time
-    let hourAngle = localSiderealTime - GALACTIC_CENTER_RA;
-
-    // Normalize hour angle to [-12, +12] range
-    hourAngle = ((((hourAngle + 12) % 24) + 24) % 24) - 12;
-
-    // Transit occurs when hour angle = 0
-    const hoursToTransit = -hourAngle;
-    transitTime = new Date(date.getTime() + hoursToTransit * 60 * 60 * 1000); // Use precise millisecond calculation
+    // We'll calculate transit time after we have rise and set times
 
     // We'll use the current horizontal position for altitude/azimuth in the return value
 
@@ -188,6 +175,47 @@ export function calculateGalacticCenterData(
     } catch (error) {
       console.error("Error finding GC rise/set times:", error);
       // Fallback to null times
+    }
+
+    // Calculate transit time - should occur between rise and set when available
+    // But always calculate it for informational purposes
+    
+    // Calculate initial transit based on sidereal time
+    const localSiderealTime = Astronomy.SiderealTime(date) + location.lng / 15.0;
+    let hourAngle = localSiderealTime - GALACTIC_CENTER_RA;
+    hourAngle = ((((hourAngle + 12) % 24) + 24) % 24) - 12;
+    const hoursToTransit = -hourAngle;
+    let candidateTransit = new Date(date.getTime() + hoursToTransit * 60 * 60 * 1000);
+    
+    if (riseTime && setTime) {
+      // Ensure transit is between rise and set
+      
+      // If this transit is before rise, add sidereal days until it's after rise
+      while (candidateTransit < riseTime) {
+        candidateTransit = new Date(candidateTransit.getTime() + 23.9344696 * 60 * 60 * 1000); // Sidereal day
+      }
+      
+      // If the transit is between rise and set, use it
+      if (candidateTransit >= riseTime && candidateTransit <= setTime) {
+        transitTime = candidateTransit;
+      } else if (candidateTransit > setTime) {
+        // Transit happens after set, try the previous transit
+        candidateTransit = new Date(candidateTransit.getTime() - 23.9344696 * 60 * 60 * 1000);
+        if (candidateTransit >= riseTime && candidateTransit <= setTime) {
+          transitTime = candidateTransit;
+        }
+      }
+    } else if (riseTime && !setTime) {
+      // GC rises but doesn't set in our search window
+      // Ensure transit is after rise
+      while (candidateTransit < riseTime) {
+        candidateTransit = new Date(candidateTransit.getTime() + 23.9344696 * 60 * 60 * 1000);
+      }
+      transitTime = candidateTransit;
+    } else {
+      // No rise time - GC may never be visible or always visible
+      // Still provide transit time for reference
+      transitTime = candidateTransit;
     }
 
     return {

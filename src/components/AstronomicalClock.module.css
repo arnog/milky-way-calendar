@@ -4,14 +4,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
+  padding: 16px;
   background: rgba(0, 0, 0, 0.1);
   border-radius: 16px;
-  backdrop-filter: blur(3px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  margin: 1rem 0;
+  margin: 16px 0;
   position: relative;
-  width: 100%;
+  width: calc(100% - 32px);
 }
 
 .controlSection {

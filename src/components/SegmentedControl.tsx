@@ -23,7 +23,7 @@ export default function SegmentedControl<T extends string | number>({
   onChange,
   className = "",
   size = "md",
-  showCounts = true,
+  showCounts = false,
 }: SegmentedControlProps<T>) {
   // Find the active option index
   const activeIndex = options.findIndex((option) => option.value === value);

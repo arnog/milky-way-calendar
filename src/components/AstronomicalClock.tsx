@@ -4,7 +4,8 @@ import { timeToAngle, getCurrentTimeAngle } from "../utils/timeConversion";
 import {
   createSunArc,
   createMoonArc,
-  createGalacticCenterArc,
+  createGalacticCenterVisibilityArc,
+  createOptimalViewingArc,
 } from "../utils/arcCalculation";
 import { processAstronomicalEvents } from "../utils/clockEventProcessor";
 import { type AstronomicalClockProps } from "../types/astronomicalClock";
@@ -36,10 +37,7 @@ export default function AstronomicalClock({
   type PanelMode = "clock" | "list";
   const [currentPanel, setCurrentPanel] = useState<PanelMode>("clock");
   const containerRef = useRef<HTMLDivElement>(null);
-  const now = useMemo(
-    () => currentDate || new Date(),
-    [currentDate],
-  );
+  const now = useMemo(() => currentDate || new Date(), [currentDate]);
 
   // Handle panel changes
   const handlePanelChange = (newPanel: PanelMode) => {
@@ -63,7 +61,6 @@ export default function AstronomicalClock({
   // Check if current time is within the display window (6pm to 6am)
   const currentHour = now.getHours();
   const showClockHand = currentHour >= 18 || currentHour < 6;
-
 
   // Calculate dimensions using configuration
   const dimensions = calculateClockDimensions(size);
@@ -141,25 +138,50 @@ export default function AstronomicalClock({
   }, [events, location, moonRadius, centerX, centerY]);
 
   const gcArcs = useMemo(() => {
-    if (
-      !events.gcRise ||
-      !events.gcSet ||
-      !events.optimalWindow.startTime ||
-      !events.optimalWindow.endTime
-    ) {
+    if (!events.gcRise || !events.gcSet) {
+      console.log("GC arcs: Missing required GC rise/set events", {
+        gcRise: events.gcRise,
+        gcSet: events.gcSet,
+      });
       return [];
     }
 
-    return createGalacticCenterArc(
-      timeToAngle(events.gcRise, location),
-      timeToAngle(events.optimalWindow.startTime, location),
-      timeToAngle(events.optimalWindow.endTime, location),
-      timeToAngle(events.gcSet, location),
-      events.optimalWindow.averageScore || 0.5,
+    const gcRiseAngle = timeToAngle(events.gcRise, location);
+    const gcSetAngle = timeToAngle(events.gcSet, location);
+
+    // Create base visibility arc (GC rise to set)
+    const visibilityArcs = createGalacticCenterVisibilityArc(
+      gcRiseAngle,
+      gcSetAngle,
       gcRadius,
       centerX,
       centerY,
     );
+
+    // Add optimal viewing arc if available
+    if (events.optimalWindow.startTime && events.optimalWindow.endTime) {
+      const optimalStartAngle = timeToAngle(
+        events.optimalWindow.startTime,
+        location,
+      );
+      const optimalEndAngle = timeToAngle(
+        events.optimalWindow.endTime,
+        location,
+      );
+
+      const optimalArcs = createOptimalViewingArc(
+        optimalStartAngle,
+        optimalEndAngle,
+        events.optimalWindow.averageScore || 0.5,
+        gcRadius,
+        centerX,
+        centerY,
+      );
+
+      return [...visibilityArcs, ...optimalArcs];
+    }
+
+    return visibilityArcs;
   }, [events, location, gcRadius, centerX, centerY]);
 
   // Create segmented control options

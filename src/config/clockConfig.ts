@@ -13,16 +13,16 @@ export const CLOCK_CONFIG = {
   DEFAULT_SIZE: 600,
 
   /** Base radius as a fraction of clock size (0.28 = 28% of total size) */
-  BASE_RADIUS_RATIO: 0.24,
+  BASE_RADIUS_RATIO: 0.3,
 
   /** Step size between arc layers as a fraction of clock size */
-  RADIUS_STEP_RATIO: 0.12,
+  RADIUS_STEP_RATIO: 0.1,
 
   /** Label positioning radius offset as a fraction of clock size */
-  LABEL_RADIUS_OFFSET_RATIO: 0.0,
+  LABEL_RADIUS_OFFSET_RATIO: 0,
 
   /** Hour text positioning offset as a fraction of clock size */
-  HOUR_TEXT_OFFSET_RATIO: 0.12,
+  HOUR_TEXT_OFFSET_RATIO: -0.19,
 
   /** Auto-refresh interval in milliseconds (2 minutes) */
   AUTO_REFRESH_INTERVAL: 2 * 60 * 1000,
@@ -44,7 +44,7 @@ export const ARC_CONFIG = {
   DEFAULT_STROKE_WIDTH: 50,
 
   /** Emphasized stroke width for optimal viewing window */
-  EMPHASIZED_STROKE_WIDTH: 60,
+  EMPHASIZED_STROKE_WIDTH: 20,
 
   /** Arc colors using CSS variables */
   COLORS: {
@@ -79,8 +79,21 @@ export const ARC_CONFIG = {
 export const HOUR_MARKER_CONFIG = {
   /** Main hour positions (12, 3, 6, 9 o'clock) */
   MAIN_HOURS: {
-    angles: [270, 0, 90, 180] as const,
-    labels: ["21", "00", "03", "06"] as const,
+    angles: [270, 300, 330, 0, 30, 60, 90, 120, 150, 180, 210, 240] as const,
+    labels: [
+      "21",
+      "22",
+      "23",
+      "00",
+      "01",
+      "02",
+      "03",
+      "04",
+      "05",
+      "18/06",
+      "19",
+      "20",
+    ] as const,
   },
 
   /** Line styling */
@@ -103,12 +116,6 @@ export const HOUR_MARKER_CONFIG = {
  * Event label configuration
  */
 export const EVENT_LABEL_CONFIG = {
-  /** Collision detection threshold in degrees (increased to prevent overlaps) */
-  COLLISION_THRESHOLD: 45,
-
-  /** Radius step size for collision layers as fraction of clock size */
-  COLLISION_RADIUS_STEP: 0.03,
-
   /** Event label dimensions */
   DIMENSIONS: {
     width: 50,
@@ -247,9 +254,9 @@ export function getColorFromCSSVariable(varName: string): string {
     case "var(--moon-arc)":
       return "#C0C0C0"; // Silver
     case "var(--gc-visible)":
-      return "#6EC6FF"; // Cyan
+      return "rgba(61, 141, 194, 1)"; // Blue
     case "var(--gc-optimal)":
-      return "#87CEEB"; // Light blue
+      return "#00CEEB"; // Cyan
     case "var(--accent)":
       return "#6ec6ff"; // Accent color for current time
     default:

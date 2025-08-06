@@ -38,7 +38,6 @@ export default function EventListView({
 
   return (
     <div className={`${styles.listView} ${className}`}>
-      <h3 className={styles.panelTitle}>Tonight's Events</h3>
       <div
         className={styles.eventList}
         role="list"
@@ -57,30 +56,32 @@ export default function EventListView({
                 role="listitem"
                 aria-label={`${event.title} at ${event.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
               >
-                <Icon name={event.icon} size="lg" aria-hidden="true" />
+                <Icon name={event.icon} size="xl" aria-hidden="true" />
                 <div className={styles.listEventContent}>
                   <span className={styles.listEventTitle}>{event.title}</span>
                   <div className={styles.listEventDetails}>
-                    <FormattedTime date={event.time} />
                     {isMoonrise && (
                       <div className={styles.listEventExtra}>
                         <Icon
                           name={getMoonPhaseIcon(moonPhase, location.lat)}
-                          size="md"
+                          size="sm"
+                          baselineOffset={-1}
                         />
-                        <span className="data-time">
-                          {moonIllumination.toFixed(0)}% illuminated
+                        <span className="data-time ">
+                          {moonIllumination.toFixed(0)}%
                         </span>
+                        <span className="small-caps">illuminated</span>
                       </div>
                     )}
                     {isOptimalViewing && optimalWindow.averageScore && (
                       <div className={styles.listEventExtra}>
-                        <span className="small-caps">
+                        <span className="data-time">
                           {Math.round(optimalWindow.averageScore * 100)}%
-                          quality
                         </span>
+                        <span className="small-caps">quality</span>
                       </div>
                     )}
+                    <FormattedTime date={event.time} />
                   </div>
                 </div>
               </div>
