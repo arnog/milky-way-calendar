@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle } from "react";
 import { flushSync } from "react-dom";
 import { Location } from "../types/astronomy";
 import { normalizedToCoord } from "../utils/lightPollutionMap";
@@ -14,12 +14,22 @@ import LocationMarker from "./LocationMarker";
 import AdditionalMarkers, { WorldMapMarker } from "./AdditionalMarkers";
 import styles from "./WorldMap.module.css";
 
+export interface WorldMapRef {
+  getMarkerPositionForPan: (
+    normalizedX: number,
+    normalizedY: number,
+    customPanX: number,
+  ) => { x: number; y: number };
+  panX: number;
+}
+
 interface WorldMapProps {
   location: Location | null;
   onLocationChange: (location: Location, isDragging?: boolean) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
   markers?: WorldMapMarker[];
+  ref?: React.Ref<WorldMapRef>;
 }
 
 // Available map asset tiers (module-scoped for stable identity)
@@ -30,13 +40,13 @@ const TIERS = [
   { key: "large" as const, width: 14400 },
 ] as const;
 
-export default function WorldMap({
+const WorldMap = forwardRef<WorldMapRef, WorldMapProps>(function WorldMap({
   location,
   onLocationChange,
   onDragStart,
   onDragEnd,
   markers = [],
-}: WorldMapProps) {
+}, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [imageSrc, setImageSrc] = useState<string>("");
   const [isImageLoading, setIsImageLoading] = useState(true);
@@ -205,31 +215,6 @@ export default function WorldMap({
     [zoom, panX, panY, applyZoomPan, coordinateSystem],
   );
 
-  // Gesture handlers using the hook
-  const {
-    isDragging,
-    isPanning,
-    handleMouseDown,
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
-  } = useMapGestures({
-    containerRef,
-    zoom,
-    panX,
-    panY,
-    setPan: setPanConstrained,
-    onZoom: handleZoom,
-    onLocationChange,
-    onDragStart,
-    onDragEnd,
-    screenToNormalized,
-    normalizedToCoord,
-    config: {
-      zoomSpeed: ZOOM_CONFIG.SPEED,
-      dragThreshold: MAP_CONFIG.gestures.DRAG_THRESHOLD,
-    },
-  });
 
   // Memoized coordinate systems for different pan offsets
   const coordinateSystems = useMemo(
@@ -277,6 +262,40 @@ export default function WorldMap({
     },
     [coordinateSystems, panX, zoom, panY],
   );
+
+  // Gesture handlers using the hook
+  const {
+    isDragging,
+    isPanning,
+    handleMouseDown,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = useMapGestures({
+    containerRef,
+    zoom,
+    panX,
+    panY,
+    currentLocation: location,
+    setPan: setPanConstrained,
+    onZoom: handleZoom,
+    onLocationChange,
+    onDragStart,
+    onDragEnd,
+    screenToNormalized,
+    normalizedToCoord,
+    getMarkerPositionForPan,
+    config: {
+      zoomSpeed: ZOOM_CONFIG.SPEED,
+      dragThreshold: MAP_CONFIG.gestures.DRAG_THRESHOLD,
+    },
+  });
+
+  // Expose functions to parent component via ref
+  useImperativeHandle(ref, () => ({
+    getMarkerPositionForPan,
+    panX,
+  }), [getMarkerPositionForPan, panX]);
 
   // Load cached image on mount and when the DPR-adjusted container width crosses a bucket
   // Load when DPR-adjusted container width * zoom suggests a new asset tier
@@ -457,12 +476,8 @@ export default function WorldMap({
 
   return (
     <div ref={containerRef} className={styles.container}>
-      {/* Loading state */}
-      {isInitialImageLoading && (
-        <div className={styles.loadingOverlay}>
-          <div className={styles.loadingText}>Loading map...</div>
-        </div>
-      )}
+      {/* Loading state - checkerboard pattern */}
+      {isInitialImageLoading && <div className={styles.loadingOverlay} />}
 
       {/* Zoom controls */}
       <ZoomControls
@@ -482,11 +497,13 @@ export default function WorldMap({
         panX={panX}
         panY={panY}
         panOffset={0}
+        currentLocation={location}
         isDragging={isDragging}
         isPanning={isPanning}
         isZooming={isZooming}
         isImageLoading={isInitialImageLoading}
         containerRef={containerRef}
+        getMarkerPositionForPan={getMarkerPositionForPan}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -500,11 +517,13 @@ export default function WorldMap({
         panX={panX}
         panY={panY}
         panOffset={-1}
+        currentLocation={location}
         isDragging={isDragging}
         isPanning={isPanning}
         isZooming={isZooming}
         isImageLoading={isInitialImageLoading}
         containerRef={containerRef}
+        getMarkerPositionForPan={getMarkerPositionForPan}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -518,11 +537,13 @@ export default function WorldMap({
         panX={panX}
         panY={panY}
         panOffset={1}
+        currentLocation={location}
         isDragging={isDragging}
         isPanning={isPanning}
         isZooming={isZooming}
         isImageLoading={isInitialImageLoading}
         containerRef={containerRef}
+        getMarkerPositionForPan={getMarkerPositionForPan}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -544,4 +565,6 @@ export default function WorldMap({
       />
     </div>
   );
-}
+});
+
+export default WorldMap;

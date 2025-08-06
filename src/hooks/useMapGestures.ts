@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect, RefObject } from "react";
 import { Location } from "../types/astronomy";
 import { ZOOM_CONFIG, GESTURE_CONFIG } from "../config/mapConfig";
+import { coordToNormalized } from "../utils/lightPollutionMap";
 
 export interface GestureState {
   isDragging: boolean;
@@ -26,6 +27,7 @@ interface UseMapGesturesProps {
   zoom: number;
   panX: number;
   panY: number;
+  currentLocation?: Location | null;
   setPan: (panX: number, panY: number) => void;
   onZoom: (delta: number, centerX?: number, centerY?: number) => void;
   onLocationChange: (location: Location, isDragging?: boolean) => void;
@@ -36,6 +38,11 @@ interface UseMapGesturesProps {
     screenY: number,
   ) => { x: number; y: number };
   normalizedToCoord: (x: number, y: number) => Location;
+  getMarkerPositionForPan: (
+    normalizedX: number,
+    normalizedY: number,
+    customPanX: number,
+  ) => { x: number; y: number };
   config?: GestureConfig;
 }
 
@@ -49,6 +56,7 @@ export function useMapGestures({
   zoom,
   panX,
   panY,
+  currentLocation,
   setPan,
   onZoom,
   onLocationChange,
@@ -56,6 +64,7 @@ export function useMapGestures({
   onDragEnd,
   screenToNormalized,
   normalizedToCoord,
+  getMarkerPositionForPan,
   config = {},
 }: UseMapGesturesProps) {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
@@ -130,6 +139,41 @@ export function useMapGestures({
       return normalizedToCoord(normalized.x, normalized.y);
     },
     [screenToNormalized, normalizedToCoord],
+  );
+
+  // Check if a screen point is near the current location marker
+  const isNearCurrentLocation = useCallback(
+    (screenX: number, screenY: number): boolean => {
+      if (!currentLocation) return false;
+      
+      const container = containerRef.current;
+      if (!container) return false;
+      
+      const rect = container.getBoundingClientRect();
+      const containerX = screenX - rect.left;
+      const containerY = screenY - rect.top;
+      
+      // Convert lat/lng to normalized coordinates
+      const normalized = coordToNormalized(currentLocation.lat, currentLocation.lng);
+      
+      // Get the actual marker position using the same transform as the real marker
+      const markerPosition = getMarkerPositionForPan(normalized.x, normalized.y, panX);
+      
+      // Convert marker percentage position to pixels
+      const locationScreenX = (markerPosition.x / 100) * rect.width;
+      const locationScreenY = (markerPosition.y / 100) * rect.height;
+      
+      // Define proximity threshold (in pixels)
+      const threshold = 30; // 30px radius around the marker
+      
+      const distance = Math.sqrt(
+        Math.pow(containerX - locationScreenX, 2) + 
+        Math.pow(containerY - locationScreenY, 2)
+      );
+      
+      return distance <= threshold;
+    },
+    [currentLocation, containerRef, panX, getMarkerPositionForPan]
   );
 
   // Touch handlers
@@ -272,13 +316,13 @@ export function useMapGestures({
         );
 
         if (!hasDragged && !hasPanned && distance > finalConfig.dragThreshold) {
-          if (e.shiftKey || zoom > 1) {
-            // Shift+drag to pan OR zoom > 1 (intuitive panning when zoomed in)
+          if (e.shiftKey || !isNearCurrentLocation(startX, startY)) {
+            // Shift+drag to pan OR click away from current location marker
             hasPanned = true;
             setIsPanning(true);
             lastPointerRef.current = { x: startX, y: startY };
           } else {
-            // Regular drag to select location (only when zoom = 1)
+            // Click near current location marker - drag to select new location
             hasDragged = true;
             setIsDragging(true);
             onDragStart?.();
@@ -349,13 +393,13 @@ export function useMapGestures({
       document.addEventListener("mouseup", handleMouseUp);
     },
     [
-      zoom,
       containerRef,
       setPan,
       onLocationChange,
       onDragStart,
       onDragEnd,
       getLocationFromEvent,
+      isNearCurrentLocation,
       finalConfig.dragThreshold,
     ],
   );

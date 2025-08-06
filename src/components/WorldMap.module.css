@@ -5,7 +5,7 @@
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.75rem;
+  border-radius: 18px;
   background-color: rgb(17 24 39);
   aspect-ratio: 18 / 7;
   touch-action: none;
@@ -16,15 +16,23 @@
   /* absolute inset-0 bg-gray-900 flex items-center justify-center */
   position: absolute;
   inset: 0;
-  background-color: rgb(17 24 39);
   display: flex;
   align-items: center;
   justify-content: center;
-}
 
-.loadingText {
-  /* text-white/50 */
-  color: rgba(255, 255, 255, 0.5);
+  /* Checkerboard pattern */
+  background-image:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.05) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.05) 75%);
+  background-size: 40px 40px;
+  background-position:
+    0 0,
+    0 20px,
+    20px -20px,
+    -20px 0;
+  background-color: rgb(17 24 39);
 }
 
 .mapImage {
@@ -40,26 +48,24 @@
 }
 
 .mapImageLoading {
-  /* opacity-0 */
   opacity: 0;
 }
 
 .mapImageLoaded {
-  /* opacity-100 */
   opacity: 1;
 }
 
-.mapImageCrosshair {
+.crosshairCursor {
   /* cursor-crosshair */
   cursor: crosshair;
 }
 
-.mapImageGrab {
+.grabCursor {
   /* cursor-grab */
   cursor: grab;
 }
 
-.mapImageGrabbing {
+.grabbingCursor {
   /* cursor-grabbing */
   cursor: grabbing;
 }
@@ -76,8 +82,8 @@
   position: absolute;
   width: 100%;
   height: 2px;
-  background-color: rgb(239 68 68);
-  opacity: 0.5;
+  background-color: rgba(239, 68, 68, 0.8);
+  transform: translate(0, -50%);
 }
 
 .crosshairVertical {
@@ -85,16 +91,18 @@
   position: absolute;
   height: 100%;
   width: 2px;
-  background-color: rgb(239 68 68);
-  opacity: 0.5;
+  background-color: rgba(239, 68, 68, 0.8);
+  transform: translate(-50%, 0);
 }
 
 .marker {
   /* absolute w-3 h-3 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 */
   position: absolute;
-  width: 0.75rem;
-  height: 0.75rem;
-  background-color: rgb(239 68 68);
+  width: 12px;
+  height: 12px;
+  border-color: rgb(239 68 68);
+  border-width: 2px;
+  border-style: solid;
   border-radius: 9999px;
   transform: translate(-50%, -50%);
 }
@@ -107,28 +115,29 @@
 /* Zoom Controls */
 .zoomControls {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 8px;
+  right: 8px;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0;
   z-index: 10;
-  background: rgba(17, 24, 39, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  padding: 0.5rem;
+  /* background: rgba(17, 24, 39, 0.8); */
+  /* backdrop-filter: blur(8px); */
+  /* border: 1px solid rgba(255, 255, 255, 0.1); */
+  /* border-radius: 0.5rem; */
+  padding: 8px;
 }
 
 .zoomButton {
-  width: 2rem;
-  height: 2rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 21px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.25rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
   color: white;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 400;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -136,8 +145,16 @@
   justify-content: center;
 }
 
+.zoomButton:first-child {
+  border-radius: 21px 21px 0 0;
+}
+
+.zoomButton:last-child {
+  border-radius: 0 0 21px 21px;
+}
+
 .zoomButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.4);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -146,56 +163,5 @@
 }
 
 .zoomButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.zoomLevel {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.75rem;
-  text-align: center;
-  padding: 0.25rem 0;
-  min-width: 2rem;
-}
-
-.resetButton {
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.25rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.resetButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.resetButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Instructions */
-.instructions {
-  position: absolute;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(17, 24, 39, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.75rem;
-  z-index: 10;
-  white-space: nowrap;
+  opacity: 0.6;
 }

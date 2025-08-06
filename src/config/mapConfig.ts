@@ -6,8 +6,8 @@
 // Zoom configuration
 export const ZOOM_CONFIG = {
   MIN: 1,
-  MAX: 8,
-  SPEED: 0.1,
+  MAX: 16,
+  SPEED: 0.25,
   TOUCH_SPEED_MULTIPLIER: 0.005,
   WHEEL_SPEED_MULTIPLIER: 0.01,
 } as const;
@@ -30,7 +30,7 @@ export const GESTURE_CONFIG = {
 export const MARKER_BOUNDS = {
   MIN_X: -10, // percentage
   MAX_X: 110, // percentage
-  MIN_Y: 0,   // percentage
+  MIN_Y: 0, // percentage
   MAX_Y: 100, // percentage
 } as const;
 
@@ -45,8 +45,8 @@ export const IMAGE_CONFIG = {
 
 // Animation configuration
 export const ANIMATION_CONFIG = {
-  TRANSITION_DURATION: '0.1s',
-  TRANSITION_EASING: 'ease-out',
+  TRANSITION_DURATION: "0.1s",
+  TRANSITION_EASING: "ease-out",
 } as const;
 
 // Default map state

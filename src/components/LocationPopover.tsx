@@ -7,6 +7,7 @@ import { Icon } from "./Icon";
 import Tooltip from "./Tooltip";
 import styles from "./LocationPopover.module.css";
 
+
 interface LocationPopoverProps {
   onLocationChange: (location: Location, shouldClose?: boolean) => void;
   onClose: () => void;
@@ -21,7 +22,9 @@ export default function LocationPopover({
   const { location } = useLocation();
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoMessage, setGeoMessage] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const geoMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const {
     inputValue,
     suggestion,
@@ -37,6 +40,15 @@ export default function LocationPopover({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (geoMessageTimeoutRef.current) {
+        clearTimeout(geoMessageTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Position popover when it opens
   useEffect(() => {
@@ -115,6 +127,37 @@ export default function LocationPopover({
   }, [location, onLocationChange]);
 
   // Enhanced geolocation with retry logic and user feedback
+  //
+  // GEOLOCATION STRATEGY:
+  // The browser's Geolocation API automatically chooses between multiple positioning methods:
+  // - GPS (Global Positioning System) - Most accurate (~5-20m) but slow, requires clear sky view
+  // - WiFi positioning - Moderate accuracy (~20-50m), works indoors, requires WiFi database
+  // - Cell tower triangulation - Less accurate (~100-1000m), works anywhere with cell signal
+  // - IP-based geolocation - Least accurate (city-level), instant but unreliable
+  //
+  // Our retry strategy optimizes for different scenarios:
+  //
+  // ATTEMPT 1 (Speed-optimized):
+  // - enableHighAccuracy: false - Prioritizes network/WiFi positioning for quick response
+  // - timeout: 10 seconds - Shorter timeout for fast feedback
+  // - Goal: Get a "good enough" position quickly (~50-500m accuracy)
+  // - Best for: Users who just want to see nearby dark sites
+  //
+  // ATTEMPTS 2-3 (Accuracy-optimized):
+  // - enableHighAccuracy: true - Activates GPS for precise positioning
+  // - timeout: 15-20 seconds - Gives GPS time to acquire satellite fix
+  // - Goal: Get the most accurate position possible (~5-20m accuracy)
+  // - Best for: Users who need precise location for dark site calculations
+  //
+  // ERROR CODES:
+  // - Code 1 (PERMISSION_DENIED): User denied location access - no retries
+  // - Code 2 (POSITION_UNAVAILABLE): Hardware/OS can't determine position - retry with GPS
+  // - Code 3 (TIMEOUT): Request took too long - retry with longer timeout
+  //
+  // WHY THE "OPEN MAPS APP" SUGGESTION WORKS:
+  // On mobile devices, the Maps app often keeps GPS "warm" with cached satellite data,
+  // making subsequent location requests faster and more reliable. This is especially
+  // true on iOS where Safari may have limited GPS access compared to native apps.
   const attemptGeolocation = useCallback(
     (attempt: number = 1, lastErrorCode?: number) => {
       const maxAttempts = 3;
@@ -134,100 +177,103 @@ export default function LocationPopover({
       }
 
       setGeoLoading(true);
-      setRetryCount(attempt);
+
+      // Clear any existing timeout
+      if (geoMessageTimeoutRef.current) {
+        clearTimeout(geoMessageTimeoutRef.current);
+        geoMessageTimeoutRef.current = null;
+      }
+
+      // Simple progress messages based on attempt number
+      const messages = [
+        "Finding your location...",
+        "Still working on it...",
+        "Taking a bit longer than expected...",
+      ];
+      const message = messages[Math.min(attempt - 1, messages.length - 1)];
 
       if (attempt === 1) {
-        setGeoMessage("Trying to find your location...");
+        // Delay first attempt, in case a result comes back quickly
+        geoMessageTimeoutRef.current = setTimeout(() => {
+          setGeoMessage(message);
+          geoMessageTimeoutRef.current = null;
+        }, 200);
       } else {
-        setGeoMessage(`Retrying... (attempt ${attempt} of ${maxAttempts})`);
+        setGeoMessage(message);
       }
 
       if (!navigator.geolocation) {
+        // Clear timeout if set
+        if (geoMessageTimeoutRef.current) {
+          clearTimeout(geoMessageTimeoutRef.current);
+          geoMessageTimeoutRef.current = null;
+        }
         setGeoLoading(false);
-        setGeoMessage("Location services not available in your browser.");
+        setGeoMessage("Location Services are not available.");
         return;
       }
 
+      // Configure geolocation options based on attempt number (see detailed strategy above)
       const options: PositionOptions = {
-        enableHighAccuracy: attempt > 1, // Use high accuracy for retries
-        timeout: timeout,
-        maximumAge: 60000, // 1 minute cache
+        enableHighAccuracy: attempt > 1, // false = fast network, true = accurate GPS
+        timeout: timeout, // 10s first attempt, 15-20s for retries
+        maximumAge: 60000, // Accept cached position up to 1 minute old
       };
 
+      // Extract error handling logic inline to avoid circular dependency
+      const handleGeolocationError = (
+        error: GeolocationPositionError,
+        currentAttempt: number,
+        maxAttempts: number,
+      ) => {
+        // Handle permission denied immediately - no retries
+        if (error.code === 1) {
+          setGeoLoading(false);
+          setGeoMessage(
+            "Location access was not allowed. Select your location on the map or type it in the search box above.",
+          );
+          return;
+        }
+
+        // For technical issues (code 2 & 3), retry
+        if (currentAttempt < maxAttempts) {
+          // Don't update message here - let attemptGeolocation set the appropriate progress message
+          // The message will be set based on the attempt number when attemptGeolocation runs
+
+          setTimeout(() => {
+            attemptGeolocation(currentAttempt + 1, error.code);
+          }, 1500);
+        } else {
+          // Final failure - show specific message based on error type
+          setGeoLoading(false);
+
+          // Simple, actionable final message
+          setGeoMessage(
+            "Location Services could not determine your location. Select it on the map or type it in the search box above.",
+          );
+        }
+      };
+
+      // Use real geolocation API
       navigator.geolocation.getCurrentPosition(
         (position: GeolocationPosition) => {
-          console.info("LocationPopover geolocation success:", {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            attempt: attempt,
-          });
-
           const newLocation = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           };
 
           // Success! Clear states and update location via geolocation handler
+          // Clear any pending message timeout
+          if (geoMessageTimeoutRef.current) {
+            clearTimeout(geoMessageTimeoutRef.current);
+            geoMessageTimeoutRef.current = null;
+          }
           setGeoLoading(false);
           setGeoMessage(null);
-          setRetryCount(0);
           handleGeolocationSuccess(newLocation); // This uses strict 5km threshold and closes popover
         },
         (error: GeolocationPositionError) => {
-          console.warn("LocationPopover geolocation error:", {
-            code: error.code,
-            message: error.message,
-            attempt: attempt,
-          });
-
-          // Handle permission denied immediately - no retries
-          if (error.code === 1) {
-            setGeoLoading(false);
-            setRetryCount(0);
-            setGeoMessage(
-              "Location access was denied. Please allow location access in your browser settings and try again, or select your location on the map below.",
-            );
-            return;
-          }
-
-          // For technical issues (code 2 & 3), retry with different strategies
-          if (attempt < maxAttempts) {
-            // Show different retry messages based on error type
-            if (error.code === 2) {
-              setGeoMessage(
-                `Location services seem to be dormant. Retrying with different positioning methods... (attempt ${attempt + 1} of ${maxAttempts})`,
-              );
-            } else if (error.code === 3) {
-              setGeoMessage(
-                `Location request timed out. Trying again with extended timeout... (attempt ${attempt + 1} of ${maxAttempts})`,
-              );
-            } else {
-              setGeoMessage(
-                `Retrying... (attempt ${attempt + 1} of ${maxAttempts})`,
-              );
-            }
-
-            setTimeout(() => {
-              attemptGeolocation(attempt + 1, error.code);
-            }, 1500);
-          } else {
-            // Final failure - show specific message based on error type
-            setGeoLoading(false);
-            setRetryCount(0);
-
-            const finalErrorMessages = {
-              2: "Unable to determine your location. This is likely because location services are dormant or network positioning is unavailable. Try opening Apple Maps (or Google Maps) first to 'wake up' location services, then return here and try again. Alternatively, select your location on the map below.",
-              3: "Location requests keep timing out. This might indicate poor network connectivity or system location services being slow to respond. Please select your location on the map below or type it in the input field above.",
-            };
-
-            setGeoMessage(
-              finalErrorMessages[
-                error.code as keyof typeof finalErrorMessages
-              ] ||
-                "Could not find your location after multiple attempts. Please select it on the map below or type it in the input field above.",
-            );
-          }
+          handleGeolocationError(error, attempt, maxAttempts);
         },
         options,
       );
@@ -238,6 +284,23 @@ export default function LocationPopover({
   const handleFindMeClick = useCallback(() => {
     attemptGeolocation(1);
   }, [attemptGeolocation]);
+
+  // Clear error message when user takes manual action
+  const handleInputChangeWithClear = useCallback((value: string) => {
+    // Clear any error message when user types
+    if (geoMessage && !geoLoading) {
+      setGeoMessage(null);
+    }
+    handleInputChange(value);
+  }, [geoMessage, geoLoading, handleInputChange]);
+
+  const handleMapClickWithClear = useCallback((location: Location) => {
+    // Clear any error message when user clicks map
+    if (geoMessage && !geoLoading) {
+      setGeoMessage(null);
+    }
+    handleMapClick(location);
+  }, [geoMessage, geoLoading, handleMapClick]);
 
   return (
     <div
@@ -250,126 +313,114 @@ export default function LocationPopover({
     >
       <div className={styles.header}>
         <h3></h3>
-        <Tooltip content="Close location picker" placement="left">
-          <button
-            onClick={() => popoverRef.current?.hidePopover()}
-            className={styles.closeButton}
-            aria-label="Close location picker"
+        <button
+          onClick={() => popoverRef.current?.hidePopover()}
+          className={styles.closeButton}
+          aria-label="Close location picker"
+        >
+          <svg
+            className={styles.closeIcon}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
           >
-            <svg
-              className={styles.closeIcon}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </Tooltip>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
       </div>
 
-      {geoLoading ? (
-        <p className={styles.detectingText}>Detecting your location...</p>
-      ) : (
-        <>
-          <div className={styles.inputSection}>
-            <div className={styles.inputWrapper}>
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => handleInputChange(e.target.value)}
-                className={styles.input}
-                placeholder="Enter coordinates or location name"
-                autoComplete="off"
-                spellCheck={false}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    if (suggestion) {
-                      acceptSuggestion(); // Accept suggestion and close
-                    } else {
-                      confirmCurrentInput(); // Try to parse and confirm current input
-                    }
-                  } else if (e.key === "Tab") {
-                    e.preventDefault();
-                    if (suggestion) {
-                      acceptSuggestion(); // Accept suggestion (but don't close on Tab)
-                    }
-                  }
-                }}
-              />
-              <Tooltip
-                content={
-                  geoLoading
-                    ? "Finding your location..."
-                    : "Use current location"
+      <div className={styles.inputSection}>
+        <div className={styles.inputWrapper}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={(e) => handleInputChangeWithClear(e.target.value)}
+            className={styles.input}
+            placeholder="Enter coordinates or location name"
+            autoComplete="off"
+            spellCheck={false}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (suggestion) {
+                  acceptSuggestion(); // Accept suggestion and close
+                } else {
+                  confirmCurrentInput(); // Try to parse and confirm current input
                 }
-                disabled={geoLoading}
-                placement="top"
-              >
-                <button
-                  onClick={handleFindMeClick}
-                  disabled={geoLoading}
-                  className={styles.clearButton}
-                >
-                  <Icon
-                    name="current-location"
-                    className={`${styles.clearIcon} ${geoLoading ? styles.loading : ""}`}
-                  />
-                </button>
-              </Tooltip>
-            </div>
-
-            {suggestion && (
-              <div className={styles.suggestionWrapper}>
-                <button
-                  onClick={acceptSuggestion}
-                  className={styles.suggestionButton}
-                >
-                  <Icon name="location" size="md" className="color-accent" />{" "}
-                  {suggestion}
-                  <span className={styles.suggestionCoords}>
-                    (Press Tab or click to select)
-                  </span>
-                </button>
-              </div>
-            )}
-
-            {geoMessage && (
-              <div className={styles.geoMessageWrapper}>
+              } else if (e.key === "Tab") {
+                e.preventDefault();
+                if (suggestion) {
+                  acceptSuggestion(); // Accept suggestion (but don't close on Tab)
+                }
+              }
+            }}
+          />
+          <Tooltip
+            content={
+              geoLoading
+                ? "Finding your location..."
+                : "Show your current location"
+            }
+            disabled={geoLoading}
+            placement="top"
+          >
+            <button
+              onClick={handleFindMeClick}
+              disabled={geoLoading}
+              className={styles.clearButton}
+            >
+              {geoLoading ? (
                 <div
-                  className={`${styles.geoMessage} ${geoLoading ? styles.loading : styles.error}`}
-                >
-                  {geoLoading && <div className={styles.spinner}></div>}
-                  {geoMessage}
-                  {geoLoading && retryCount > 1 && (
-                    <div className={styles.retryInfo}>
-                      We're trying different positioning methods and longer
-                      timeouts to help wake up location services...
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+                  className={`${styles.spinner} ${styles.buttonSpinner}`}
+                ></div>
+              ) : (
+                <Icon name="current-location" className={styles.clearIcon} />
+              )}
+            </button>
+          </Tooltip>
+        </div>
 
-          <div className={styles.mapSection}>
-            <WorldMap
-              location={dragLocation || location}
-              onLocationChange={handleMapClick}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            />
+        {suggestion && (
+          <div className={styles.suggestionWrapper}>
+            <button
+              onClick={acceptSuggestion}
+              className={styles.suggestionButton}
+            >
+              <Icon name="location" size="sm" className="color-accent" />
+              {suggestion}
+              <span className={styles.suggestionHint}>
+                (Press Tab or click to select)
+              </span>
+            </button>
           </div>
-        </>
-      )}
+        )}
+
+        {geoMessage && (
+          <div className={styles.geoMessageWrapper}>
+            <div
+              className={`${styles.geoMessage} ${geoLoading ? styles.loading : styles.error}`}
+            >
+              {geoMessage}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className={styles.mapSection}>
+        <WorldMap
+          location={dragLocation || location}
+          onLocationChange={handleMapClickWithClear}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        />
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import WorldMap from "../components/WorldMap";
+import WorldMap, { WorldMapRef } from "../components/WorldMap";
 import LocationPopover from "../components/LocationPopover";
 import Tooltip from "../components/Tooltip";
 import ResultsMap from "../components/ResultsMap";
@@ -13,6 +13,7 @@ import { Icon } from "../components/Icon";
 import { Location } from "../types/astronomy";
 import { DARK_SITES, SpecialLocation } from "../utils/locations";
 import { locationNameToSlug } from "../utils/urlHelpers";
+import { coordToNormalized } from "../utils/lightPollutionMap";
 import { MultipleDarkSitesResult } from "../utils/lightPollutionMap";
 import { useDarkSiteWorker } from "../hooks/useDarkSiteWorker";
 import { useExploreLocation } from "../hooks/useExploreLocation";
@@ -60,6 +61,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
   const locationButtonRef = useRef<HTMLButtonElement>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [hasAutoSearched, setHasAutoSearched] = useState(false);
+  const worldMapRef = useRef<WorldMapRef>(null);
 
   // Initialize location from home location if explore location doesn't exist
   useEffect(() => {
@@ -540,6 +542,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
             <div className={exploreStyles.mapWrapper}>
               <div className={exploreStyles.mapContainer}>
                 <WorldMap
+                  ref={worldMapRef}
                   location={selectedLocation}
                   onLocationChange={handleMapLocationChange}
                   markers={worldMapMarkers}
@@ -557,14 +560,67 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                         ? getDarkSiteBortleWithFallback(slug)
                         : 2.0;
 
-                      return (
+                      const lat = loc[2] as number;
+                      const lng = loc[3] as number;
+                      const normalized = coordToNormalized(lat, lng);
+
+                      // Get the WorldMap's positioning functions
+                      if (!worldMapRef.current) return null;
+
+                      const { getMarkerPositionForPan, panX } =
+                        worldMapRef.current;
+
+                      // Calculate positions for all possible map instances (world wrapping)
+                      const markerPositions = [
+                        {
+                          pos: getMarkerPositionForPan(
+                            normalized.x,
+                            normalized.y,
+                            panX,
+                          ),
+                          key: "primary",
+                        },
+                        {
+                          pos: getMarkerPositionForPan(
+                            normalized.x,
+                            normalized.y,
+                            panX - 1,
+                          ),
+                          key: "left",
+                        },
+                        {
+                          pos: getMarkerPositionForPan(
+                            normalized.x,
+                            normalized.y,
+                            panX + 1,
+                          ),
+                          key: "right",
+                        },
+                      ];
+
+                      // Filter to only visible positions (within viewport bounds)
+                      const visiblePositions = markerPositions.filter(
+                        ({ pos }) =>
+                          pos.x >= -10 &&
+                          pos.x <= 110 &&
+                          pos.y >= -10 &&
+                          pos.y <= 110,
+                      );
+
+                      return visiblePositions.map(({ pos, key }) => (
                         <DarkSiteTooltip
-                          key={idx}
+                          key={`${idx}-${key}`}
                           siteName={fullName}
                           bortleRating={bortleRating}
                           className={exploreStyles.mapTooltip}
+                          style={{
+                            left: `${pos.x}%`,
+                            top: `${pos.y}%`,
+                            transform: "translate(-50%, -100%)", // Center horizontally, position above marker
+                            marginTop: "-8px", // Small gap above marker
+                          }}
                         />
-                      );
+                      ));
                     })}
                   </div>
                 )}
@@ -829,28 +885,18 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                     )}
 
                     {/* Results Map */}
-                    <div className={exploreStyles.resultsMapSection}>
-                      <h3 className={exploreStyles.resultsMapTitle}>
-                        🗺️ Found Locations Map
-                      </h3>
-                      <p className={exploreStyles.resultsMapDescription}>
-                        Your location (green) and all found dark sites. Red =
-                        primary, orange = alternatives.
-                      </p>
-
-                      <div className={exploreStyles.resultsMapContainer}>
-                        {userLocation ? (
-                          <ResultsMap
-                            userLocation={userLocation}
-                            darkSitesResult={darkSitesResult}
-                            onLocationClick={handleDarkSiteClick}
-                          />
-                        ) : (
-                          <div className={exploreStyles.mapLoadingMessage}>
-                            Loading map...
-                          </div>
-                        )}
-                      </div>
+                    <div className={exploreStyles.resultsMapContainer}>
+                      {userLocation ? (
+                        <ResultsMap
+                          userLocation={userLocation}
+                          darkSitesResult={darkSitesResult}
+                          onLocationClick={handleDarkSiteClick}
+                        />
+                      ) : (
+                        <div className={exploreStyles.mapLoadingMessage}>
+                          Loading map...
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -864,7 +910,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
             </div>
 
             {/* Dark Sites List by Region */}
-            <div>
+            <div className={exploreStyles.darkSiteCatalog}>
               <div
                 style={{
                   display: "flex",
@@ -933,7 +979,7 @@ function ExplorePage({ isDarkroomMode: _isDarkroomMode }: ExplorePageProps) {
                                     name: shortName,
                                   })
                                 }
-                                className={exploreStyles.locationButton}
+                                className={exploreStyles.locationItem}
                                 onMouseEnter={() =>
                                   setHoveredCatalogLocation(fullName)
                                 }

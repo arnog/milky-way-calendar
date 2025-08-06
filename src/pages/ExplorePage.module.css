@@ -50,6 +50,15 @@
   margin-bottom: 1rem;
 }
 
+.sectionTitle {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  vertical-align: middle;
+  display: flex;
+  align-items: center;
+}
+
 .regionTitle {
   /* text-lg font-semibold text-white mb-3 */
   font-family: "Playfair Display", serif;
@@ -77,10 +86,10 @@
 .darkSiteMarker {
   /* absolute w-3 h-3 bg-blue-400 hover:bg-blue-300 border-2 border-white rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2 transition-colors pointer-events-auto */
   position: absolute;
-  width: 0.75rem;
-  height: 0.75rem;
-  background-color: rgb(96 165 250);
-  border: 2px solid white;
+  width: 8px;
+  height: 8px;
+  background-color: rgba(0 255 255 / 0.5);
+  border: 0.5px solid white;
   border-radius: 50%;
   cursor: pointer;
   transform: translate(-50%, -50%);
@@ -132,8 +141,8 @@
 
 .regionCard {
   /* background-color: rgba(255, 255, 255, 0.05); */
-  border-radius: 0.5rem;
-  padding: 1rem;
+  border-radius: 8px;
+  padding: 16px;
   /* border: 1px solid rgba(255, 255, 255, 0.1); */
   /* transition: all 0.3s ease; */
   height: fit-content;
@@ -142,38 +151,8 @@
   break-inside: avoid;
   margin-bottom: 1.5rem;
   display: inline-block;
-  width: 100%;
+  width: calc(100% - 32px); /* Adjust width to fit within column */
 }
-
-/* .regionCard:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-} */
-
-/* Varied styling for different card sizes in masonry layout */
-.regionCard.large {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-/* .regionCard.medium {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-.regionCard.small {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-} */
 
 /* Large cards get special styling */
 .regionCard.large .regionTitle {
@@ -226,7 +205,15 @@
   }
 }
 
-.locationButton {
+.darkSiteCatalog {
+  margin-bottom: 24px;
+  padding: 24px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.locationItem {
   /* text-blue-400 hover:text-blue-300 transition-colors text-left */
   color: rgb(96 165 250);
   transition: all 0.2s ease-in-out;
@@ -234,17 +221,17 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.25rem 0;
+  padding: 4px 0;
   font: inherit;
   position: relative;
-  border-radius: 0.25rem;
+  border-radius: 4px;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.locationButton:hover {
+.locationItem:hover {
   color: rgb(147 197 253);
   background-color: rgba(96, 165, 250, 0.1);
 }
@@ -295,17 +282,12 @@
   z-index: 20;
 }
 
-.markerPosition {
-  /* absolute */
-  position: absolute;
-}
-
 /* Nearest Dark Site Finder Styles */
 .nearestDarkSiteSection {
-  margin-bottom: 3rem;
-  padding: 2rem;
+  margin-bottom: 24px;
+  padding: 24px;
   background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 0.75rem;
+  border-radius: 12px;
   backdrop-filter: blur(8px);
 }
 
@@ -498,11 +480,9 @@
 
 /* Known Site Section */
 .knownSiteSection {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: rgba(163, 196, 220, 0.05);
-  border: 1px solid rgba(163, 196, 220, 0.2);
-  border-radius: 0.5rem;
+  margin-top: 16px;
+  margin-left: 48px;
+  margin-right: 48px;
 }
 
 .knownSiteTitle {
@@ -691,13 +671,7 @@
   border-color: rgba(249, 115, 22, 0.5);
 }
 
-/* Results Map Section */
 .resultsMapSection {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background-color: rgba(110, 198, 255, 0.05);
-  border: 1px solid rgba(110, 198, 255, 0.2);
-  border-radius: 0.75rem;
 }
 
 .resultsMapTitle {
@@ -706,12 +680,6 @@
   font-weight: 600;
   color: var(--accent);
   margin-bottom: 0.5rem;
-}
-
-.resultsMapDescription {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 1rem;
 }
 
 .resultsMapContainer {

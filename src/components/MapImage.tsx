@@ -1,5 +1,7 @@
 import { RefObject, memo, useMemo } from "react";
 import { ANIMATION_CONFIG } from "../config/mapConfig";
+import { Location } from "../types/astronomy";
+import { useCursorState } from "../hooks/useCursorState";
 import styles from "./WorldMap.module.css";
 
 interface MapImageProps {
@@ -9,11 +11,17 @@ interface MapImageProps {
   panX: number;
   panY: number;
   panOffset: number; // -1 for left, 0 for primary, 1 for right
+  currentLocation?: Location | null;
   isDragging: boolean;
   isPanning: boolean;
   isZooming: boolean;
   isImageLoading: boolean;
   containerRef: RefObject<HTMLDivElement>;
+  getMarkerPositionForPan: (
+    normalizedX: number,
+    normalizedY: number,
+    customPanX: number,
+  ) => { x: number; y: number };
   onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
   onTouchStart: (event: React.TouchEvent) => void;
   onTouchMove: (event: React.TouchEvent) => void;
@@ -27,23 +35,33 @@ function MapImageComponent({
   panX,
   panY,
   panOffset,
+  currentLocation,
   isDragging,
   isPanning,
   isZooming,
   isImageLoading,
   containerRef,
+  getMarkerPositionForPan,
   onMouseDown,
   onTouchStart,
   onTouchMove,
   onTouchEnd,
 }: MapImageProps) {
+  // Use cursor state hook for proximity-based cursor changes
+  const { handleMouseMove, getCursorClass } = useCursorState({
+    containerRef,
+    currentLocation,
+    isDragging,
+    isPanning,
+    panX,
+    getMarkerPositionForPan,
+  });
+
   // Memoize cursor class calculation
   const cursorClass = useMemo(() => {
-    if (isDragging) return styles.mapImageGrabbing;
-    if (isPanning) return styles.mapImageGrabbing;
-    if (zoom > 1) return styles.mapImageGrab;
-    return styles.mapImageCrosshair;
-  }, [isDragging, isPanning, zoom]);
+    const cursorName = getCursorClass();
+    return styles[cursorName];
+  }, [getCursorClass]);
 
   // Memoize loading class
   const loadingClass = useMemo(() => {
@@ -60,16 +78,19 @@ function MapImageComponent({
   // Memoize transition - disable during panning, dragging, or zooming
   const transition = useMemo(() => {
     return isPanning || isDragging || isZooming
-      ? "none" 
+      ? "none"
       : `transform ${ANIMATION_CONFIG.TRANSITION_DURATION} ${ANIMATION_CONFIG.TRANSITION_EASING}`;
   }, [isPanning, isDragging, isZooming]);
 
   // Memoize style object to prevent unnecessary re-renders
-  const imageStyle = useMemo(() => ({
-    transform,
-    transformOrigin: "center",
-    transition,
-  }), [transform, transition]);
+  const imageStyle = useMemo(
+    () => ({
+      transform,
+      transformOrigin: "center",
+      transition,
+    }),
+    [transform, transition],
+  );
 
   return (
     <img
@@ -77,6 +98,7 @@ function MapImageComponent({
       alt={alt}
       className={`${styles.mapImage} ${cursorClass} ${loadingClass}`}
       onMouseDown={onMouseDown}
+      onMouseMove={handleMouseMove}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}

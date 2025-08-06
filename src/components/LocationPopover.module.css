@@ -3,15 +3,15 @@
 .popover {
   /* Native popover styling */
   font-family: "Inter", sans-serif;
-  padding: 1.5rem;
+  padding: 18px;
   border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background-color: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   max-width: 90vw;
-  width: min(594.5px, 90vw);
+  width: min(595px, 90vw);
 
   /* Positioning will be handled by JavaScript */
   position: fixed;
@@ -25,24 +25,16 @@
 
 /* JavaScript handles positioning, no CSS fallbacks needed */
 
-/* Responsive design for small screens */
-@media (max-width: 480px) {
-  .popover {
-    padding: 1rem;
-    border-radius: 16px;
-  }
-}
-
 .header {
   /* flex items-center justify-between mb-4 */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 8px;
 }
 
 .closeButton {
-  /* text-gray-400 hover:text-white transition-colors */
+  border-radius: 16px;
   color: rgb(156 163 175);
   transition-property: color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -50,6 +42,11 @@
   background: none;
   border: none;
   cursor: pointer;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  width: 42px;
+  height: 42px;
 }
 
 .closeButton:hover {
@@ -57,9 +54,9 @@
 }
 
 .closeIcon {
-  /* w-8 h-8 */
-  width: 2rem;
-  height: 2rem;
+  width: 32px;
+  height: 32px;
+  vertical-align: -6px;
 }
 
 .detectingText {
@@ -70,8 +67,6 @@
 }
 
 .inputSection {
-  /* mb-8 */
-  margin-bottom: 2rem;
   /* Prevent tooltips from being clipped */
   overflow: visible;
 }
@@ -86,12 +81,12 @@
 .input {
   /* text-4xl w-full px-3 py-2 pr-12 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors bg-white/10 border border-white/20 */
   font-family: "Inter", sans-serif;
-  font-size: 2.25rem;
-  line-height: 2.5rem;
+  font-size: 24px;
+  line-height: 24px;
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  padding-right: 3rem;
-  border-radius: 0.75rem;
+  padding: 12px 12px;
+  padding-right: 48px;
+  border-radius: 12px;
   color: white;
   background-color: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -103,11 +98,9 @@
 
 @media (max-width: 480px) {
   .input {
-    font-size: 1.125rem;
-    line-height: 1.5rem;
-    padding: 0.5rem 0.625rem;
-    padding-right: 2.5rem;
-    border-radius: 0.5rem;
+    font-size: 18px;
+    line-height: 18px;
+    padding: 12px 10px;
   }
 }
 
@@ -117,7 +110,7 @@
 
 .input:focus {
   outline: none;
-  border-color: rgb(96 165 250);
+  border-color: var(--primary);
 }
 
 .clearButton {
@@ -162,110 +155,64 @@
 
 .suggestionWrapper {
   /* mt-2 */
-  margin-top: 0.5rem;
+  margin-top: 8px;
+  margin-left: 8px;
+  margin-right: 8px;
 }
 
 .suggestionButton {
   /* text-xl text-blue-300 hover:text-blue-200 hover:bg-white/10 px-2 py-1 rounded transition-colors w-full text-left */
+  display: flex;
+  align-items: center;
+  padding: 8px;
   font-family: "Inter", sans-serif;
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-  color: rgb(147 197 253);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
+  font-size: 18px;
+  line-height: 18px;
+  color: var(--accent);
+  border-radius: 4px;
+  background-color: transparent;
   transition-property: color, background-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
   width: 100%;
   text-align: left;
-  background: none;
   border: none;
   cursor: pointer;
 }
 
 @media (max-width: 480px) {
   .suggestionButton {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
+    font-size: 14px;
+    line-height: 14px;
   }
 }
 
 .suggestionButton:hover {
-  color: rgb(191 219 254);
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.suggestionCoords {
-  /* text-lg text-gray-400 ml-2 */
-  font-size: 1.125rem;
-  line-height: 1.75rem;
+.suggestionHint {
+  font-size: 18px;
+  line-height: 12px;
   color: rgb(156 163 175);
-  margin-left: 0.5rem;
+  margin-left: 8px;
 }
 
 @media (max-width: 480px) {
-  .suggestionCoords {
+  .suggestionHint {
     font-size: 0.75rem;
     line-height: 1rem;
   }
 }
 
 .mapSection {
-  /* mb-4 */
-  margin-bottom: 1rem;
-}
-
-.mapLabel {
-  /* mb-2 text-xl text-gray-300 */
-  margin-bottom: 0.5rem;
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-  color: rgb(209 213 219);
-}
-
-.currentLocationButton {
-  /* mt-4 w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 text-2xl */
-  margin-top: 1rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background-color: rgb(37 99 235);
-  color: white;
-  font-weight: 600;
-  border-radius: 0.5rem;
-  transition-property: background-color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  line-height: 2rem;
-  border: none;
-  cursor: pointer;
-}
-
-.currentLocationButton:hover {
-  background-color: rgb(29 78 216);
-}
-
-.currentLocationButton:disabled {
-  background-color: rgb(75 85 99);
-  cursor: not-allowed;
-}
-
-.dragHint {
-  /* mt-2 text-center text-lg text-gray-400 */
-  margin-top: 0.5rem;
-  text-align: center;
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-  color: rgb(156 163 175);
+  margin-top: 16px;
+  margin-bottom: 0;
 }
 
 /* Geolocation Message Styles */
 .geoMessageWrapper {
-  padding: 0.75rem 0;
+  padding: 12px 12px;
 }
 
 .geoMessage {
@@ -292,8 +239,8 @@
 }
 
 .spinner {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   border: 2px solid rgba(147, 197, 253, 0.3);
   border-top: 2px solid rgb(147, 197, 253);
   border-radius: 50%;
@@ -306,6 +253,12 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.buttonSpinner {
+  width: 18px;
+  height: 18px;
+  margin: 0;
 }
 
 .retryInfo {
