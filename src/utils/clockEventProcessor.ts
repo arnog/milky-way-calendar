@@ -103,7 +103,7 @@ function adjustEventAngles(events: ClockEvent[]): ClockEvent[] {
           if (event1.angle < 0) {
             event1.angle += 360;
           }
-          
+
           event2.angle = (event2.angle + angleOffset) % 360;
         } else {
           // Handle case where event2 has smaller angle
@@ -111,7 +111,7 @@ function adjustEventAngles(events: ClockEvent[]): ClockEvent[] {
           if (event2.angle < 0) {
             event2.angle += 360;
           }
-          
+
           event1.angle = (event1.angle + angleOffset) % 360;
         }
       }
@@ -119,9 +119,7 @@ function adjustEventAngles(events: ClockEvent[]): ClockEvent[] {
   }
 
   return adjustedEvents;
-
 }
-
 
 /**
  * Processes astronomical events into clock events with proper positioning and styling

@@ -1,34 +1,34 @@
 /**
  * Performance optimization utilities for the Milky Way Calendar application
- * 
+ *
  * This module provides tools to measure, optimize, and manage performance-critical operations:
- * 
+ *
  * 1. PerformanceMonitor - Singleton class for measuring operation durations
  *    - Only active in development mode
  *    - Warns about operations slower than 16ms (60fps threshold)
  *    - Used to track zoom operations and image loading performance
- * 
+ *
  * 2. throttle() - Limits function execution frequency
  *    - Used for mouse wheel zoom events (throttled to ~60fps)
  *    - Prevents performance issues from rapid scrolling
- * 
+ *
  * 3. debounce() - Delays execution until after calls stop
  *    - Used for window resize handling
  *    - Prevents excessive image reloading during resizing
- * 
+ *
  * 4. memoize() - Caches function results with LRU eviction
  *    - Configurable cache size limit (default 100)
  *    - Available for caching expensive calculations
- * 
+ *
  * 5. scheduleWork() - Priority-based callback scheduling
  *    - high: Immediate execution
  *    - normal: Next animation frame (requestAnimationFrame)
  *    - low: Idle time execution (requestIdleCallback)
- * 
+ *
  * 6. BatchProcessor - Groups multiple updates into single frames
  *    - Prevents layout thrashing
  *    - Optimizes DOM update performance
- * 
+ *
  * Created during Phase 4 of the WorldMap refactoring to ensure smooth 60fps performance.
  */
 
@@ -74,7 +74,7 @@ export class PerformanceMonitor {
 
     const endTime = performance.now();
     const duration = endTime - metric.startTime;
-    
+
     const completedMetric: PerformanceMetrics = {
       ...metric,
       endTime,
@@ -82,8 +82,12 @@ export class PerformanceMonitor {
     };
 
     // Log slow operations
-    if (duration > 16) { // Slower than 60fps
-      console.warn(`Slow operation detected: ${name} took ${duration.toFixed(2)}ms`, completedMetric);
+    if (duration > 16) {
+      // Slower than 60fps
+      console.warn(
+        `Slow operation detected: ${name} took ${duration.toFixed(2)}ms`,
+        completedMetric,
+      );
     }
 
     this.metrics.delete(name);
@@ -94,7 +98,7 @@ export class PerformanceMonitor {
   measureFunction<T extends (...args: any[]) => any>(
     name: string,
     fn: T,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): T {
     if (!this.isEnabled) return fn;
 
@@ -102,14 +106,14 @@ export class PerformanceMonitor {
       this.startMeasurement(name, metadata);
       try {
         const result = fn(...args);
-        
+
         // Handle async functions
         if (result instanceof Promise) {
           return result.finally(() => {
             this.endMeasurement(name);
           });
         }
-        
+
         this.endMeasurement(name);
         return result;
       } catch (error) {
@@ -136,16 +140,16 @@ export class PerformanceMonitor {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): T {
   let inThrottle: boolean;
-  
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function(this: any, ...args: Parameters<T>) {
+  return function (this: any, ...args: Parameters<T>) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
   } as T;
 }
@@ -155,17 +159,17 @@ export function throttle<T extends (...args: any[]) => any>(
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number,
-  immediate?: boolean
+  immediate?: boolean,
 ): (...args: Parameters<T>) => void {
   let timeout: number | null;
-  
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function(this: any, ...args: Parameters<T>) {
+  return function (this: any, ...args: Parameters<T>) {
     const later = () => {
       timeout = null;
       if (!immediate) func.apply(this, args);
     };
-    
+
     const callNow = immediate && !timeout;
     if (timeout) clearTimeout(timeout);
     timeout = window.setTimeout(later, wait);
@@ -177,23 +181,23 @@ export function debounce<T extends (...args: any[]) => any>(
 export function memoize<TArgs extends readonly unknown[], TReturn>(
   fn: (...args: TArgs) => TReturn,
   keyGenerator?: (...args: TArgs) => string,
-  maxSize: number = 100
+  maxSize: number = 100,
 ): (...args: TArgs) => TReturn {
   const cache = new Map<string, { value: TReturn; timestamp: number }>();
-  
+
   return (...args: TArgs): TReturn => {
     const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
     const cached = cache.get(key);
-    
+
     if (cached) {
       // Move to end (LRU)
       cache.delete(key);
       cache.set(key, cached);
       return cached.value;
     }
-    
+
     const result = fn(...args);
-    
+
     // Evict oldest entries if cache is full
     if (cache.size >= maxSize) {
       const firstKey = cache.keys().next().value;
@@ -201,30 +205,33 @@ export function memoize<TArgs extends readonly unknown[], TReturn>(
         cache.delete(firstKey);
       }
     }
-    
+
     cache.set(key, { value: result, timestamp: Date.now() });
     return result;
   };
 }
 
 // Frame scheduling utility for smooth animations
-export function scheduleWork(callback: () => void, priority: 'high' | 'normal' | 'low' = 'normal'): void {
+export function scheduleWork(
+  callback: () => void,
+  priority: "high" | "normal" | "low" = "normal",
+): void {
   const runCallback = () => {
     callback();
   };
 
   switch (priority) {
-    case 'high':
+    case "high":
       // Run immediately
       runCallback();
       break;
-    case 'normal':
+    case "normal":
       // Schedule for next frame
       requestAnimationFrame(runCallback);
       break;
-    case 'low':
+    case "low":
       // Schedule with lower priority
-      if ('requestIdleCallback' in window) {
+      if ("requestIdleCallback" in window) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).requestIdleCallback(runCallback);
       } else {
@@ -246,7 +253,7 @@ export class BatchProcessor<T> {
 
   add(item: T): void {
     this.batch.push(item);
-    
+
     if (!this.isScheduled) {
       this.isScheduled = true;
       requestAnimationFrame(() => {

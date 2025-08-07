@@ -34,7 +34,7 @@ interface AdditionalMarkersProps {
 // Memoized coordinate normalization
 const memoizedCoordToNormalized = memoize(
   (lat: number, lng: number) => coordToNormalized(lat, lng),
-  (lat, lng) => `${lat},${lng}`
+  (lat, lng) => `${lat},${lng}`,
 );
 
 function AdditionalMarkersComponent({
@@ -46,38 +46,41 @@ function AdditionalMarkersComponent({
   const processedMarkers = useMemo(() => {
     if (markers.length === 0) return [];
 
-    return markers.map((marker) => {
-      const normalized = memoizedCoordToNormalized(marker.lat, marker.lng);
-      
-      // Generate positions for all three maps
-      const positions = [
-        {
-          pos: getMarkerPositionForPan(normalized.x, normalized.y, panX),
-          key: "primary",
-        },
-        {
-          pos: getMarkerPositionForPan(normalized.x, normalized.y, panX - 1),
-          key: "left",
-        },
-        {
-          pos: getMarkerPositionForPan(normalized.x, normalized.y, panX + 1),
-          key: "right",
-        },
-      ];
+    return markers
+      .map((marker) => {
+        const normalized = memoizedCoordToNormalized(marker.lat, marker.lng);
 
-      // Filter visible positions (marker culling)
-      const visiblePositions = positions.filter(({ pos }) => 
-        pos.x >= MARKER_BOUNDS.MIN_X && 
-        pos.x <= MARKER_BOUNDS.MAX_X && 
-        pos.y >= MARKER_BOUNDS.MIN_Y && 
-        pos.y <= MARKER_BOUNDS.MAX_Y
-      );
+        // Generate positions for all three maps
+        const positions = [
+          {
+            pos: getMarkerPositionForPan(normalized.x, normalized.y, panX),
+            key: "primary",
+          },
+          {
+            pos: getMarkerPositionForPan(normalized.x, normalized.y, panX - 1),
+            key: "left",
+          },
+          {
+            pos: getMarkerPositionForPan(normalized.x, normalized.y, panX + 1),
+            key: "right",
+          },
+        ];
 
-      return {
-        marker,
-        visiblePositions,
-      };
-    }).filter(({ visiblePositions }) => visiblePositions.length > 0); // Only keep markers with visible positions
+        // Filter visible positions (marker culling)
+        const visiblePositions = positions.filter(
+          ({ pos }) =>
+            pos.x >= MARKER_BOUNDS.MIN_X &&
+            pos.x <= MARKER_BOUNDS.MAX_X &&
+            pos.y >= MARKER_BOUNDS.MIN_Y &&
+            pos.y <= MARKER_BOUNDS.MAX_Y,
+        );
+
+        return {
+          marker,
+          visiblePositions,
+        };
+      })
+      .filter(({ visiblePositions }) => visiblePositions.length > 0); // Only keep markers with visible positions
   }, [markers, panX, getMarkerPositionForPan]);
 
   if (processedMarkers.length === 0) {
@@ -86,7 +89,7 @@ function AdditionalMarkersComponent({
 
   return (
     <div className={styles.markerOverlay}>
-      {processedMarkers.map(({ marker, visiblePositions }) => (
+      {processedMarkers.map(({ marker, visiblePositions }) =>
         visiblePositions.map(({ pos, key }) => (
           <div
             key={`${marker.id}-${key}`}
@@ -107,8 +110,8 @@ function AdditionalMarkersComponent({
               {marker.children}
             </div>
           </div>
-        ))
-      ))}
+        )),
+      )}
     </div>
   );
 }

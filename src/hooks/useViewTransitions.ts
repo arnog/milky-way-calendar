@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom';
-import { useCallback } from 'react';
+import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
 
 /**
  * Hook for programmatic navigation with View Transitions API support
@@ -11,9 +11,16 @@ export function useViewTransitions() {
   const transitionTo = useCallback(
     (to: string, options?: { replace?: boolean }) => {
       // Check if View Transitions API is supported
-      if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+      if (
+        typeof document !== "undefined" &&
+        "startViewTransition" in document
+      ) {
         // Use View Transitions API
-        (document as unknown as { startViewTransition: (callback: () => void) => void }).startViewTransition(() => {
+        (
+          document as unknown as {
+            startViewTransition: (callback: () => void) => void;
+          }
+        ).startViewTransition(() => {
           navigate(to, options);
         });
       } else {
@@ -21,7 +28,7 @@ export function useViewTransitions() {
         navigate(to, options);
       }
     },
-    [navigate]
+    [navigate],
   );
 
   return { transitionTo };
@@ -38,7 +45,7 @@ export function useViewTransitionClick() {
       event.preventDefault();
       transitionTo(to);
     },
-    [transitionTo]
+    [transitionTo],
   );
 
   return { handleClick };

@@ -25,8 +25,10 @@ export default function AstronomicalDataTable({
   className,
 }: AstronomicalDataTableProps) {
   const { location, isLoading: locationLoading } = useLocation();
-  const { items, isLoadingMore, canLoadMore, loadMore } =
-    useAstronomicalData(currentDate, config);
+  const { items, isLoadingMore, canLoadMore, loadMore } = useAstronomicalData(
+    currentDate,
+    config,
+  );
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   // Refs for infinite scroll
@@ -130,7 +132,6 @@ export default function AstronomicalDataTable({
   if (locationLoading || !location) {
     return null;
   }
-
 
   // Don't render if no items
   if (items.length === 0) {

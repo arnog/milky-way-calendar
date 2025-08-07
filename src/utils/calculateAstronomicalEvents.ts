@@ -39,7 +39,7 @@ export function calculateAstronomicalEvents(
     1,
     APP_CONFIG.ASTRONOMY.ASTRONOMICAL_TWILIGHT_ANGLE,
   );
-  
+
   // For astronomical dawn, search from the current date
   // The +1 direction means we're looking for the sun rising (altitude increasing)
   // We should search from after dusk to find the next dawn

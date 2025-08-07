@@ -8,7 +8,6 @@ import Tooltip from "./Tooltip";
 import Spinner from "./Spinner";
 import styles from "./LocationPopover.module.css";
 
-
 interface LocationPopoverProps {
   onLocationChange: (location: Location, shouldClose?: boolean) => void;
   onClose: () => void;
@@ -287,21 +286,27 @@ export default function LocationPopover({
   }, [attemptGeolocation]);
 
   // Clear error message when user takes manual action
-  const handleInputChangeWithClear = useCallback((value: string) => {
-    // Clear any error message when user types
-    if (geoMessage && !geoLoading) {
-      setGeoMessage(null);
-    }
-    handleInputChange(value);
-  }, [geoMessage, geoLoading, handleInputChange]);
+  const handleInputChangeWithClear = useCallback(
+    (value: string) => {
+      // Clear any error message when user types
+      if (geoMessage && !geoLoading) {
+        setGeoMessage(null);
+      }
+      handleInputChange(value);
+    },
+    [geoMessage, geoLoading, handleInputChange],
+  );
 
-  const handleMapClickWithClear = useCallback((location: Location) => {
-    // Clear any error message when user clicks map
-    if (geoMessage && !geoLoading) {
-      setGeoMessage(null);
-    }
-    handleMapClick(location);
-  }, [geoMessage, geoLoading, handleMapClick]);
+  const handleMapClickWithClear = useCallback(
+    (location: Location) => {
+      // Clear any error message when user clicks map
+      if (geoMessage && !geoLoading) {
+        setGeoMessage(null);
+      }
+      handleMapClick(location);
+    },
+    [geoMessage, geoLoading, handleMapClick],
+  );
 
   return (
     <div

@@ -1,4 +1,12 @@
-import { useRef, useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { flushSync } from "react-dom";
 import { Location } from "../types/astronomy";
 import { normalizedToCoord } from "../utils/lightPollutionMap";
@@ -40,13 +48,10 @@ const TIERS = [
   { key: "large" as const, width: 14400 },
 ] as const;
 
-const WorldMap = forwardRef<WorldMapRef, WorldMapProps>(function WorldMap({
-  location,
-  onLocationChange,
-  onDragStart,
-  onDragEnd,
-  markers = [],
-}, ref) {
+const WorldMap = forwardRef<WorldMapRef, WorldMapProps>(function WorldMap(
+  { location, onLocationChange, onDragStart, onDragEnd, markers = [] },
+  ref,
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [imageSrc, setImageSrc] = useState<string>("");
   const [isImageLoading, setIsImageLoading] = useState(true);
@@ -215,7 +220,6 @@ const WorldMap = forwardRef<WorldMapRef, WorldMapProps>(function WorldMap({
     [zoom, panX, panY, applyZoomPan, coordinateSystem],
   );
 
-
   // Memoized coordinate systems for different pan offsets
   const coordinateSystems = useMemo(
     () => ({
@@ -292,10 +296,14 @@ const WorldMap = forwardRef<WorldMapRef, WorldMapProps>(function WorldMap({
   });
 
   // Expose functions to parent component via ref
-  useImperativeHandle(ref, () => ({
-    getMarkerPositionForPan,
-    panX,
-  }), [getMarkerPositionForPan, panX]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      getMarkerPositionForPan,
+      panX,
+    }),
+    [getMarkerPositionForPan, panX],
+  );
 
   // Load cached image on mount and when the DPR-adjusted container width crosses a bucket
   // Load when DPR-adjusted container width * zoom suggests a new asset tier

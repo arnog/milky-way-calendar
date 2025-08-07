@@ -52,9 +52,7 @@ export default function Header() {
         </nav>
 
         <Tooltip
-          content={
-            isFieldMode ? "Switch to Dark Mode" : "Switch to Field Mode"
-          }
+          content={isFieldMode ? "Switch to Dark Mode" : "Switch to Field Mode"}
           placement="bottom"
         >
           <button

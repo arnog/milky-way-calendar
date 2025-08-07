@@ -22,7 +22,6 @@ import { getDarkSiteBortleWithFallback } from "../data/darkSiteBortle";
 import styles from "../App.module.css";
 import exploreStyles from "./ExplorePage.module.css";
 
-
 // Session storage keys for ExplorePage state persistence
 const EXPLORE_SESSION_KEYS = {
   DARK_SITES_RESULT: "explore_dark_sites_result",

@@ -16,8 +16,8 @@ and this project adheres to
   operations and preventing frame drops
 - **Dynamic image tier selection** with new xsmall tier (1800px) optimizing
   mobile device performance and reducing bandwidth usage
-- **Image prefetching system** loading next zoom level in background for seamless
-  zoom-in experience without visible loading delays
+- **Image prefetching system** loading next zoom level in background for
+  seamless zoom-in experience without visible loading delays
 - **Enhanced Safari iOS support** with gesture event prevention and touch-action
   CSS optimizations for better mobile map interaction
 
@@ -156,8 +156,9 @@ and this project adheres to
 
 ### Technical Improvements
 
-- **Zoom centering algorithm** using analytic formula `panXAfter = (mouseRelX - 0.5) / newZoom - (before.x - 0.5)` 
-  for precise cursor-locked zoom operations
+- **Zoom centering algorithm** using analytic formula
+  `panXAfter = (mouseRelX - 0.5) / newZoom - (before.x - 0.5)` for precise
+  cursor-locked zoom operations
 - **Simplified useMapState hook** eliminating complex constraint system in favor
   of centralized constraint application using `applyZoomPan()` function
 - **Comprehensive test coverage** for zoom centering with round-trip coordinate

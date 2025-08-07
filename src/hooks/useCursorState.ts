@@ -29,34 +29,41 @@ export function useCursorState({
   const checkProximity = useCallback(
     (clientX: number, clientY: number): boolean => {
       if (!currentLocation) return false;
-      
+
       const container = containerRef.current;
       if (!container) return false;
-      
+
       const rect = container.getBoundingClientRect();
       const containerX = clientX - rect.left;
       const containerY = clientY - rect.top;
-      
+
       // Convert lat/lng to normalized coordinates
-      const normalized = coordToNormalized(currentLocation.lat, currentLocation.lng);
-      
+      const normalized = coordToNormalized(
+        currentLocation.lat,
+        currentLocation.lng,
+      );
+
       // Get the actual marker position using the same transform as the real marker
-      const markerPosition = getMarkerPositionForPan(normalized.x, normalized.y, panX);
-      
+      const markerPosition = getMarkerPositionForPan(
+        normalized.x,
+        normalized.y,
+        panX,
+      );
+
       // Convert marker percentage position to pixels
       const locationScreenX = (markerPosition.x / 100) * rect.width;
       const locationScreenY = (markerPosition.y / 100) * rect.height;
-      
+
       // 30px threshold
       const threshold = 30;
       const distance = Math.sqrt(
-        Math.pow(containerX - locationScreenX, 2) + 
-        Math.pow(containerY - locationScreenY, 2)
+        Math.pow(containerX - locationScreenX, 2) +
+          Math.pow(containerY - locationScreenY, 2),
       );
-      
+
       return distance <= threshold;
     },
-    [currentLocation, containerRef, panX, getMarkerPositionForPan]
+    [currentLocation, containerRef, panX, getMarkerPositionForPan],
   );
 
   // Mouse move handler to update cursor state
@@ -65,7 +72,7 @@ export function useCursorState({
       const nearLocation = checkProximity(event.clientX, event.clientY);
       setIsNearLocation(nearLocation);
     },
-    [checkProximity]
+    [checkProximity],
   );
 
   // Determine cursor class based on state

@@ -92,10 +92,7 @@ function AppContent() {
               </LocationErrorBoundary>
             }
           />
-          <Route
-            path="/location/:locationSlug"
-            element={<LocationPage />}
-          />
+          <Route path="/location/:locationSlug" element={<LocationPage />} />
           <Route
             path="/explore"
             element={

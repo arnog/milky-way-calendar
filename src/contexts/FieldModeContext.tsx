@@ -1,11 +1,13 @@
-import { createContext, useState, ReactNode } from 'react';
+import { createContext, useState, ReactNode } from "react";
 
 export interface FieldModeContextType {
   isFieldMode: boolean;
   toggleFieldMode: () => void;
 }
 
-export const FieldModeContext = createContext<FieldModeContextType | undefined>(undefined);
+export const FieldModeContext = createContext<FieldModeContextType | undefined>(
+  undefined,
+);
 
 interface FieldModeProviderProps {
   children: ReactNode;
@@ -24,4 +26,3 @@ export function FieldModeProvider({ children }: FieldModeProviderProps) {
     </FieldModeContext.Provider>
   );
 }
-

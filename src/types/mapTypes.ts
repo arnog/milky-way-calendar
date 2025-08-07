@@ -146,24 +146,49 @@ export interface AnimationConfig {
 }
 
 // Event handler types
-export type MouseEventHandler = (event: React.MouseEvent<HTMLDivElement>) => void;
+export type MouseEventHandler = (
+  event: React.MouseEvent<HTMLDivElement>,
+) => void;
 export type TouchEventHandler = (event: React.TouchEvent) => void;
-export type ZoomEventHandler = (delta: number, centerX?: number, centerY?: number) => void;
-export type LocationChangeHandler = (location: GeographicCoordinate, isDragging?: boolean) => void;
+export type ZoomEventHandler = (
+  delta: number,
+  centerX?: number,
+  centerY?: number,
+) => void;
+export type LocationChangeHandler = (
+  location: GeographicCoordinate,
+  isDragging?: boolean,
+) => void;
 
 // Coordinate transformation function types
-export type ScreenToNormalizedConverter = (screenX: number, screenY: number) => NormalizedPoint;
-export type NormalizedToScreenConverter = (normalizedX: number, normalizedY: number) => ScreenPoint;
-export type NormalizedToCoordConverter = (x: number, y: number) => GeographicCoordinate;
-export type CoordToNormalizedConverter = (lat: number, lng: number) => NormalizedPoint;
+export type ScreenToNormalizedConverter = (
+  screenX: number,
+  screenY: number,
+) => NormalizedPoint;
+export type NormalizedToScreenConverter = (
+  normalizedX: number,
+  normalizedY: number,
+) => ScreenPoint;
+export type NormalizedToCoordConverter = (
+  x: number,
+  y: number,
+) => GeographicCoordinate;
+export type CoordToNormalizedConverter = (
+  lat: number,
+  lng: number,
+) => NormalizedPoint;
 export type MarkerPositionCalculator = (
   normalizedX: number,
   normalizedY: number,
-  customPanX: number
+  customPanX: number,
 ) => MarkerPosition;
 
 // Constraint and validation types
-export type PanConstrainer = (newPanX: number, newPanY: number, zoom: number) => Point;
+export type PanConstrainer = (
+  newPanX: number,
+  newPanY: number,
+  zoom: number,
+) => Point;
 export type BoundsChecker = (point: Point, bounds: MapBounds) => boolean;
 export type CoordinateWrapper = (x: number) => number;
 
@@ -198,7 +223,11 @@ export interface MapGesturesHookReturn extends GestureState {
 export interface MapCoordinateSystemInterface {
   screenToNormalized(screenX: number, screenY: number): NormalizedPoint;
   normalizedToScreen(normalizedX: number, normalizedY: number): ScreenPoint;
-  getMarkerPosition(normalizedX: number, normalizedY: number, panOffset?: number): MarkerPosition;
+  getMarkerPosition(
+    normalizedX: number,
+    normalizedY: number,
+    panOffset?: number,
+  ): MarkerPosition;
   constrainPan(newPanX: number, newPanY: number, zoom?: number): Point;
   updateState(zoom: number, panX: number, panY: number): void;
   getState(): MapTransformState;
@@ -208,14 +237,14 @@ export interface MapCoordinateSystemInterface {
 export class MapCoordinateError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'MapCoordinateError';
+    this.name = "MapCoordinateError";
   }
 }
 
 export class MapConfigurationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'MapConfigurationError';
+    this.name = "MapConfigurationError";
   }
 }
 
@@ -237,19 +266,25 @@ export function isValidLongitude(value: number): value is Longitude {
   return value >= -180 && value <= 180;
 }
 
-export function isValidZoomLevel(value: number, minZoom: number, maxZoom: number): value is ZoomLevel {
+export function isValidZoomLevel(
+  value: number,
+  minZoom: number,
+  maxZoom: number,
+): value is ZoomLevel {
   return value >= minZoom && value <= maxZoom;
 }
 
-export function isValidNormalizedCoordinate(value: number): value is NormalizedCoordinate {
+export function isValidNormalizedCoordinate(
+  value: number,
+): value is NormalizedCoordinate {
   return value >= 0 && value <= 1;
 }
 
 // Union types
-export type CursorState = 'crosshair' | 'grab' | 'grabbing';
-export type MapImageType = 'primary' | 'left-wrap' | 'right-wrap';
-export type InteractionMode = 'drag' | 'pan' | 'zoom' | 'idle';
-export type LoadingState = 'loading' | 'loaded' | 'error';
+export type CursorState = "crosshair" | "grab" | "grabbing";
+export type MapImageType = "primary" | "left-wrap" | "right-wrap";
+export type InteractionMode = "drag" | "pan" | "zoom" | "idle";
+export type LoadingState = "loading" | "loaded" | "error";
 
 // Constant types
 export type MapConstants = {

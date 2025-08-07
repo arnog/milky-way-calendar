@@ -1,6 +1,6 @@
-import styles from './Spinner.module.css';
+import styles from "./Spinner.module.css";
 
-export type SpinnerSize = 'sm' | 'md' | 'lg' | 'xl';
+export type SpinnerSize = "sm" | "md" | "lg" | "xl";
 
 interface SpinnerProps {
   /** Size of the spinner */
@@ -9,7 +9,7 @@ interface SpinnerProps {
   className?: string;
 }
 
-export default function Spinner({ size = 'md', className }: SpinnerProps) {
+export default function Spinner({ size = "md", className }: SpinnerProps) {
   const sizeClass = {
     sm: styles.small,
     md: styles.medium,
@@ -18,8 +18,8 @@ export default function Spinner({ size = 'md', className }: SpinnerProps) {
   }[size];
 
   return (
-    <div 
-      className={`${styles.spinner} ${sizeClass} ${className || ''}`}
+    <div
+      className={`${styles.spinner} ${sizeClass} ${className || ""}`}
       role="status"
       aria-label="Loading"
     />

@@ -179,28 +179,35 @@ export function calculateGalacticCenterData(
 
     // Calculate transit time - should occur between rise and set when available
     // But always calculate it for informational purposes
-    
+
     // Calculate initial transit based on sidereal time
-    const localSiderealTime = Astronomy.SiderealTime(date) + location.lng / 15.0;
+    const localSiderealTime =
+      Astronomy.SiderealTime(date) + location.lng / 15.0;
     let hourAngle = localSiderealTime - GALACTIC_CENTER_RA;
     hourAngle = ((((hourAngle + 12) % 24) + 24) % 24) - 12;
     const hoursToTransit = -hourAngle;
-    let candidateTransit = new Date(date.getTime() + hoursToTransit * 60 * 60 * 1000);
-    
+    let candidateTransit = new Date(
+      date.getTime() + hoursToTransit * 60 * 60 * 1000,
+    );
+
     if (riseTime && setTime) {
       // Ensure transit is between rise and set
-      
+
       // If this transit is before rise, add sidereal days until it's after rise
       while (candidateTransit < riseTime) {
-        candidateTransit = new Date(candidateTransit.getTime() + 23.9344696 * 60 * 60 * 1000); // Sidereal day
+        candidateTransit = new Date(
+          candidateTransit.getTime() + 23.9344696 * 60 * 60 * 1000,
+        ); // Sidereal day
       }
-      
+
       // If the transit is between rise and set, use it
       if (candidateTransit >= riseTime && candidateTransit <= setTime) {
         transitTime = candidateTransit;
       } else if (candidateTransit > setTime) {
         // Transit happens after set, try the previous transit
-        candidateTransit = new Date(candidateTransit.getTime() - 23.9344696 * 60 * 60 * 1000);
+        candidateTransit = new Date(
+          candidateTransit.getTime() - 23.9344696 * 60 * 60 * 1000,
+        );
         if (candidateTransit >= riseTime && candidateTransit <= setTime) {
           transitTime = candidateTransit;
         }
@@ -209,7 +216,9 @@ export function calculateGalacticCenterData(
       // GC rises but doesn't set in our search window
       // Ensure transit is after rise
       while (candidateTransit < riseTime) {
-        candidateTransit = new Date(candidateTransit.getTime() + 23.9344696 * 60 * 60 * 1000);
+        candidateTransit = new Date(
+          candidateTransit.getTime() + 23.9344696 * 60 * 60 * 1000,
+        );
       }
       transitTime = candidateTransit;
     } else {

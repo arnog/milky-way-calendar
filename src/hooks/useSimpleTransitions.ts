@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom';
-import { useCallback } from 'react';
+import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
 
 /**
  * Simple, reliable page transitions using CSS opacity
@@ -11,23 +11,23 @@ export function useSimpleTransitions() {
   const transitionTo = useCallback(
     (to: string, options?: { replace?: boolean }) => {
       // Add fade-out class
-      document.body.classList.add('page-fade-out');
+      document.body.classList.add("page-fade-out");
 
       // Navigate after fade-out
       setTimeout(() => {
         navigate(to, options);
-        
+
         // Remove fade-out and add fade-in
-        document.body.classList.remove('page-fade-out');
-        document.body.classList.add('page-fade-in');
-        
+        document.body.classList.remove("page-fade-out");
+        document.body.classList.add("page-fade-in");
+
         // Clean up fade-in class
         setTimeout(() => {
-          document.body.classList.remove('page-fade-in');
+          document.body.classList.remove("page-fade-in");
         }, 300);
       }, 150);
     },
-    [navigate]
+    [navigate],
   );
 
   const handleClick = useCallback(
@@ -38,7 +38,7 @@ export function useSimpleTransitions() {
         transitionTo(to);
       }
     },
-    [transitionTo]
+    [transitionTo],
   );
 
   return { transitionTo, handleClick };

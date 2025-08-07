@@ -33,7 +33,7 @@ function LocationMarkerComponent({
   // Memoize marker positions for all three copies
   const markerPositions = useMemo(() => {
     if (!normalized) return null;
-    
+
     return {
       primary: getMarkerPositionForPan(normalized.x, normalized.y, panX),
       left: getMarkerPositionForPan(normalized.x, normalized.y, panX - 1),
@@ -69,9 +69,10 @@ function LocationMarkerComponent({
     );
   };
 
-  // Only show crosshairs if primary marker is visible vertically  
-  const showCrosshairs = markerPositions.primary.y >= MARKER_BOUNDS.MIN_Y && 
-                         markerPositions.primary.y <= MARKER_BOUNDS.MAX_Y;
+  // Only show crosshairs if primary marker is visible vertically
+  const showCrosshairs =
+    markerPositions.primary.y >= MARKER_BOUNDS.MIN_Y &&
+    markerPositions.primary.y <= MARKER_BOUNDS.MAX_Y;
 
   return (
     <div className={styles.markerOverlay}>

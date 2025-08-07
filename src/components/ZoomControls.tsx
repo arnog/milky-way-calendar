@@ -19,8 +19,14 @@ function ZoomControlsComponent({
   isVisible,
 }: ZoomControlsProps) {
   // Memoize click handlers to prevent unnecessary re-renders
-  const handleZoomIn = useCallback(() => onZoom(zoomSpeed), [onZoom, zoomSpeed]);
-  const handleZoomOut = useCallback(() => onZoom(-zoomSpeed), [onZoom, zoomSpeed]);
+  const handleZoomIn = useCallback(
+    () => onZoom(zoomSpeed),
+    [onZoom, zoomSpeed],
+  );
+  const handleZoomOut = useCallback(
+    () => onZoom(-zoomSpeed),
+    [onZoom, zoomSpeed],
+  );
 
   if (!isVisible) {
     return null;

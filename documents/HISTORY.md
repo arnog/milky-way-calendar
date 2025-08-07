@@ -51,14 +51,17 @@ solutions were chosen and how they evolved over time.
 
 ### WorldMap Component Refactoring (Phase 34)
 
-- **Challenge**: 635-line monolithic component was difficult to maintain and test
+- **Challenge**: 635-line monolithic component was difficult to maintain and
+  test
 - **Architecture**: Decomposed into modular components and hooks:
   - `useMapState`: Manages zoom/pan state with constraint logic
   - `useMapGestures`: Unified mouse/touch event handling
-  - Component split: `ZoomControls`, `MapImage`, `LocationMarker`, `AdditionalMarkers`
+  - Component split: `ZoomControls`, `MapImage`, `LocationMarker`,
+    `AdditionalMarkers`
 - **Utilities Created**:
   - `MapCoordinateSystem` class: Encapsulates coordinate transformations
-  - `performance.ts`: Comprehensive performance monitoring and optimization tools
+  - `performance.ts`: Comprehensive performance monitoring and optimization
+    tools
   - `mapConfig.ts`: Centralized configuration, eliminated magic numbers
 - **Performance Optimizations**:
   - React.memo memoization throughout components
@@ -70,7 +73,8 @@ solutions were chosen and how they evolved over time.
   - Root cause: CSS transition on map transform (0.1s) but not on markers
   - Solution: Track `isZooming` state and disable transitions during zoom
   - Implementation: React's `flushSync` ensures synchronous state updates
-- **Results**: 66% size reduction (215 lines), improved performance, better maintainability
+- **Results**: 66% size reduction (215 lines), improved performance, better
+  maintainability
 
 ### Light Pollution Map Optimization (Phase 31)
 

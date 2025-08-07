@@ -121,35 +121,35 @@ be created to encapsulate that color.
 
 #### Red Color Family
 
-| Color                    | Usage Count | Context                 | Recommendation                                |
-| ------------------------ | ----------- | ----------------------- | --------------------------------------------- |
-| `rgba(239, 68, 68, 0.8)` | 2x          | Error marker background | **Use token**: `--red-400` (closest match)    |
-| `rgb(239, 68, 68)`       | 2x          | Error borders/colors    | **Use token**: `--semantic-red`               |
-| `rgba(239, 68, 68, 0.1)` | 1x          | Error background light  | **Use token**: `--semantic-bg-red`            |
-| `rgba(239, 68, 68, 0.3)` | 1x          | Error border            | **Need token**: `--error-border-light`        |
-| `#fca5a5`                | 1x          | Error text              | **Use token**: `--red-300` (closest match)    |
-| `#ef4444`                | 1x          | Error button background | **Use token**: `--red-500` (closest match)    |
-| `#dc2626`                | 1x          | Error button hover      | **Use token**: `--red-600` (closest match)    |
-| `rgba(127, 29, 29, 0.5)` | 1x          | Error button background | **Use token**: `--red-800` (closest match)    |
-| `rgb(248, 113, 113)`     | 1x          | Error button text       | **Use token**: `--red-300` (closest match)    |
+| Color                    | Usage Count | Context                 | Recommendation                             |
+| ------------------------ | ----------- | ----------------------- | ------------------------------------------ |
+| `rgba(239, 68, 68, 0.8)` | 2x          | Error marker background | **Use token**: `--red-400` (closest match) |
+| `rgb(239, 68, 68)`       | 2x          | Error borders/colors    | **Use token**: `--semantic-red`            |
+| `rgba(239, 68, 68, 0.1)` | 1x          | Error background light  | **Use token**: `--semantic-bg-red`         |
+| `rgba(239, 68, 68, 0.3)` | 1x          | Error border            | **Need token**: `--error-border-light`     |
+| `#fca5a5`                | 1x          | Error text              | **Use token**: `--red-300` (closest match) |
+| `#ef4444`                | 1x          | Error button background | **Use token**: `--red-500` (closest match) |
+| `#dc2626`                | 1x          | Error button hover      | **Use token**: `--red-600` (closest match) |
+| `rgba(127, 29, 29, 0.5)` | 1x          | Error button background | **Use token**: `--red-800` (closest match) |
+| `rgb(248, 113, 113)`     | 1x          | Error button text       | **Use token**: `--red-300` (closest match) |
 
 #### Orange Color Family
 
-| Color                      | Usage Count | Context                      | Recommendation                               |
-| -------------------------- | ----------- | ---------------------------- | -------------------------------------------- |
-| `rgba(255, 165, 0, 0.1)`   | 1x          | Orange suggestion background | **Use token**: `--semantic-bg-orange`        |
-| `rgb(255, 223, 186)`       | 2x          | Orange suggestion text       | **Use token**: `--orange-200` (closest)      |
-| `#f97316`                  | 3x          | Orange accent color          | **Use token**: `--semantic-orange`           |
-| `#ea580c`                  | 1x          | Orange hover/active          | **Use token**: `--orange-700` (closest)      |
-| `rgba(249, 115, 22, 0.08)` | 1x          | Orange background subtle     | **Need token**: `--warning-bg-subtle`        |
-| `rgba(249, 115, 22, 0.1)`  | 1x          | Orange background            | **Use token**: `--semantic-bg-orange`        |
-| `rgba(249, 115, 22, 0.12)` | 1x          | Orange background hover      | **Merge with**: `--warning-bg-subtle`        |
-| `rgba(249, 115, 22, 0.15)` | 1x          | Orange background active     | **Merge with**: `--warning-bg-subtle`        |
-| `rgba(249, 115, 22, 0.2)`  | 1x          | Orange background strong     | **Need token**: `--warning-bg-medium`        |
-| `rgba(249, 115, 22, 0.25)` | 1x          | Orange border                | **Need token**: `--warning-border`           |
-| `rgba(249, 115, 22, 0.3)`  | 1x          | Orange border strong         | **Merge with**: `--warning-border`           |
-| `rgba(249, 115, 22, 0.35)` | 1x          | Orange border hover          | **Merge with**: `--warning-border`           |
-| `rgba(249, 115, 22, 0.5)`  | 1x          | Orange border active         | **Need token**: `--warning-border-active`    |
+| Color                      | Usage Count | Context                      | Recommendation                            |
+| -------------------------- | ----------- | ---------------------------- | ----------------------------------------- |
+| `rgba(255, 165, 0, 0.1)`   | 1x          | Orange suggestion background | **Use token**: `--semantic-bg-orange`     |
+| `rgb(255, 223, 186)`       | 2x          | Orange suggestion text       | **Use token**: `--orange-200` (closest)   |
+| `#f97316`                  | 3x          | Orange accent color          | **Use token**: `--semantic-orange`        |
+| `#ea580c`                  | 1x          | Orange hover/active          | **Use token**: `--orange-700` (closest)   |
+| `rgba(249, 115, 22, 0.08)` | 1x          | Orange background subtle     | **Need token**: `--warning-bg-subtle`     |
+| `rgba(249, 115, 22, 0.1)`  | 1x          | Orange background            | **Use token**: `--semantic-bg-orange`     |
+| `rgba(249, 115, 22, 0.12)` | 1x          | Orange background hover      | **Merge with**: `--warning-bg-subtle`     |
+| `rgba(249, 115, 22, 0.15)` | 1x          | Orange background active     | **Merge with**: `--warning-bg-subtle`     |
+| `rgba(249, 115, 22, 0.2)`  | 1x          | Orange background strong     | **Need token**: `--warning-bg-medium`     |
+| `rgba(249, 115, 22, 0.25)` | 1x          | Orange border                | **Need token**: `--warning-border`        |
+| `rgba(249, 115, 22, 0.3)`  | 1x          | Orange border strong         | **Merge with**: `--warning-border`        |
+| `rgba(249, 115, 22, 0.35)` | 1x          | Orange border hover          | **Merge with**: `--warning-border`        |
+| `rgba(249, 115, 22, 0.5)`  | 1x          | Orange border active         | **Need token**: `--warning-border-active` |
 
 #### Green Color Family
 
@@ -158,7 +158,9 @@ be created to encapsulate that color.
 | `#10b981`                 | 1x          | Success/good rating color | **Use token**: `--semantic-green`    |
 | `rgba(16, 185, 129, 0.1)` | 1x          | Success background        | **Use token**: `--semantic-bg-green` |
 
-**Note**: If green colors are used specifically for Bortle light pollution ratings, consider creating semantic tokens `--bortle-excellent` and `--bortle-bg-excellent` that reference the appropriate green shades.
+**Note**: If green colors are used specifically for Bortle light pollution
+ratings, consider creating semantic tokens `--bortle-excellent` and
+`--bortle-bg-excellent` that reference the appropriate green shades.
 
 #### Cyan Color Family
 
@@ -184,42 +186,43 @@ be created to encapsulate that color.
 
 ### 1. Minimal Token Creation Needed
 
-Based on the master color palette now in `src/styles/global.css`, create only these essential new tokens:
+Based on the master color palette now in `src/styles/global.css`, create only
+these essential new tokens:
 
 ```css
 /* Essential Glassmorphism/Transparency Tokens */
---glass-bg: rgba(255, 255, 255, 0.1);        /* Most common transparency */
---glass-border: rgba(255, 255, 255, 0.2);    /* Common border transparency */
---glass-hover: rgba(255, 255, 255, 0.3);     /* Hover state */
---glass-active: rgba(255, 255, 255, 0.4);    /* Active state */
+--glass-bg: rgba(255, 255, 255, 0.1); /* Most common transparency */
+--glass-border: rgba(255, 255, 255, 0.2); /* Common border transparency */
+--glass-hover: rgba(255, 255, 255, 0.3); /* Hover state */
+--glass-active: rgba(255, 255, 255, 0.4); /* Active state */
 
 /* Essential Text Opacity Tokens */
---text-muted: rgba(255, 255, 255, 0.6);      /* Muted text */
---text-primary: rgba(255, 255, 255, 0.8);    /* Primary readable text */
+--text-muted: rgba(255, 255, 255, 0.6); /* Muted text */
+--text-primary: rgba(255, 255, 255, 0.8); /* Primary readable text */
 
 /* Essential Shadow Tokens */
---shadow-medium: rgba(0, 0, 0, 0.2);         /* Medium shadows */
---shadow-dark: rgba(0, 0, 0, 0.3);           /* Dark overlays */
---dark-bg: rgba(0, 0, 0, 0.95);              /* Modal/tooltip backgrounds */
+--shadow-medium: rgba(0, 0, 0, 0.2); /* Medium shadows */
+--shadow-dark: rgba(0, 0, 0, 0.3); /* Dark overlays */
+--dark-bg: rgba(0, 0, 0, 0.95); /* Modal/tooltip backgrounds */
 
 /* Button System (using existing blue palette) */
---button-bg-primary: var(--blue-600);        /* Primary button background */
---button-bg-primary-hover: var(--blue-700);  /* Primary button hover */
---button-border: var(--blue-500);            /* Button borders */
+--button-bg-primary: var(--blue-600); /* Primary button background */
+--button-bg-primary-hover: var(--blue-700); /* Primary button hover */
+--button-border: var(--blue-500); /* Button borders */
 
 /* Warning System Additions (minimal) */
---warning-bg-subtle: rgba(249, 115, 22, 0.1);    /* Subtle warning backgrounds */
---warning-border: rgba(249, 115, 22, 0.3);       /* Warning borders */
+--warning-bg-subtle: rgba(249, 115, 22, 0.1); /* Subtle warning backgrounds */
+--warning-border: rgba(249, 115, 22, 0.3); /* Warning borders */
 --warning-border-active: rgba(249, 115, 22, 0.5); /* Active warning borders */
 
 /* Essential Utility Tokens */
---error-border-light: rgba(239, 68, 68, 0.3);    /* Light error borders */
---link: var(--blue-400);                          /* General link color */
---text-accent: var(--blue-100);                   /* Accent text color */
+--error-border-light: rgba(239, 68, 68, 0.3); /* Light error borders */
+--link: var(--blue-400); /* General link color */
+--text-accent: var(--blue-100); /* Accent text color */
 
 /* Gradient System (for AstronomicalDataTable) */
---gradient-primary: var(--blue-800);         /* Use existing palette */
---gradient-secondary: var(--blue-600);       /* Use existing palette */
+--gradient-primary: var(--blue-800); /* Use existing palette */
+--gradient-secondary: var(--blue-600); /* Use existing palette */
 ```
 
 ### 2. Migration Strategy
@@ -236,22 +239,24 @@ Based on the master color palette now in `src/styles/global.css`, create only th
 **Most commonly used hardcoded colors to replace first:**
 
 - `rgba(255, 255, 255, 0.1)` (12 occurrences) → `--glass-bg`
-- `rgba(255, 255, 255, 0.7)` (7 occurrences) → `--text-muted` 
+- `rgba(255, 255, 255, 0.7)` (7 occurrences) → `--text-muted`
 - `rgb(219 234 254)` (6 occurrences) → `--text-accent`
 - `rgba(255, 255, 255, 0.6)` (6 occurrences) → `--text-muted`
 - `rgb(17 24 39)` (2 occurrences) → `--blue-800`
-- `rgba(163, 196, 220, ...)` → `--primary` (use CSS `rgb(from var(--primary) r g b / 0.X)`)
+- `rgba(163, 196, 220, ...)` → `--primary` (use CSS
+  `rgb(from var(--primary) r g b / 0.X)`)
 
 ### 3. Leverage Existing Master Palette
 
 **Direct mappings to existing tokens:**
 
 - `#6ec6ff` → `var(--accent)` ✅ Already mapped
-- `#f97316` → `var(--semantic-orange)` ✅ 
+- `#f97316` → `var(--semantic-orange)` ✅
 - `#10b981` → `var(--semantic-green)` ✅
 - `#fbbf24` → `var(--yellow-500)` ✅
 - `rgb(17 24 39)` → `var(--blue-800)` ✅
-- Error colors → Use `--semantic-red`, `--semantic-bg-red`, and `--red-X00` shades ✅
+- Error colors → Use `--semantic-red`, `--semantic-bg-red`, and `--red-X00`
+  shades ✅
 - Success colors → Use `--semantic-green` and `--semantic-bg-green` ✅
 
 ## Summary
@@ -264,9 +269,14 @@ Based on the master color palette now in `src/styles/global.css`, create only th
 
 ### Key Improvements Made
 
-1. **Master color palette implemented** - Comprehensive color system with consistent naming
+1. **Master color palette implemented** - Comprehensive color system with
+   consistent naming
 2. **Semantic tokens created** - Error, warning, success, and info color systems
-3. **Reduced token proliferation** - Focus on essential tokens and reusing palette colors
-4. **Fixed critical bugs** - Corrected `--gc-visible` reference and hardcoded RGB values
+3. **Reduced token proliferation** - Focus on essential tokens and reusing
+   palette colors
+4. **Fixed critical bugs** - Corrected `--gc-visible` reference and hardcoded
+   RGB values
 
-The color system leverages the new master palette to dramatically reduce the need for custom tokens while maintaining the astronomical theme's specialized requirements for transparency variations and UI states.
+The color system leverages the new master palette to dramatically reduce the
+need for custom tokens while maintaining the astronomical theme's specialized
+requirements for transparency variations and UI states.

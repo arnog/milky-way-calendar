@@ -145,35 +145,42 @@ export function useMapGestures({
   const isNearCurrentLocation = useCallback(
     (screenX: number, screenY: number): boolean => {
       if (!currentLocation) return false;
-      
+
       const container = containerRef.current;
       if (!container) return false;
-      
+
       const rect = container.getBoundingClientRect();
       const containerX = screenX - rect.left;
       const containerY = screenY - rect.top;
-      
+
       // Convert lat/lng to normalized coordinates
-      const normalized = coordToNormalized(currentLocation.lat, currentLocation.lng);
-      
+      const normalized = coordToNormalized(
+        currentLocation.lat,
+        currentLocation.lng,
+      );
+
       // Get the actual marker position using the same transform as the real marker
-      const markerPosition = getMarkerPositionForPan(normalized.x, normalized.y, panX);
-      
+      const markerPosition = getMarkerPositionForPan(
+        normalized.x,
+        normalized.y,
+        panX,
+      );
+
       // Convert marker percentage position to pixels
       const locationScreenX = (markerPosition.x / 100) * rect.width;
       const locationScreenY = (markerPosition.y / 100) * rect.height;
-      
+
       // Define proximity threshold (in pixels)
       const threshold = 30; // 30px radius around the marker
-      
+
       const distance = Math.sqrt(
-        Math.pow(containerX - locationScreenX, 2) + 
-        Math.pow(containerY - locationScreenY, 2)
+        Math.pow(containerX - locationScreenX, 2) +
+          Math.pow(containerY - locationScreenY, 2),
       );
-      
+
       return distance <= threshold;
     },
-    [currentLocation, containerRef, panX, getMarkerPositionForPan]
+    [currentLocation, containerRef, panX, getMarkerPositionForPan],
   );
 
   // Touch handlers

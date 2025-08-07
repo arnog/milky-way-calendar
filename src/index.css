@@ -110,7 +110,7 @@
     transition: none !important;
     animation: none !important;
   }
-  
+
   .page-fade-out [data-page],
   .page-fade-in [data-page] {
     opacity: 1 !important;
