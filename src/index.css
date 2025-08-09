@@ -59,6 +59,8 @@
   --text-muted: rgba(255, 170, 170, 0.6);
   --text-bright: #ff4444;
   --text: rgba(255, 68, 68, 0.8);
+  --glow: var(--red-500);
+  --glow-light: rgba(176, 80, 73, 0.3);
   color: #ff4444 !important;
 }
 

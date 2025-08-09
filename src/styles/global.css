@@ -173,6 +173,7 @@
   --accent: var(--blue-300);
   --secondary: var(--neutral-800);
   --glow: var(--blue-100);
+  --glow-light: rgba(178, 227, 255, 0.3);
   --background: var(--blue-900);
   --data-font-family: "Rubik", sans-serif;
 
@@ -258,9 +259,6 @@
   --primary-bg-light: rgba(163, 196, 220, 0.1);
   --primary-bg-medium: rgba(163, 196, 220, 0.2);
   --primary-border: rgba(163, 196, 220, 0.3);
-
-  /* Glow Effect Variations */
-  --glow-light: rgba(178, 227, 255, 0.3);
 
   /* Error System Additional Tokens */
   --error-bg: rgba(239, 68, 68, 0.1);

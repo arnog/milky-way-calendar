@@ -203,29 +203,30 @@ a.navLink:hover {
   width: 100%;
   height: 100%;
   border-radius: 999px;
-  background: var(--glass-bg);
-  border: 1px solid rgba(255, 68, 68, 0.4);
+  background: var(--glass-dark-bg);
+  border: 2px solid rgb(118, 32, 32);
   backdrop-filter: blur(8px);
   overflow: hidden;
   transition: background-color 0.3s ease;
 }
 
 .toggleSwitch:hover .toggleTrack {
-  background: var(--glass-hover);
-  border-color: var(--glass-hover-border);
+  border-color: rgb(190, 50, 50);
 }
 
-/*/* Indicator (the moving circle) */
+.toggleSwitch:hover .toggleIndicator {
+  border-color: rgb(190, 50, 50);
+}
+
+/*Indicator (the moving circle) */
 .toggleIndicator {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
-  left: 3px;
-  width: 28px;
-  height: 28px;
   border-radius: 50%;
-  background: #cc3333;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  background: #2c0808;
+  border: 2px solid rgb(118, 32, 32);
+  box-sizing: border-box;
+  box-shadow: 0 4px 4px var(--shadow-dark);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 2;
 }
