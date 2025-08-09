@@ -61,7 +61,7 @@
 
 .detectingText {
   /* text-blue-200 text-3xl */
-  color: rgb(191 219 254);
+  color: var(--text-accent);
   font-size: 1.875rem;
   line-height: 2.25rem;
 }
@@ -114,7 +114,6 @@
 }
 
 .clearButton {
-  /* absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-white disabled:text-gray-600 transition-colors */
   position: absolute;
   right: 0.5rem;
   top: 50%;

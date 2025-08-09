@@ -21,7 +21,7 @@
 }
 
 .dot:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--neutral-100);
   transform: scale(1.1);
 }
 
@@ -32,7 +32,6 @@
 
 .activeDot {
   background: var(--accent);
-  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.4);
 }
 
 .panelsContainer {

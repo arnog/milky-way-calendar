@@ -23,7 +23,7 @@
   padding: 0.5rem 0.75rem;
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: var(--indicator-radius);
@@ -35,8 +35,8 @@
 }
 
 .segment:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-bright);
+  background-color: var(--glass-bg);
 }
 
 .segment.active {
@@ -77,7 +77,7 @@
   position: absolute;
   top: 1px; /* 1px padding from top */
   height: calc(100% - 2px); /* 1px padding from top and bottom */
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--glass-bg);
   border-radius: var(--indicator-radius);
   box-shadow: 0 2px 8px var(--shadow-medium);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

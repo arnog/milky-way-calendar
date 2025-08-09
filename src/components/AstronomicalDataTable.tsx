@@ -91,14 +91,16 @@ export default function AstronomicalDataTable({
     if (config.mode !== "weekly") return {};
 
     const opacity = visibility * 0.15;
-    // Using CSS variables from global.css - gradient-primary (blue-800) and gradient-secondary (blue-600)
-    // Since these map to hex values, we'll use the actual color values for now
-    // TODO: Once we have CSS color-mix support, we can use: color-mix(in srgb, var(--gradient-primary) ${opacity * 100}%, transparent)
+    // Using CSS variables from global.css with opacity calculations
+    // Create dynamic opacity-based gradients using the base colors
+    const primaryColor = `0, 96, 167`; // --blue-800 RGB values
+    const secondaryColor = `0, 119, 219`; // --blue-600 RGB values
+    
     return {
       background: `linear-gradient(to right, 
-        rgba(0, 96, 167, ${opacity}), 
-        rgba(0, 119, 219, ${opacity * 0.4}), 
-        rgba(0, 96, 167, ${opacity * 0.3}))`,
+        rgba(${primaryColor}, ${opacity}), 
+        rgba(${secondaryColor}, ${opacity * 0.4}), 
+        rgba(${primaryColor}, ${opacity * 0.3}))`,
       backgroundSize: "200% 100%",
       animation: visibility >= 3 ? "shimmer 6s ease-in-out infinite" : "none",
     };

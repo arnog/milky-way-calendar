@@ -257,7 +257,7 @@ For **rise/set times, durations, altitudes**:
   color: var(--neutral-25);
 }
 .data-time {
-  font-family: "Orbitron", sans-serif;
+  font-family: "Rubik", sans-serif;
   color: var(--blue-300);
   letter-spacing: 0.03em;
 }

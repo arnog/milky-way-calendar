@@ -89,7 +89,7 @@ export default class LocationErrorBoundary extends Component<
                 fontSize: "1.5rem",
                 fontWeight: 600,
                 marginBottom: "0.5rem",
-                color: "var(--color-text-primary)",
+                color: "var(--text)",
               }}
             >
               Location Required
@@ -97,7 +97,7 @@ export default class LocationErrorBoundary extends Component<
             <p
               style={{
                 fontSize: "1rem",
-                color: "var(--color-text-secondary)",
+                color: "var(--text-secondary)",
                 maxWidth: "400px",
                 lineHeight: "1.5",
               }}
@@ -163,7 +163,7 @@ export default class LocationErrorBoundary extends Component<
           <p
             style={{
               fontSize: "0.875rem",
-              color: "var(--color-text-tertiary)",
+              color: "var(--text-muted)",
               fontStyle: "italic",
             }}
           >

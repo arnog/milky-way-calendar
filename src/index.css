@@ -56,21 +56,16 @@
 
 .field-mode,
 .field-mode * {
+  --text-muted: rgba(255, 170, 170, 0.6);
+  --text-bright: #ff4444;
+  --text: rgba(255, 68, 68, 0.8);
   color: #ff4444 !important;
-}
-
-.field-mode .text-gray-300,
-.field-mode .text-gray-400,
-.field-mode .text-sm,
-.field-mode .text-xs {
-  color: #ff6666 !important;
 }
 
 .field-mode input::placeholder {
   color: #cc3333 !important;
 }
 
-.field-mode .text-blue-200,
 .field-mode .data-time {
   color: #ff8888 !important;
 }
@@ -117,71 +112,4 @@
     transition: none !important;
     animation: none !important;
   }
-}
-
-/* Location description HTML formatting */
-.location-description h2 {
-  font-family: "Playfair Display", serif;
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: rgb(219 234 254);
-  line-height: 1.25;
-}
-
-.location-description h3 {
-  font-family: "Playfair Display", serif;
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: rgb(219 234 254);
-  line-height: 1.25;
-  margin-top: 1.5em;
-}
-
-.location-description ol {
-  margin-left: 3rem;
-  font-family: "Inter", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-
-  font-size: 2rem;
-  line-height: 1.25;
-}
-
-.location-description ol li {
-  margin-bottom: 1.5rem;
-}
-
-.location-description p {
-  margin-bottom: 0.75rem;
-  line-height: 1.3;
-
-  font-family: "Inter", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-
-  font-size: 2rem;
-}
-
-.location-description strong {
-  font-weight: 600;
-  color: rgb(239 246 255);
-}
-
-.location-description em {
-  font-style: italic;
-  color: rgb(191 219 254);
-}
-
-.location-description a {
-  color: rgb(147 197 253);
-  text-decoration: underline;
-  transition: color 0.2s ease-in-out;
-}
-
-.location-description a:hover {
-  color: rgb(191 219 254);
 }

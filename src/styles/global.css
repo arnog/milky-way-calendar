@@ -190,15 +190,19 @@
   --glass-hover: rgba(255, 255, 255, 0.3);
   --glass-active: rgba(255, 255, 255, 0.4);
 
+  --glass-dark-bg: rgba(0, 0, 0, 0.1);
+  --glass-dark-border: rgba(0, 0, 0, 0.4);
+
   /* Essential Text Tokens */
   --text: rgba(255, 255, 255, 0.8);
+  --text-secondary: rgba(255, 255, 255, 0.7);
   --text-bright: var(--neutral-75);
   --text-muted: rgba(255, 255, 255, 0.6);
+  --text-accent: var(--blue-100);
 
   /* Essential Shadow Tokens */
   --shadow-medium: rgba(0, 0, 0, 0.2);
   --shadow-dark: rgba(0, 0, 0, 0.3);
-  --dark-bg: rgba(0, 0, 0, 0.95);
 
   /* Button System */
   --button-bg-primary: var(--blue-600);
@@ -206,6 +210,7 @@
   --button-border: var(--blue-500);
 
   /* Warning System Additions */
+  --warning: var(--semantic-orange);
   --warning-bg-subtle: rgba(249, 115, 22, 0.1);
   --warning-border: rgba(249, 115, 22, 0.3);
   --warning-border-active: rgba(249, 115, 22, 0.5);
@@ -213,7 +218,8 @@
   /* Utility Tokens */
   --error-border-light: rgba(239, 68, 68, 0.3);
   --link: var(--blue-400);
-  --text-accent: var(--blue-100);
+  --link-hover: var(--blue-200);
+  --link-active: var(--blue-600);
   --spinner-ring: var(--neutral-500);
   --spinner-arc: var(--neutral-300);
 
@@ -241,18 +247,56 @@
   --tooltip-text: rgba(255, 255, 255, 0.9);
   --tooltip-border: rgba(255, 255, 255, 0.2);
   --tooltip-shadow: rgba(0, 0, 0, 0.4);
+
+  /* Button System Additional Tokens */
+  --button-bg: rgba(59, 130, 246, 0.8);
+  --button-bg-hover: rgba(59, 130, 246, 0.9);
+  --button-shadow: rgba(59, 130, 246, 0.3);
+  --button-shadow-hover: rgba(59, 130, 246, 0.4);
+
+  /* Primary Color Variations */
+  --primary-bg-light: rgba(163, 196, 220, 0.1);
+  --primary-bg-medium: rgba(163, 196, 220, 0.2);
+  --primary-border: rgba(163, 196, 220, 0.3);
+
+  /* Glow Effect Variations */
+  --glow-light: rgba(178, 227, 255, 0.3);
+
+  /* Error System Additional Tokens */
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --error-border: rgba(239, 68, 68, 0.3);
+
+  /* Warning System Additional Tokens */
+  --warning-bg-lighter: rgba(249, 115, 22, 0.08);
+  --warning-bg-medium: rgba(249, 115, 22, 0.15);
+  --warning-bg-strong: rgba(249, 115, 22, 0.2);
+  --warning-border-light: rgba(249, 115, 22, 0.25);
+  --warning-border-medium: rgba(249, 115, 22, 0.35);
+
+  /* Accent System Additional Tokens */
+  --accent-bg-light: rgba(110, 198, 255, 0.1);
+  --accent-border: rgba(110, 198, 255, 0.3);
+  --accent-glow: rgba(110, 198, 255, 0.4);
+
+  /* Green System Additional Tokens */
+  --green-bg-light: rgba(16, 185, 129, 0.1);
 }
 
 a,
 a:visited {
-  color: var(--glow);
+  color: var(--link);
   text-decoration: none;
 }
 
-a:hover,
+a:hover {
+  color: var(--link-hover);
+  text-shadow: 0 0 5px var(--glow);
+  text-decoration: underline;
+}
+
 a:focus,
 a:active {
-  color: var(--glow);
+  color: var(--link-active);
   text-shadow: 0 0 5px var(--glow);
   text-decoration: underline;
 }
@@ -264,6 +308,19 @@ a:active:has(h1) {
   color: inherit;
   text-decoration: none;
   text-shadow: none;
+}
+
+a:hover:has(h1) {
+  color: inherit;
+  text-decoration: none;
+  text-shadow: 0 0 5px var(--glow);
+}
+
+a:focus:has(h1),
+a:active:has(h1) {
+  color: var(--link-active);
+  text-decoration: none;
+  text-shadow: 0 0 5px var(--glow);
 }
 
 /* Common icon sizes */

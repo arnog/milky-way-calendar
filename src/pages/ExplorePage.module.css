@@ -17,7 +17,7 @@
 .subtitle {
   /* text-2xl text-white/70 mb-8 */
   font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   margin-bottom: 2rem;
 }
 
@@ -35,9 +35,8 @@
 }
 
 .mapDescription {
-  /* text-sm text-white/50 mt-2 */
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-bright);
   margin-top: 0.5rem;
 }
 
@@ -88,7 +87,7 @@
   position: absolute;
   width: 8px;
   height: 8px;
-  background-color: rgba(0 255 255 / 0.5);
+  background-color: var(--cyan-400);
   border: 0.5px solid white;
   border-radius: 50%;
   cursor: pointer;
@@ -98,7 +97,7 @@
 }
 
 .darkSiteMarker:hover {
-  background-color: rgb(147 197 253);
+  background-color: var(--blue-300);
 }
 
 .regionsGrid {
@@ -208,14 +207,14 @@
 .darkSiteCatalog {
   margin-bottom: 24px;
   padding: 24px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--glass-bg);
   border-radius: 12px;
   backdrop-filter: blur(8px);
 }
 
 .locationItem {
   /* text-blue-400 hover:text-blue-300 transition-colors text-left */
-  color: rgb(96 165 250);
+  color: var(--blue-400);
   transition: all 0.2s ease-in-out;
   text-align: left;
   background: none;
@@ -232,8 +231,8 @@
 }
 
 .locationItem:hover {
-  color: rgb(147 197 253);
-  background-color: rgba(96, 165, 250, 0.1);
+  color: var(--blue-300);
+  background-color: var(--accent-bg-light);
 }
 
 .locationName {
@@ -253,7 +252,7 @@
 }
 
 .locationButton:hover .bortleRating {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--glass-hover);
   color: var(--text);
 }
 
@@ -286,14 +285,14 @@
 .nearestDarkSiteSection {
   margin-bottom: 24px;
   padding: 24px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--glass-bg);
   border-radius: 12px;
   backdrop-filter: blur(8px);
 }
 
 .sectionDescription {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
@@ -318,7 +317,7 @@
 
 .locationButton {
   padding: 0.75rem 1.5rem;
-  background-color: rgba(163, 196, 220, 0.1);
+  background-color: var(--primary-bg-light);
   border: 2px solid var(--primary);
   border-radius: 0.5rem;
   color: var(--primary);
@@ -330,8 +329,8 @@
 }
 
 .locationButton:hover {
-  background-color: rgba(163, 196, 220, 0.2);
-  box-shadow: 0 0 20px rgba(178, 227, 255, 0.3);
+  background-color: var(--primary-bg-medium);
+  box-shadow: 0 0 20px var(--glow-light);
 }
 
 .progressContainer {
@@ -356,14 +355,14 @@
 
 .progressText {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   margin: 0;
 }
 
 .resultContainer {
   padding: 1.5rem;
-  background-color: rgba(110, 198, 255, 0.1);
-  border: 1px solid rgba(110, 198, 255, 0.3);
+  background-color: var(--accent-bg-light);
+  border: 1px solid var(--accent-border);
   border-radius: 0.5rem;
 }
 
@@ -412,13 +411,13 @@
 }
 
 .viewLocationButton:hover {
-  background-color: #5ab3e6;
-  box-shadow: 0 0 20px rgba(110, 198, 255, 0.4);
+  background-color: var(--blue-400);
+  box-shadow: 0 0 20px var(--accent-glow);
 }
 
 .directionsButton {
   padding: 0.75rem 1.5rem;
-  background-color: rgba(163, 196, 220, 0.1);
+  background-color: var(--primary-bg-light);
   border: 2px solid var(--primary);
   border-radius: 0.5rem;
   color: var(--primary);
@@ -430,33 +429,33 @@
 }
 
 .directionsButton:hover {
-  background-color: rgba(163, 196, 220, 0.2);
-  box-shadow: 0 0 20px rgba(178, 227, 255, 0.3);
+  background-color: var(--primary-bg-medium);
+  box-shadow: 0 0 20px var(--glow-light);
 }
 
 .errorContainer {
   padding: 1rem;
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--error-bg);
+  border: 1px solid var(--error-border);
   border-radius: 0.5rem;
 }
 
 .errorMessage {
   margin: 0;
-  color: #fca5a5;
+  color: var(--red-300);
   font-size: 0.9rem;
 }
 
 /* Red marker for primary dark site */
 .nearestMarker {
-  background-color: #ef4444 !important;
+  background-color: var(--red-500) !important;
   border-color: white;
   width: 1rem;
   height: 1rem;
 }
 
 .nearestMarker:hover {
-  background-color: #dc2626 !important;
+  background-color: var(--red-600) !important;
 }
 
 /* Orange marker for alternative dark sites */
@@ -468,7 +467,7 @@
 }
 
 .alternativeMarker:hover {
-  background-color: #ea580c !important;
+  background-color: var(--orange-700) !important;
 }
 
 /* Results Wrapper */
@@ -508,33 +507,32 @@
 
 .knownSiteButton {
   padding: 0.5rem 1rem;
-  background-color: rgba(163, 196, 220, 0.1);
+  background-color: var(--link);
   border: 1px solid var(--primary);
   border-radius: 0.375rem;
-  color: var(--primary);
+  color: white;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .knownSiteButton:hover {
-  background-color: rgba(163, 196, 220, 0.2);
+  background-color: var(--link-hover);
 }
 
 .knownSiteDirectionsButton {
   padding: 0.5rem 1rem;
   background-color: transparent;
-  border: 1px solid var(--glass-hover);
+  border: 1px solid var(--glass-border);
   border-radius: 0.375rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-bright);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .knownSiteDirectionsButton:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--link-hover);
 }
 
 /* Alternatives Section */
@@ -552,7 +550,7 @@
 
 .alternativesDescription {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   margin-bottom: 1rem;
 }
 
@@ -580,15 +578,15 @@
 
 .alternativeCard {
   padding: 1rem;
-  background-color: rgba(249, 115, 22, 0.08);
-  border: 1px solid rgba(249, 115, 22, 0.25);
+  background-color: var(--warning-bg-lighter);
+  border: 1px solid var(--warning-border-light);
   border-radius: 0.5rem;
   transition: all 0.2s ease;
 }
 
 .alternativeCard:hover {
-  background-color: rgba(249, 115, 22, 0.12);
-  border-color: rgba(249, 115, 22, 0.35);
+  background-color: var(--warning-bg-strong);
+  border-color: var(--warning-border-medium);
 }
 
 .alternativeCardHeader {
@@ -603,7 +601,7 @@
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--semantic-orange);
-  background-color: rgba(249, 115, 22, 0.15);
+  background-color: var(--warning-bg-medium);
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
 }
@@ -619,7 +617,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--accent);
-  background-color: rgba(110, 198, 255, 0.1);
+  background-color: var(--accent-bg-light);
   padding: 0.2rem 0.4rem;
   border-radius: 0.2rem;
 }
@@ -628,8 +626,8 @@
   font-family: var(--data-font-family);
   font-size: 0.85rem;
   font-weight: 600;
-  color: #10b981;
-  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--green-600);
+  background-color: var(--green-bg-light);
   padding: 0.2rem 0.4rem;
   border-radius: 0.2rem;
 }
@@ -655,8 +653,8 @@
   flex: 1;
   min-width: 70px;
   padding: 0.4rem 0.3rem;
-  background-color: rgba(249, 115, 22, 0.1);
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  background-color: var(--warning-bg-subtle);
+  border: 1px solid var(--warning-border);
   border-radius: 0.25rem;
   color: var(--semantic-orange);
   font-size: 0.75rem;
@@ -667,8 +665,8 @@
 }
 
 .alternativeActionButton:hover {
-  background-color: rgba(249, 115, 22, 0.2);
-  border-color: rgba(249, 115, 22, 0.5);
+  background-color: var(--warning-bg-strong);
+  border-color: var(--warning-border-active);
 }
 
 .resultsMapSection {
@@ -689,10 +687,10 @@
 .mapLoadingMessage {
   padding: 2rem;
   text-align: center;
-  background-color: rgba(110, 198, 255, 0.1);
-  border: 1px solid rgba(110, 198, 255, 0.3);
+  background-color: var(--accent-bg-light);
+  border: 1px solid var(--accent-border);
   border-radius: 0.5rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   min-height: 400px;
   display: flex;
   align-items: center;
